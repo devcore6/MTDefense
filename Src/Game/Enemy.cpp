@@ -1,5 +1,7 @@
+#include "Game.hpp"
 #include "Difficulty.hpp"
 #include "Tower.hpp"
+
 #include "../Engine/Engine.hpp"
 
 // Base enemies
@@ -105,13 +107,19 @@ enemy big_momma = { ""_str, ""_str, 750000.0, 0.33, 250.00, 1.0, DAMAGE_BLUNT | 
 
 const rounds standard_rounds = {
     {
-        { { { &nano_matrioshka, 10.0, 20.0 } } },           // Round 1
+        { { { &nano_matrioshka,        10.0,    20.0 } } },             // Round 1
 
-        { { { &nano_matrioshka, 10.0, 20.0 },               // Round 2
-            { &nano_matrioshka,  5.0, 10.0 } } },           // Round 2
+        { { { &nano_matrioshka,        10.0,    20.0 },                 // Round 2
+            { &nano_matrioshka,         5.0,    10.0 } } },             // Round 2
 
-        { { { &nano_matrioshka, 10.0, 25.0 },               // Round 3
-            { &micro_matrioshka, 5.0,  5.0 } } },           // Round 3
+        { { { &nano_matrioshka,        10.0,    25.0 },                 // Round 3
+            { &micro_matrioshka,        9.0,     5.0 } } },             // Round 3
+
+        { { { &nano_matrioshka,         5.0,    15.0 },                 // Round 4
+            { &micro_matrioshka,        8.0,    20.0 } } },             // Round 4
+
+        { { { &micro_matrioshka,        5.0,    20.0 },                 // Round 5
+            { &milli_matrioshka,        8.0,     8.0 } } },             // Round 5
 
         // todo: the other rounds
     }

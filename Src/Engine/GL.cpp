@@ -33,6 +33,8 @@ bool base_triangle_t::contains(vertex_2d& vertex) {
 
 vertex_2d& base_triangle_t::operator[](uint8_t id) { return vertices[limit(0_u8, id, 2_u8)]; }
 
+vertex_2d& triangle_strip_t::operator[](size_t id) { return vertices[clamp(0_z, id, vertices.size())]; }
+
 bool triangle_strip_t::contains(vertex_2d& vertex) {
     if(vertices.size() < 3) return false;
 
@@ -100,3 +102,5 @@ void rect_t::render(vertex_2d& offset, double& rot) {
 
     glPopMatrix();
 }
+
+vertex_2d& line_strip_t::operator[](size_t id) { return vertices[clamp(0_z, id, vertices.size())]; }

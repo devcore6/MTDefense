@@ -31,6 +31,12 @@ map_t* init_map(std::string path, uint8_t difficulty) {
 
 #undef _loop
 
+    if(map.paths.size() == 0) {
+        file.close();
+        conerr("Map is invalid or damaged.");
+        return nullptr;
+    }
+
     std::ostringstream img_data_stream;
     img_data_stream << file.rdbuf();
     std::string img_data = img_data_stream.str();

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Engine/Texture.hpp"
+#include "../Engine/GL.hpp"
 
 struct enemy {
     std::string                             name                = "";
@@ -65,7 +65,6 @@ struct spawned_enemy {
     bool                                    stealth             = false;
     bool                                    armored             = false;
     bool                                    shield              = false;
-    bool                                    regen               = false;
 
     texture_t                               texture;
 

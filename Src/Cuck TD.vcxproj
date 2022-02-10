@@ -167,7 +167,6 @@
     <ClCompile Include="Engine\Map.cpp" />
     <ClCompile Include="Engine\Text.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
-    <ClCompile Include="Engine\Tools.cpp" />
     <ClCompile Include="Game\Enemy.cpp" />
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\Tower.cpp" />

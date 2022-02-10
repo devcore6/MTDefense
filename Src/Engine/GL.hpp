@@ -29,7 +29,7 @@ struct base_triangle_t {
 struct triangle_strip_t {                                                       // Effectively a polygon, but represented by a triangle strip
                                                                                 // Used for clipping areas
     std::vector<vertex_2d> vertices;
-
+    vertex_2d&      operator[](size_t id);
     bool            contains(vertex_2d& vertex);
 };
 
@@ -52,4 +52,5 @@ struct rect_t : public base_rect_t {
 
 struct line_strip_t {
     std::vector<vertex_2d> vertices;
+    vertex_2d& operator[](size_t id);
 };
