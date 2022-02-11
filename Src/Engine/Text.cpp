@@ -48,10 +48,10 @@ int render_text(std::string text, int x, int y, uint8_t r, uint8_t g, uint8_t b,
     glTexImage2D(GL_TEXTURE_2D, 0, colors, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 1.0f); glVertex2i(x, y);
-        glTexCoord2f(1.0f, 1.0f); glVertex2i(x + surface->w, y);
-        glTexCoord2f(1.0f, 0.0f); glVertex2i(x + surface->w, y + surface->h);
-        glTexCoord2f(0.0f, 0.0f); glVertex2i(x, y + surface->h);
+        glTexCoord2f(0.0f, 0.0f); glVertex2i(x, y);
+        glTexCoord2f(1.0f, 0.0f); glVertex2i(x + surface->w, y);
+        glTexCoord2f(1.0f, 1.0f); glVertex2i(x + surface->w, y + surface->h);
+        glTexCoord2f(0.0f, 1.0f); glVertex2i(x, y + surface->h);
     glEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);

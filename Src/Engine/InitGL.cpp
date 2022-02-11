@@ -112,16 +112,15 @@ void main_loop_stub() {
             }
         }
     }
-
-    main_loop();
     
     glClear(GL_COLOR_BUFFER_BIT);
 
     glLoadIdentity();
     glViewport(0, 0, (int)width, (int)height);
-    gluOrtho2D(0, 1920, 0, 1080);
+    gluOrtho2D(0, 1920, 1080, 0);
 
     render_frame();
+    main_loop();
 
     glFlush();
     SDL_GL_SwapWindow(window);

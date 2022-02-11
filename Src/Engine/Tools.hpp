@@ -8,21 +8,21 @@
 
 // Convenient literal suffixes
 
-inline consteval   uint8_t operator ""   _u8(size_t arg) noexcept { return static_cast<uint8_t>(arg); }
-inline consteval  uint16_t operator ""  _u16(size_t arg) noexcept { return static_cast<uint16_t>(arg); }
-inline consteval  uint32_t operator ""  _u32(size_t arg) noexcept { return static_cast<uint32_t>(arg); }
+inline consteval   uint8_t operator ""   _u8(size_t arg) noexcept { return static_cast<  uint8_t>(arg); }
+inline consteval  uint16_t operator ""  _u16(size_t arg) noexcept { return static_cast< uint16_t>(arg); }
+inline consteval  uint32_t operator ""  _u32(size_t arg) noexcept { return static_cast< uint32_t>(arg); }
 
-inline consteval    int8_t operator ""   _i8(size_t arg) noexcept { return static_cast<int8_t>(arg); }
-inline consteval   int16_t operator ""  _i16(size_t arg) noexcept { return static_cast<int16_t>(arg); }
-inline consteval   int32_t operator ""  _i32(size_t arg) noexcept { return static_cast<int32_t>(arg); }
+inline consteval    int8_t operator ""   _i8(size_t arg) noexcept { return static_cast<   int8_t>(arg); }
+inline consteval   int16_t operator ""  _i16(size_t arg) noexcept { return static_cast<  int16_t>(arg); }
+inline consteval   int32_t operator ""  _i32(size_t arg) noexcept { return static_cast<  int32_t>(arg); }
 
 #ifdef UINT64_MAX // Check for 64-bit integer support
-inline consteval  uint64_t operator ""  _u64(size_t arg) noexcept { return static_cast<uint64_t>(arg); }
+inline consteval  uint64_t operator ""  _u64(size_t arg) noexcept { return static_cast< uint64_t>(arg); }
 
-inline consteval   int64_t operator ""  _i64(size_t arg) noexcept { return static_cast<int64_t>(arg); }
+inline consteval   int64_t operator ""  _i64(size_t arg) noexcept { return static_cast<  int64_t>(arg); }
 #endif
 
-inline consteval  intmax_t operator "" _imax(size_t arg) noexcept { return static_cast<intmax_t>(arg); }
+inline consteval  intmax_t operator "" _imax(size_t arg) noexcept { return static_cast< intmax_t>(arg); }
 inline consteval uintmax_t operator "" _umax(size_t arg) noexcept { return static_cast<uintmax_t>(arg); }
 
 // This is only needed until "z" and "zu" suffixes are finalized
@@ -33,14 +33,17 @@ inline consteval    size_t operator ""   _zu(size_t arg) noexcept { return arg; 
 
 inline constexpr std::string operator "" _str(const char* arg, size_t size) noexcept { return std::string(arg); }
 
-inline constexpr std::chrono::nanoseconds operator "" _ns(size_t arg) noexcept { return static_cast<std::chrono::nanoseconds>(arg); }
+inline constexpr std::chrono::nanoseconds  operator "" _ns(size_t arg) noexcept { return static_cast<std::chrono::nanoseconds >(arg); }
 inline constexpr std::chrono::microseconds operator "" _us(size_t arg) noexcept { return static_cast<std::chrono::microseconds>(arg); }
 inline constexpr std::chrono::microseconds operator "" _µs(size_t arg) noexcept { return static_cast<std::chrono::microseconds>(arg); }
 inline constexpr std::chrono::milliseconds operator "" _ms(size_t arg) noexcept { return static_cast<std::chrono::milliseconds>(arg); }
-inline constexpr std::chrono::seconds operator ""  _s(size_t arg) noexcept { return static_cast<std::chrono::seconds>(arg); }
+inline constexpr std::chrono::seconds      operator ""  _s(size_t arg) noexcept { return static_cast<std::chrono::seconds     >(arg); }
 
 
 // Container and loop utilities
+
+template<class T>
+concept two_way_iterable = requires(T arr) { arr.begin(); arr.rbegin(); arr.end(); arr.rend(); };
 
 template<class T>
 concept iterable = requires(T arr) { arr.begin(); arr.end(); };
@@ -52,51 +55,52 @@ inline bool contains(const ArrT arr, T val) { for(T v : arr) if(v == val) return
 template<class T>
 concept reverse_iterable = requires(T arr) { arr.rbegin(); arr.rend(); };
 
-template <reverse_iterable T>
+template<reverse_iterable T>
 struct reverse_impl {
     T& data;
     auto begin() { return data.rbegin(); }
-    auto end() { return data.rend(); }
+    auto end()   { return data.rend(); }
 };
 
-template <reverse_iterable T>
+template<reverse_iterable T>
 reverse_impl<T> reverse(T&& iterable) { return { iterable }; }
 
 
 class numeric_iterator {
 private:
-    size_t it = 0;
+              size_t it = 0;
     const     size_t size = 0;
 
 public:
     constexpr        numeric_iterator() = default;
-    constexpr        numeric_iterator(size_t s) : it(0), size(s) { }
+    constexpr        numeric_iterator(size_t s) : it(0), size(s)           { }
     constexpr        numeric_iterator(size_t i, size_t s) : it(i), size(s) { }
 
-    constexpr size_t operator*() { return it; }
-    constexpr auto& operator++() { if(it < size - 1) ++it; return *this; }
-    constexpr bool   operator==(numeric_iterator& y) { return it == y.it; }
+    constexpr size_t operator* ()                                          { return it; }
+    constexpr auto&  operator++()                                          { ++it; return *this; }
+    constexpr bool   operator==(numeric_iterator& y)                       { return it == y.it; }
 };
 
 class reverse_numeric_iterator {
 private:
-    size_t it = 0;
+              size_t it = 0;
     const     size_t size = 0;
 
 public:
     constexpr        reverse_numeric_iterator() = default;
-    constexpr        reverse_numeric_iterator(size_t s) : it(s - 1), size(s) { }
+    constexpr        reverse_numeric_iterator(size_t s) : it(s - 1), size(s)               { }
     constexpr        reverse_numeric_iterator(size_t i, size_t s) : it(s - 1 - i), size(s) { }
 
-    constexpr size_t operator*() { return it; }
-    constexpr auto& operator++() { if(it > 0) --it; return *this; }
-    constexpr bool   operator==(reverse_numeric_iterator& y) { return it == y.it; }
+    constexpr size_t operator* ()                                                          { return it; }
+    constexpr auto&  operator++()                                                          { --it; return *this; }
+    constexpr bool   operator==(reverse_numeric_iterator& y)                               { return it == y.it; }
 };
 
 class iterate_impl {
 public:
-    using iterator = numeric_iterator;
+    using iterator         = numeric_iterator;
     using reverse_iterator = reverse_numeric_iterator;
+    using value_type       = size_t;
 
 private:
     iterator         _begin;
@@ -105,31 +109,97 @@ private:
     reverse_iterator _rend;
 
 public:
-    iterate_impl(size_t s) : _begin(s), _end(s - 1, s), _rbegin(s), _rend(s - 1, s) { }
-    iterate_impl(size_t b, size_t s) : _begin(b, s), _end(s - 1, s), _rbegin(b, s), _rend(s - 1, s) { }
-    iterator         begin() { return _begin; }
-    iterator         end() { return _end; }
-    reverse_iterator rbegin() { return _rbegin; }
-    reverse_iterator rend() { return _rend; }
+                     iterate_impl(size_t s) : _begin(s), _end(s, s), _rbegin(s), _rend(s, s)                         { }
+                     iterate_impl(size_t b, size_t s) : _begin(b, s), _end(s, s), _rbegin(b, s), _rend(s, s)         { }
+    iterator         begin()                                                                                         { return _begin; }
+    iterator         end()                                                                                           { return _end; }
+    reverse_iterator rbegin()                                                                                        { return _rbegin; }
+    reverse_iterator rend()                                                                                          { return _rend; }
 };
 
-template <std::convertible_to<size_t> T>
+template<std::convertible_to<size_t> T>
 iterate_impl iterate(T size) { return iterate_impl(size); }
 
-template <std::convertible_to<size_t> T, std::convertible_to<size_t> U>
+template<std::convertible_to<size_t> T, std::convertible_to<size_t> U>
 iterate_impl iterate(T begin, U size) { return iterate_impl(begin, size); }
 
 
-template <iterable T>
+template<two_way_iterable T>
 struct offset_impl {
     T& data;
     size_t offset = 0;
-    auto   begin() { return data.begin() + offset; }
-    auto   end() { return data.end(); }
+    auto   begin()  { return data.begin() + offset; }
+    auto   rbegin() { return data.rbegin() + offset; }
+    auto   end()    { return data.end(); }
+    auto   rend()   { return data.rend(); }
 };
 
-template <iterable T, std::convertible_to<size_t> U>
+template<two_way_iterable T, std::convertible_to<size_t> U>
 offset_impl<T> iterate(T arr, U offset) { return { arr, offset }; }
+
+template<template<typename> class T, typename _Ty> requires iterable<T<_Ty>>
+class sized_iterator {
+private:
+          T<_Ty>& data;
+          size_t it   = 0;
+    const size_t size = 0;
+    const size_t N    = 1;
+
+public:
+    constexpr         sized_iterator() = default;
+    constexpr         sized_iterator(T<_Ty>& val, size_t i, size_t s, size_t n) :
+                                    data(val), N(n), it(i), size(s)    { }
+    _Ty&              operator*()                                      { return data[it]; }
+    constexpr auto&   operator++()                                     { it += N; return *this; }
+    constexpr bool    operator==(sized_iterator<T, _Ty>& y)            { return it >= y.it; }
+};
+
+template<template<typename> class T, typename _Ty> requires reverse_iterable<T<_Ty>>
+class reverse_sized_iterator {
+private:
+          T<_Ty>& data;
+          size_t  it   = 0;
+    const size_t  size = 0;
+    const size_t  N    = 1;
+
+public:
+    constexpr         reverse_sized_iterator() = default;
+    constexpr         reverse_sized_iterator(T<_Ty>& val, size_t i, size_t s, size_t n) :
+                                            data(val), N(n), it(s - 1 - i), size(s) { }
+    _Ty&              operator*()                                                   { return data[it]; }
+    constexpr auto&   operator++()                                                  { it -= N; return *this; }
+    constexpr bool    operator==(reverse_sized_iterator<T, _Ty>& y)                 { return it <= y.it; }
+};
+
+template<template<typename> class T, typename _Ty> requires two_way_iterable<T<_Ty>>
+class sized_iterator_impl {
+public:
+    using iterator         = sized_iterator<T, _Ty>;
+    using reverse_iterator = reverse_sized_iterator<T, _Ty>;
+    using value_type       = _Ty;
+    using reference_type   = _Ty&;
+
+private:
+    T<_Ty>&          data;
+    iterator         _begin;
+    iterator         _end;
+    reverse_iterator _rbegin;
+    reverse_iterator _rend;
+
+public:
+         sized_iterator_impl(T<_Ty>& val, size_t N, size_t O) : data(val),
+                                                                _begin(val, O, val.size(), N),
+                                                                _end(val, val.size(), val.size(), N),
+                                                                _rbegin(val, O, val.size(), N),
+                                                                _rend(val, val.size(), val.size(), N) { }
+    auto begin()                                                                                      { return _begin; }
+    auto rbegin()                                                                                     { return _rbegin; }
+    auto end()                                                                                        { return _end; }
+    auto rend()                                                                                       { return _rend; }
+};
+
+template<template<typename> class T, typename _Ty> requires two_way_iterable<T<_Ty>>
+sized_iterator_impl<T, _Ty> iterate(T<_Ty>& arr, size_t N, size_t O) { return sized_iterator_impl<T, _Ty>(arr, N, O); }
 
 
 // Numeric utilities

@@ -24,33 +24,34 @@ struct enemy {
     std::vector<enemy*>                     spawns;
 };
 
-extern enemy         nano_matrioshka;
-extern enemy        micro_matrioshka;
-extern enemy        milli_matrioshka;
-extern enemy        centi_matrioshka;
-extern enemy         deci_matrioshka;
-extern enemy              matrioshka;
+extern enemy*         nano_matrioshka;
+extern enemy*        micro_matrioshka;
+extern enemy*        milli_matrioshka;
+extern enemy*        centi_matrioshka;
+extern enemy*         deci_matrioshka;
+extern enemy*              matrioshka;
 
-extern enemy     volcanic_matrioshka;
-extern enemy     siberian_matrioshka;
+extern enemy*     volcanic_matrioshka;
+extern enemy*     siberian_matrioshka;
 
-extern enemy experimental_matrioshka;
+extern enemy* experimental_matrioshka;
 
-extern enemy         iron_matrioshka;
+extern enemy*         iron_matrioshka;
 
-extern enemy         giga_matrioshka;
+extern enemy*         giga_matrioshka;
 
-extern enemy     hardened_matrioshka;
+extern enemy*     hardened_matrioshka;
 
-extern enemy                   chonk;
-extern enemy                chonkers;
-extern enemy           monster_chonk;
-extern enemy             dark_chonky;
-extern enemy         soviet_chonkers;
+extern enemy*                   chonk;
+extern enemy*                chonkers;
+extern enemy*           monster_chonk;
+extern enemy*             dark_chonky;
+extern enemy*         soviet_chonkers;
 
 struct spawned_enemy {
     line_strip_t*                           route               = nullptr;
     vertex_2d                               pos                 = { 0.0, 0.0 };
+    double                                  distance_travelled  = 0.0;
 
     double                                  max_health          = 1.0;
     double                                  health              = 1.0;
@@ -70,4 +71,7 @@ struct spawned_enemy {
 
     enemy*                                  spawns_when_damaged = nullptr;
     std::vector<enemy*>                     spawns;
+
+    bool                                    survived            = false;
+    enemy*                                  base_enemy          = nullptr;
 };

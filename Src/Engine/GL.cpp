@@ -2,11 +2,13 @@
 #include "Tools.hpp"
 #include <SDL/SDL_opengl.h>
 
-vertex_2d vertex_2d::operator+(vertex_2d& rhs) { return vertex_2d { x + rhs.x , y + rhs.y }; }
-vertex_2d vertex_2d::operator-(vertex_2d& rhs) { return vertex_2d { x - rhs.x , y - rhs.y }; }
+vertex_2d vertex_2d::operator+(vertex_2d& rhs) { return vertex_2d { x + rhs.x, y + rhs.y }; }
+vertex_2d vertex_2d::operator-(vertex_2d& rhs) { return vertex_2d { x - rhs.x, y - rhs.y }; }
+vertex_2d vertex_2d::operator*(double d)       { return vertex_2d { x *     d, y *     d }; }
 
 vertex_2d& vertex_2d::operator+=(vertex_2d& rhs) { x += rhs.x; y += rhs.y; return *this; }
 vertex_2d& vertex_2d::operator-=(vertex_2d& rhs) { x -= rhs.x; y -= rhs.y; return *this; }
+vertex_2d& vertex_2d::operator*=(double d)       { x *=     d; y *=     d; return *this; }
 
 double& vertex_2d::operator[](uint8_t id) { return !(id % 2) ? x : y; }
 
@@ -80,10 +82,10 @@ void rect_t::render() {
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
 
-        if(texture.textid) glTexCoord2d(0.0, 1.0); glVertex2d(vertices[0][0], vertices[0][1]);
-        if(texture.textid) glTexCoord2d(1.0, 1.0); glVertex2d(vertices[1][0], vertices[1][1]);
-        if(texture.textid) glTexCoord2d(1.0, 0.0); glVertex2d(vertices[2][0], vertices[2][1]);
-        if(texture.textid) glTexCoord2d(0.0, 0.0); glVertex2d(vertices[3][0], vertices[3][1]);
+        if(texture.textid) glTexCoord2d(0.0, 0.0); glVertex2d(vertices[0][0], vertices[0][1]);
+        if(texture.textid) glTexCoord2d(1.0, 0.0); glVertex2d(vertices[1][0], vertices[1][1]);
+        if(texture.textid) glTexCoord2d(1.0, 1.0); glVertex2d(vertices[2][0], vertices[2][1]);
+        if(texture.textid) glTexCoord2d(0.0, 1.0); glVertex2d(vertices[3][0], vertices[3][1]);
 
     glEnd();
 
@@ -104,3 +106,15 @@ void rect_t::render(vertex_2d& offset, double& rot) {
 }
 
 vertex_2d& line_strip_t::operator[](size_t id) { return vertices[clamp(0_z, id, vertices.size())]; }
+
+vertex_2d  line_strip_t::get_position_at(double d) {
+    double offset = 0.0;
+    for(auto i : iterate(vertices.size())) {
+        if(i == vertices.size() - 1) return vertices[i];
+        vertex_2d diff = vertices[i + 1] - vertices[i];
+        double length = sqrt(diff.x * diff.x + diff.y * diff.y);
+        if(length < d - offset) { offset += length; continue; }
+        return diff * (d - offset) * (1.0 / length) + vertices[i];
+    }
+    return vertices[vertices.size() - 1];
+}

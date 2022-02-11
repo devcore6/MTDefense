@@ -90,7 +90,7 @@ void render_console() {
         int x = 25;
 
         for(auto& m : messages)
-            x += render_text(m.first, x, (int)(1040 - font_size * 1.75 * rendered),
+            x += render_text(m.first, x, (int)(40 + font_size * 1.75 * rendered),
                 (uint8_t)((m.second >> 24) & 0xFF),
                 (uint8_t)((m.second >> 16) & 0xFF),
                 (uint8_t)((m.second >>  8) & 0xFF),
@@ -140,7 +140,7 @@ void render_chat() {
         int x = 25;
 
         for(auto& m : messages)
-            x += render_text(m.first, x, (int)(45 + font_size * 1.75 * rendered),
+            x += render_text(m.first, x, (int)(height - 45 - font_size * 1.75 * rendered),
                 (uint8_t)((m.second >> 24) & 0xFF),
                 (uint8_t)((m.second >> 16) & 0xFF),
                 (uint8_t)((m.second >>  8) & 0xFF),

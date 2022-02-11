@@ -2,7 +2,7 @@
 #include "Enemy.hpp"
 
 struct enemy_set {
-    enemy*          e;
+    enemy**         e;
     double          spacing                     = 0.0;
     double          amount                      = 0.0;
 };
@@ -28,6 +28,7 @@ extern const rounds standard_rounds;
 
 struct difficulty {
     size_t          rounds_to_win               = 60;
+    size_t          lives                       = 250;
 
     double          enemy_speed_modifier        = 1.00;
     double          enemy_health_modifier       = 1.00;
@@ -59,7 +60,7 @@ struct difficulty {
     const rounds*   round_set                   = &standard_rounds;
 };
 
-constexpr difficulty easy       = {  40, 0.9, 0.9, 0.9, 0.8, 0.00000, 0.00000, 0.00000, 1.0, 0, 1.20, 1.20, 1.20, 0.8, 1.10, 1.10, 0.90, 1.20, true, true, true, 1.0 };
-constexpr difficulty medium     = {  60, 1.0, 1.0, 1.0, 1.0, 0.00000, 0.00000, 0.00000, 1.5, 0, 1.00, 1.00, 1.00, 1.0, 1.00, 1.00, 0.85, 1.00, true, true, true, 2.0 };
-constexpr difficulty hard       = {  80, 1.2, 1.1, 1.3, 1.4, 0.00002, 0.00001, 0.00001, 2.0, 0, 0.92, 0.90, 0.95, 1.2, 0.96, 0.95, 0.80, 0.98, true, true, true, 3.0 };
-constexpr difficulty impossible = { 100, 1.3, 1.2, 1.4, 1.6, 0.00003, 0.00002, 0.00005, 3.0, 0, 0.82, 0.85, 0.88, 1.3, 0.94, 0.92, 0.75, 0.95, true, true, true, 4.0 };
+constexpr difficulty easy       = {  40, 500, 0.9, 0.9, 0.9, 0.8, 0.00000, 0.00000, 0.00000, 1.0, 0, 1.20, 1.20, 1.20, 0.8, 1.10, 1.10, 0.90, 1.20, true, true, true, 1.0 };
+constexpr difficulty medium     = {  60, 250, 1.0, 1.0, 1.0, 1.0, 0.00000, 0.00000, 0.00000, 1.5, 0, 1.00, 1.00, 1.00, 1.0, 1.00, 1.00, 0.85, 1.00, true, true, true, 2.0 };
+constexpr difficulty hard       = {  80, 100, 1.2, 1.1, 1.3, 1.4, 0.00002, 0.00001, 0.00001, 2.0, 0, 0.92, 0.90, 0.95, 1.2, 0.96, 0.95, 0.80, 0.98, true, true, true, 3.0 };
+constexpr difficulty impossible = { 100,   1, 1.3, 1.2, 1.4, 1.6, 0.00003, 0.00002, 0.00005, 3.0, 0, 0.82, 0.85, 0.88, 1.3, 0.94, 0.92, 0.75, 0.95, true, true, true, 4.0 };

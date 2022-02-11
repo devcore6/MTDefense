@@ -7,9 +7,11 @@ struct vertex_2d {
 
     vertex_2d       operator+(vertex_2d& rhs);
     vertex_2d       operator-(vertex_2d& rhs);
+    vertex_2d       operator*(double d);
 
     vertex_2d&      operator+=(vertex_2d& rhs);
     vertex_2d&      operator-=(vertex_2d& rhs);
+    vertex_2d&      operator*=(double d);
 
     double&         operator[](uint8_t id);                                     // 0 = x, 1 = y, 2 ... 255 = y
 };
@@ -53,4 +55,5 @@ struct rect_t : public base_rect_t {
 struct line_strip_t {
     std::vector<vertex_2d> vertices;
     vertex_2d& operator[](size_t id);
+    vertex_2d  get_position_at(double d);
 };

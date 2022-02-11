@@ -2,10 +2,12 @@
 #include "Map.hpp"
 #include <iostream>
 
+extern void game_tick();
 extern void init_game();
 extern void render_map();
 extern void render_sidebar();
 extern void render_menu();
+extern void deinit_game();
 
 void render_frame() {
     if(current_map) {
@@ -19,8 +21,13 @@ void render_frame() {
 }
 
 void main_loop() {
-
+    game_tick();
 }
+
+// temporary until there is a menu
+#include "../Game/Difficulty.hpp"
+extern void init_match(map_t* map, difficulty diff);
+
 #include <iomanip>
 int main(int argc, char* argv[]) {
     TTF_Init();
@@ -34,7 +41,7 @@ int main(int argc, char* argv[]) {
     }
 
     init_game();
-    current_map = init_map("Data/Maps/Test.bin"_str, MAP_BEGINNER);
+    init_match(init_map("Data/Maps/Test.bin"_str, MAP_BEGINNER), medium);
 
     while(!quit) {
         main_loop_stub();
@@ -42,6 +49,7 @@ int main(int argc, char* argv[]) {
 
     savevars();
 
+    deinit_game();
     deinit_fonts();
     deinit_gl();
 
