@@ -79,6 +79,13 @@ void init_round() {
     gs.last_round = gs.cur_round;
 }
 
+double count_lives(enemy* e) {
+    double lives = e->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier;
+    for(auto& s : e->spawns)
+        lives += count_lives(s);
+    return lives;
+};
+
 void game_tick() {
     if(gs.lives > 0) {
         std::vector<std::future<void>> Ts;
@@ -95,7 +102,8 @@ void game_tick() {
                 if(gs.spawned_enemies >= pos + n_set) { pos += n_set; continue; }
                 size_t n_left = pos + n_set - gs.spawned_enemies;
                 size_t n_spawn = (size_t)(time_elapsed * (gs.double_speed ? 0.05 : 0.025) / set.spacing);
-                if(n_spawn > 0 && n_left > 0) {
+                if(n_spawn == 0) break;
+                if(n_left > 0) {
                     gs.last_spawned_tick = sc::now();
                     for(auto i : iterate(min(n_spawn, n_left))) {
                         gs.last_route = limit(0, gs.last_route + 1, current_map->paths.size() - 1);
@@ -135,15 +143,7 @@ void game_tick() {
                     e.pos = e.route->get_position_at(e.distance_travelled);
                     if(e.pos.x == e.route->vertices[e.route->vertices.size() - 1].x && e.pos.y == e.route->vertices[e.route->vertices.size() - 1].y) {
                         e.survived = true;
-                        const auto& count_lives = [](enemy* e, void* _f) -> double {
-                            double (*f)(enemy*, void*) = (double (*)(enemy*, void*))_f;
-                            double lives = e->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier;
-                            for(auto& s : e->spawns)
-                                lives += (*f)(s, _f);
-                            return lives;
-                        };
-                        double lives = count_lives(e.base_enemy, (void*)&count_lives);
-
+                        double lives = count_lives(e.base_enemy);
                         lock.lock();
                         gs.lives -= lives;
                         lock.unlock();
@@ -171,10 +171,10 @@ void game_tick() {
             
                         glBegin(GL_QUADS);
 
-                            glTexCoord2d(0.0, 0.0); glVertex2d(-w/2, -h/2);
-                            glTexCoord2d(1.0, 0.0); glVertex2d( w/2, -h/2);
-                            glTexCoord2d(1.0, 1.0); glVertex2d( w/2,  h/2);
-                            glTexCoord2d(0.0, 1.0); glVertex2d(-w/2,  h/2);
+                            glTexCoord2d(0.0, 0.0); glVertex2d(-w*0.55, -h*0.375);
+                            glTexCoord2d(1.0, 0.0); glVertex2d( w*0.45, -h*0.375);
+                            glTexCoord2d(1.0, 1.0); glVertex2d( w*0.45,  h*0.625);
+                            glTexCoord2d(0.0, 1.0); glVertex2d(-w*0.55,  h*0.625);
 
                         glEnd();
 

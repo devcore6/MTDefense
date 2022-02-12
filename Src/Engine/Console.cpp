@@ -55,8 +55,14 @@ void add_to_chat(std::string msg) {
 void render_console() {
     auto now = sc::now();
     intmax_t rendered = 0;
+    intmax_t to_render = 0;
 
-    for(auto& message : console_messages) {
+    for(auto& message : reverse(console_messages)) {
+        if(std::chrono::duration_cast<std::chrono::seconds>(now - message.first).count() <= consoletimeout) to_render++;
+        if(to_render == consoleheight) break;
+    }
+
+    for(auto& message : reverse(console_messages)) {
         if(rendered >= consoleheight) return;
         if(std::chrono::duration_cast<std::chrono::seconds>(now - message.first).count() > consoletimeout) return;
         auto s = message.second;
@@ -90,7 +96,7 @@ void render_console() {
         int x = 25;
 
         for(auto& m : messages)
-            x += render_text(m.first, x, (int)(40 + font_size * 1.75 * rendered),
+            x += render_text(m.first, x, (int)(40 + font_size * 1.75 * (to_render - rendered - 1)),
                 (uint8_t)((m.second >> 24) & 0xFF),
                 (uint8_t)((m.second >> 16) & 0xFF),
                 (uint8_t)((m.second >>  8) & 0xFF),
@@ -105,8 +111,13 @@ void render_console() {
 void render_chat() {
     auto now = sc::now();
     intmax_t rendered = 0;
+    intmax_t to_render = 0;
+    for(auto& message : reverse(chat_messages)) {
+        if(std::chrono::duration_cast<std::chrono::seconds>(now - message.first).count() <= chattimeout) to_render++;
+        if(to_render == chatheight) break;
+    }
 
-    for(auto& message : chat_messages) {
+    for(auto& message : reverse(chat_messages)) {
         if(rendered >= chatheight) return;
         if(std::chrono::duration_cast<std::chrono::seconds>(now - message.first).count() > chattimeout) return;
         auto s = message.second;
@@ -140,7 +151,7 @@ void render_chat() {
         int x = 25;
 
         for(auto& m : messages)
-            x += render_text(m.first, x, (int)(height - 45 - font_size * 1.75 * rendered),
+            x += render_text(m.first, x, (int)(height - 45 - font_size * 1.75 * (to_render - rendered - 1)),
                 (uint8_t)((m.second >> 24) & 0xFF),
                 (uint8_t)((m.second >> 16) & 0xFF),
                 (uint8_t)((m.second >>  8) & 0xFF),
