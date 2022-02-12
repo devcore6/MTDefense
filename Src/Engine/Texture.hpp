@@ -14,13 +14,16 @@ struct texture_t {
     unsigned int                                        width               = 0;
     unsigned int                                        height              = 0;
 
+    texture_t()                                                             = default;
     texture_t(std::string path);
     texture_t(SDL_RWops*  data);
 };
 
 struct animation_t {
+    animation_t()                                                           = default;
+    animation_t(std::string dir);
+    std::vector<texture_t>                              frames;
     double                                              frame_rate          = 30;
     size_t                                              last_frame          = 0;
     sc::time_point                                      last_frame_time     = sc::now();
-    std::vector<texture_t>                              frames;
 };

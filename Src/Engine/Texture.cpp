@@ -2,6 +2,8 @@
 #include <SDL/SDL_opengl.h>
 #include <SDL/SDL_image.h>
 
+#include <filesystem>
+
 #if defined(_WIN32) || defined(_WIN64)
 PFNGLGENERATEMIPMAPPROC _glGenerateMipmap;
 #endif
@@ -87,4 +89,10 @@ texture_t::texture_t(SDL_RWops* data) {
     height = surface->h;
 
     SDL_FreeSurface(surface);
+}
+
+animation_t::animation_t(std::string folder) {
+    for(const auto& f : std::filesystem::directory_iterator(folder))
+        if(f.is_regular_file())
+            frames.push_back(texture_t(f.path().string()));
 }

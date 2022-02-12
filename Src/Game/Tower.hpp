@@ -31,14 +31,17 @@ struct projectile {
 
     bool        can_hit_armored     = false;
     bool        can_hit_stealth     = false;
+    bool        strip_armor         = false;
+    bool        strip_stealth       = false;
 
     bool        place_on_track      = false;
 
     double      base_damage         = 0.0;
-    double      armor_modifier      = 1.0;
+    double      armor_modifier      = 0.33;
     double      fire_rate           = 0.0;
     double      speed               = 0.0;
     double      range               = 0.0;              // Projectile range
+    double      odds                = 1.0;
 
     size_t      damage_maxhits      = 0;
     double      damage_range        = 0.0;
@@ -49,7 +52,7 @@ struct projectile {
 
 struct animation_set {
     animation_t                                         idle_animation;
-    std::vector<std::pair<projectile, animation_t>>     attack_animations;
+    std::vector<std::pair<projectile*, animation_t>>    attack_animations;
 };
 
 struct upgrade {
@@ -61,17 +64,24 @@ struct upgrade {
     double      fire_rate_mod       = 1.0;
     double      speed_mod           = 1.0;
     double      armor_mod           = 1.0;
+    double      damage_mod          = 1.0;
 
     bool        can_hit_armored     = false;
     bool        can_hit_stealth     = false;
+    
+    size_t      extra_damage_maxhits= 0;
+    double      extra_damage_range  = 0.0;
+    uint16_t    extra_damage_types  = 0;
 
+    std::vector<animation_t> hit_animations;
     std::vector<projectile> projectiles;
-    texture_t   icon;
 };
 
 struct tower {
     std::string name                = "";
     std::string desc                = "";
+
+    double      hitbox_radius       = 0.0;
 
     double      base_price          = 0.0;
     double      range               = 0.0;              // Tareting range
@@ -81,10 +91,9 @@ struct tower {
 
     std::vector<projectile> projectiles;
 
-    upgrade     upgrade_paths[6][3];
+    upgrade     upgrade_paths[3][6];
 
-    animation_set animations[153]  = { };
-    texture_t   icon;
+    std::string tower_path          = "Data/Towers/";
 };
 
 class owned_tower {
@@ -97,6 +106,17 @@ public:
     double      pos_x               = 0.0;
     double      pos_y               = 0.0;
     double      rot                 = 0.0;
+
+    double      range_mod           = 1.0;
+    double      fire_rate_mod       = 1.0;
+    double      speed_mod           = 1.0;
+    double      armor_mod           = 1.0;
+    double      damage_mod          = 1.0;
+
+    size_t      extra_damage_maxhits= 0;
+    double      extra_damage_range  = 0.0;
+    uint16_t    extra_damage_types  = 0;
+    std::vector<animation_t> hit_animations;
 
     uint8_t     upgrade_paths[3]    = { 0, 0, 0 };
 
