@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <map>
 
 #include "../Engine/GL.hpp"
 #include "Enemy.hpp"
@@ -42,7 +43,7 @@ struct projectile {
     double      fire_rate           = 0.0;
     double      speed               = 0.0;
     double      range               = 0.0;              // Projectile range
-    double      odds                = 1.0;
+    size_t      odds                = 1;
 
     size_t      damage_maxhits      = 0;
     double      damage_range        = 0.0;
@@ -96,12 +97,13 @@ struct tower {
 
     upgrade     upgrade_paths[3][6];
 
-    std::string tower_path          = "Data/Towers/";
+    std::map<std::string, animation_t> animations;
 };
 
 class owned_tower {
 private:
     double      remaining_cooldown  = 0.0;
+
 public:
     tower*      base_type           = nullptr;
     rect_t      rect;
@@ -124,11 +126,13 @@ public:
     double      extra_damage_range  = 0.0;
     uint16_t    extra_damage_types  = 0;
     std::vector<animation_t> hit_animations;
+    std::vector<projectile> projectiles;
 
     uint8_t     upgrade_paths[3]    = { 0, 0, 0 };
 
     std::string custom_name         = "";
 
+    owned_tower(tower* t, double c, double x, double y);
     void        tick(double time);
     bool        can_fire();
     double      fire(spawned_enemy& e);

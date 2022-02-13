@@ -1,19 +1,58 @@
+#include <filesystem>
+#include <random>
+
 #include "../Engine/Tools.hpp"
 #include "Tower.hpp"
 std::vector<tower> towers;
 
-void owned_tower::tick(double time) {
+extern std::mt19937_64 rng;
 
+owned_tower::owned_tower(tower* t, double c, double x, double y) : base_type(t), cost(c), pos_x(x), pos_y(y), projectiles(t->projectiles) {
+
+}
+
+void owned_tower::tick(double time) {
+    remaining_cooldown -= time;
 }
 
 bool owned_tower::can_fire() { return remaining_cooldown <= 0.0; }
 
 double owned_tower::fire(spawned_enemy& e) {
-    return -1.0;
+    if(!can_fire()) return -1.0;
+    size_t odds = 0;
+    for(auto& p : projectiles) odds += p.odds;
+    if(odds == 0) return -1.0; // Should never happen
+    size_t r = rng() % odds;
+    size_t offset = 0;
+    projectile* p = nullptr;
+    for(auto i : iterate(projectiles.size())) if(projectiles[i].odds + offset >= r) { p = &projectiles[i]; break; }
+    if(!p) return -1.0; // Should never happen
+    uint16_t damage_type = p->damage_type | extra_damage_types;
+    if(damage_type & ~e.immunities) {
+        double dmg = p->base_damage * damage_mod;
+        if(e.armored) dmg *= armor_mod;
+        if(damage_type & ~e.vulnerabilities) dmg *= 2;
+        return dmg;
+    }
+    return 0.0;
 }
 
 void owned_tower::render() {
+    rect.render({ pos_x, pos_y }, rot);
+}
 
+std::map<std::string, animation_t> map_animations(std::string path) {
+    std::map<std::string, animation_t> ret;
+
+    for(auto& dir : std::filesystem::directory_iterator(path)) {
+        if(!dir.is_directory()) continue;
+        std::string name = dir.path().filename().string();
+        if(name.length() != 5) continue;
+        if(!isdigit(name[0]) || name[1] != '-' || !isdigit(name[2]) || name[3] != '-' || !isdigit(name[4])) continue;
+        ret.insert({ { name, animation_t(dir.path().string()) } });
+    }
+
+    return ret;
 }
 
 void init_towers() {
@@ -32,7 +71,7 @@ void init_towers() {
                 false,
                 false,
                 1.0, 0.33, 1.0,
-                250.00, 175.00, 4.0,
+                250.00, 175.00, 4,
                 1, 0.0, DAMAGE_BLUNT,
                 { }
             }
@@ -131,7 +170,7 @@ void init_towers() {
                             false,
                             false,
                             2.0, 1.0, 1.0,
-                            250.00, 175.00, 2.0,
+                            250.00, 175.00, 2,
                             1, 0.0, DAMAGE_SHARP,
                             { }
                         }
@@ -171,7 +210,7 @@ void init_towers() {
                             false,
                             false,
                             2.5, 0.5, 1.0,
-                            250.00, 175.00, 1.0,
+                            250.00, 175.00, 1,
                             1, 0.0, DAMAGE_BLUNT | DAMAGE_CHEMICAL,
                             { }
                         },
@@ -183,7 +222,7 @@ void init_towers() {
                             false,
                             false,
                             2.5, 0.5, 1.0,
-                            250.00, 175.00, 1.0,
+                            250.00, 175.00, 1,
                             1, 0.0, DAMAGE_BLUNT | DAMAGE_BIOLOGICAL,
                             { }
                         },
@@ -195,7 +234,7 @@ void init_towers() {
                             true,
                             true,
                             2.5, 0.5, 1.0,
-                            250.00, 175.00, 1.0,
+                            250.00, 175.00, 1,
                             1, 0.0, DAMAGE_BLUNT | DAMAGE_MAGIC,
                             { }
                         }
@@ -259,6 +298,6 @@ void init_towers() {
                 }
             }
         },
-        "Data/Towers/Sentry/"_str
+        map_animations("Data/Towers/Sentry/"_str)
     });
 }

@@ -49,7 +49,7 @@ struct rect_t : public base_rect_t {
     animation_t     anim;
 
     void            render();
-    void            render(vertex_2d& offset, double& rot);
+    void            render(vertex_2d offset, double& rot);
 };
 
 struct line_strip_t {

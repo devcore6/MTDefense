@@ -95,7 +95,7 @@ void rect_t::render() {
     }
 }
 
-void rect_t::render(vertex_2d& offset, double& rot) {
+void rect_t::render(vertex_2d offset, double& rot) {
     glPushMatrix();
 
         glTranslated(offset.x, offset.y, 0.0);

@@ -3,6 +3,7 @@
 #include <mutex>
 
 struct enemy {
+    // todo: Freezing, slowing, etc.
     std::string                             name                = "";
     std::string                             description         = "";
 
@@ -50,6 +51,7 @@ extern enemy*             dark_chonky;
 extern enemy*         soviet_chonkers;
 
 struct spawned_enemy {
+    // todo: Freezing, slowing, etc.
     std::mutex*                             lock                = nullptr;
     bool                                    schedule_removal    = false;
     line_strip_t*                           route               = nullptr;
