@@ -12,11 +12,11 @@
 
 using sc = std::chrono::system_clock;
 
-extern void init_towers();
-
 std::mt19937_64 rng;
 
 std::mutex lock;
+
+extern std::vector<tower> towers;
 
 struct game_state {
     size_t cur_round = 0;
@@ -32,14 +32,15 @@ struct game_state {
     difficulty diff;
 
     size_t spawned_enemies = 0;
-    std::vector<spawned_enemy>  created_enemies;
-    std::vector<owned_tower>    owned_towers;
+    std::vector<spawned_enemy> created_enemies;
+    std::vector<owned_tower> towers;
 
     bool running = false;
 };
 
 game_state gs;
 
+extern void init_towers();
 extern void init_enemies();
 void init_game() {
     rng.seed(std::random_device{}());
@@ -86,6 +87,35 @@ double count_lives(enemy* e) {
     return lives;
 };
 
+void schedule_spawns(std::vector<spawned_enemy>& scheduled_additions, spawned_enemy& e, double excess_damage) {
+    for(auto s : e.spawns) {
+        double health = s->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier <= excess_damage;
+        if(health > excess_damage) schedule_spawns(scheduled_additions, e, excess_damage - health);
+        else scheduled_additions.push_back({
+            new std::mutex(),
+            false,
+            e.route,
+            e.pos,
+            e.distance_travelled,
+            health,
+            health - excess_damage,
+            s->base_speed * gs.diff.enemy_speed_modifier * gs.diff.round_set->r[gs.cur_round].enemy_speed_multiplier,
+            s->base_kill_reward * gs.diff.enemy_kill_reward_modifier * gs.diff.round_set->r[gs.cur_round].kill_cash_multiplier,
+            s->scale,
+            (uint16_t)(s->immunities | gs.diff.enemy_base_immunities), // Why is the explicit conversion required here? Its uint16_t | uint16_t yet VisualStudio says the result is int?
+            s->vulnerabilities,
+            s->stealth || e.stealth || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+            s->armored || e.armored || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+            (rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+            s->texture,
+            s->spawns_when_damaged,
+            s->spawns,
+            false,
+            s
+        });
+    }
+}
+
 void game_tick() {
     if(gs.lives > 0) {
         std::vector<std::future<void>> Ts;
@@ -109,6 +139,8 @@ void game_tick() {
                         gs.last_route = limit(0, gs.last_route + 1, current_map->paths.size() - 1);
                         gs.spawned_enemies++;
                         gs.created_enemies.push_back(spawned_enemy {
+                            {},
+                            false,
                             &current_map->paths[gs.last_route],
                             current_map->paths[gs.last_route][0],
                             0.0,
@@ -156,11 +188,70 @@ void game_tick() {
                 Ts.pop_back();
             }
 
+            std::vector<spawned_enemy>* scheduled_additions = new std::vector<spawned_enemy>[threads];
+
+            // Do towers update cycles
+            for(auto i : iterate(threads)) Ts.push_back(std::async([scheduled_additions](size_t i, double time_diff) {
+                for(auto t : iterate<std::vector, owned_tower>(gs.towers, threads, i)) {
+                    t.tick(time_diff);
+                    if(!t.can_fire()) continue;
+                    for(auto& e : gs.created_enemies) {
+                        e.lock->lock();
+                        if(e.schedule_removal) { e.lock->unlock(); continue; }
+                        double d = 0.0;
+                        if((d = t.fire(e)) != -1.0) {
+                            double excess_damage = e.health - d;
+                            if(excess_damage >= 0.0) {
+                                e.schedule_removal = true;
+                                schedule_spawns(scheduled_additions[i], e, excess_damage);
+                            } else if(e.spawns_when_damaged) scheduled_additions[i].push_back({
+                                new std::mutex(),
+                                false,
+                                e.route,
+                                e.pos,
+                                e.distance_travelled,
+                                e.spawns_when_damaged->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier,
+                                e.spawns_when_damaged->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier,
+                                e.spawns_when_damaged->base_speed * gs.diff.enemy_speed_modifier * gs.diff.round_set->r[gs.cur_round].enemy_speed_multiplier,
+                                e.spawns_when_damaged->base_kill_reward * gs.diff.enemy_kill_reward_modifier * gs.diff.round_set->r[gs.cur_round].kill_cash_multiplier,
+                                e.spawns_when_damaged->scale,
+                                (uint16_t)(e.spawns_when_damaged->immunities | gs.diff.enemy_base_immunities), // Why is the explicit conversion required here? Its uint16_t | uint16_t yet VisualStudio says the result is int?
+                                e.spawns_when_damaged->vulnerabilities,
+                                e.spawns_when_damaged->stealth || e.stealth || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+                                e.spawns_when_damaged->armored || e.armored || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+                                (rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+                                e.spawns_when_damaged->texture,
+                                e.spawns_when_damaged->spawns_when_damaged,
+                                e.spawns_when_damaged->spawns,
+                                false,
+                                e.spawns_when_damaged
+                            });
+                            e.lock->unlock();
+                            break;
+                        }
+                        e.lock->unlock();
+                    }
+                }
+            }, i, time_diff));
+
+            while(Ts.size() > 0) {
+                Ts[Ts.size() - 1].wait();
+                Ts.pop_back();
+            }
+
+            for(size_t i = 0; i < gs.created_enemies.size(); i++)
+                if(gs.created_enemies[i].schedule_removal) gs.created_enemies.erase(gs.created_enemies.begin() + i);
+
+            for(auto i : iterate(threads))
+                gs.created_enemies.insert(gs.created_enemies.end(), scheduled_additions[i].begin(), scheduled_additions[i].end());
+
+            delete[] scheduled_additions;
+
             // Render the enemies
             glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
             for(size_t i = 0; i < gs.created_enemies.size(); i++) {
                 auto& e = gs.created_enemies[i];
-                if(e.health > 0.0 && !e.survived) {
+                if(!e.survived) {
                     double w = e.texture.width * e.scale * 2.0;
                     double h = e.texture.height * e.scale * 2.0;
                     glPushMatrix();
@@ -183,9 +274,14 @@ void game_tick() {
 
                     glPopMatrix();
                 } else {
+                    delete gs.created_enemies[i].lock;
                     gs.created_enemies.erase(gs.created_enemies.begin() + i);
                 }
             }
+
+            // Render the towers
+            for(auto t : gs.towers)
+                t.render();
 
             // todo: round 150 again
             size_t total_enemies = 0;
@@ -199,16 +295,6 @@ void game_tick() {
                 gs.spawned_enemies = 0;
                 gs.created_enemies.clear();
             }
-        }
-
-        // Do towers update cycles
-        for(auto i : iterate(threads)) Ts.push_back(std::async([](size_t i) {
-        
-        }, i));
-
-        while(Ts.size() > 0) {
-            Ts[Ts.size() - 1].wait();
-            Ts.pop_back();
         }
     }
 }

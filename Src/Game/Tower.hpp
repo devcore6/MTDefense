@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../Engine/GL.hpp"
+#include "Enemy.hpp"
 
 enum {
     DAMAGE_BLUNT        = 1 << 0,
@@ -69,7 +70,9 @@ struct upgrade {
     bool        can_hit_armored     = false;
     bool        can_hit_stealth     = false;
     
-    size_t      extra_damage_maxhits= 0;
+    size_t      extra_damage_maxhits_linear = 0;
+    size_t      extra_damage_maxhits_range  = 0;
+    double      extra_damage_linear = 0.0;
     double      extra_damage_range  = 0.0;
     uint16_t    extra_damage_types  = 0;
 
@@ -97,6 +100,8 @@ struct tower {
 };
 
 class owned_tower {
+private:
+    double      remaining_cooldown  = 0.0;
 public:
     tower*      base_type           = nullptr;
     rect_t      rect;
@@ -113,7 +118,9 @@ public:
     double      armor_mod           = 1.0;
     double      damage_mod          = 1.0;
 
-    size_t      extra_damage_maxhits= 0;
+    size_t      extra_damage_maxhits_linear = 0;
+    size_t      extra_damage_maxhits_range  = 0;
+    double      extra_damage_linear = 0.0;
     double      extra_damage_range  = 0.0;
     uint16_t    extra_damage_types  = 0;
     std::vector<animation_t> hit_animations;
@@ -121,7 +128,11 @@ public:
     uint8_t     upgrade_paths[3]    = { 0, 0, 0 };
 
     std::string custom_name         = "";
+
+    void        tick(double time);
+    bool        can_fire();
+    double      fire(spawned_enemy& e);
+    void        render();
 };
 
-extern std::vector<tower>       available_towers;
-extern std::vector<owned_tower>     owned_towers;
+extern std::vector<tower>       towers;

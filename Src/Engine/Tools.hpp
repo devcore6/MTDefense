@@ -5,6 +5,7 @@
 #include <string>
 #include <concepts>
 #include <functional>
+#include <atomic>
 
 // Convenient literal suffixes
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "../Engine/GL.hpp"
+#include <mutex>
 
 struct enemy {
     std::string                             name                = "";
@@ -49,6 +50,8 @@ extern enemy*             dark_chonky;
 extern enemy*         soviet_chonkers;
 
 struct spawned_enemy {
+    std::mutex*                             lock                = nullptr;
+    bool                                    schedule_removal    = false;
     line_strip_t*                           route               = nullptr;
     vertex_2d                               pos                 = { 0.0, 0.0 };
     double                                  distance_travelled  = 0.0;
