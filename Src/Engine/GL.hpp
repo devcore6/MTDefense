@@ -5,12 +5,12 @@ struct vertex_2d {
     double          x           = 0;
     double          y           = 0;
 
-    vertex_2d       operator+(vertex_2d& rhs);
-    vertex_2d       operator-(vertex_2d& rhs);
+    vertex_2d       operator+(vertex_2d rhs);
+    vertex_2d       operator-(vertex_2d rhs);
     vertex_2d       operator*(double d);
 
-    vertex_2d&      operator+=(vertex_2d& rhs);
-    vertex_2d&      operator-=(vertex_2d& rhs);
+    vertex_2d&      operator+=(vertex_2d rhs);
+    vertex_2d&      operator-=(vertex_2d rhs);
     vertex_2d&      operator*=(double d);
 
     double&         operator[](uint8_t id);                                     // 0 = x, 1 = y, 2 ... 255 = y
@@ -23,7 +23,7 @@ struct base_triangle_t {
     double          get_area();
 
     static bool     contains(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, vertex_2d& vertex);
-    bool            contains(vertex_2d& vertex);
+    bool            contains(vertex_2d vertex);
 
     vertex_2d& operator[](uint8_t id);
 };
@@ -32,7 +32,7 @@ struct triangle_strip_t {                                                       
                                                                                 // Used for clipping areas
     std::vector<vertex_2d> vertices;
     vertex_2d&      operator[](size_t id);
-    bool            contains(vertex_2d& vertex);
+    bool            contains(vertex_2d vertex);
 };
 
 struct base_rect_t {
@@ -40,7 +40,7 @@ struct base_rect_t {
 
     double          get_area();
 
-    bool            contains(vertex_2d& vertex);
+    bool            contains(vertex_2d vertex);
 
     vertex_2d&      operator[](uint8_t id);
 };
@@ -56,4 +56,7 @@ struct line_strip_t {
     std::vector<vertex_2d> vertices;
     vertex_2d& operator[](size_t id);
     vertex_2d  get_position_at(double d);
+    void render();
 };
+
+extern uint32_t render_circle(double radius, std::string fill_color = "none", double stroke = 0, std::string stroke_color = "none");

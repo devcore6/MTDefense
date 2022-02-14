@@ -134,6 +134,12 @@ extern void main_loop_stub();
 
 // Engine/Text.cpp
 
+enum {
+    LEFT = 0,
+    CENTER,
+    RIGHT
+};
+
 extern intmax_t font_size;
-extern int render_text(std::string text, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, bool monospace = false, bool centered = false);
+extern int render_text(std::string text, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, bool monospace = false, uint8_t alignemnt = LEFT, bool large = false);
 extern void deinit_fonts();

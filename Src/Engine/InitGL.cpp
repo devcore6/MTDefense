@@ -85,6 +85,9 @@ void deinit_gl() {
     SDL_Quit();
 }
 
+extern void mouse_press_handler(int x, int y);
+extern void mouse_release_handler(int x, int y);
+
 void main_loop_stub() {
     sc::time_point start = sc::now();
 
@@ -104,6 +107,8 @@ void main_loop_stub() {
                 }
                 break;
             }
+            case SDL_MOUSEBUTTONDOWN: { mouse_press_handler(e.button.x, e.button.y); break; }
+            case SDL_MOUSEBUTTONUP: { mouse_release_handler(e.button.x, e.button.y); break; }
             case SDL_KEYDOWN: {
                 //switch(e.key.keysym.scancode) {
                 //    default: { }

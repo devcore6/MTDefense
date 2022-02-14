@@ -8,17 +8,25 @@ std::vector<tower> towers;
 extern std::mt19937_64 rng;
 
 owned_tower::owned_tower(tower* t, double c, double x, double y) : base_type(t), cost(c), pos_x(x), pos_y(y), projectiles(t->projectiles) {
-
+    rect.vertices[0] = { -t->hitbox_radius, -t->hitbox_radius };
+    rect.vertices[1] = {  t->hitbox_radius, -t->hitbox_radius };
+    rect.vertices[2] = {  t->hitbox_radius,  t->hitbox_radius };
+    rect.vertices[3] = { -t->hitbox_radius,  t->hitbox_radius };
+    rect.anim = t->animations["0-0-0"];
 }
 
 void owned_tower::tick(double time) {
-    remaining_cooldown -= time;
+    remaining_cooldown = max(remaining_cooldown - time, 0.0);
 }
 
 bool owned_tower::can_fire() { return remaining_cooldown <= 0.0; }
 
-double owned_tower::fire(spawned_enemy& e) {
+double owned_tower::fire(spawned_enemy* e) {
     if(!can_fire()) return -1.0;
+    double dx = e->pos.x - pos_x;
+    double dy = e->pos.y - pos_y;
+    double d  = sqrt(dx * dx + dy * dy);
+    if(d > base_type->range * range_mod) return -1.0;
     size_t odds = 0;
     for(auto& p : projectiles) odds += p.odds;
     if(odds == 0) return -1.0; // Should never happen
@@ -27,11 +35,13 @@ double owned_tower::fire(spawned_enemy& e) {
     projectile* p = nullptr;
     for(auto i : iterate(projectiles.size())) if(projectiles[i].odds + offset >= r) { p = &projectiles[i]; break; }
     if(!p) return -1.0; // Should never happen
+    last_projectile = p;
     uint16_t damage_type = p->damage_type | extra_damage_types;
-    if(damage_type & ~e.immunities) {
+    if(damage_type & ~e->immunities) {
         double dmg = p->base_damage * damage_mod;
-        if(e.armored) dmg *= armor_mod;
-        if(damage_type & ~e.vulnerabilities) dmg *= 2;
+        if(e->armored) dmg *= armor_mod;
+        if(damage_type & e->vulnerabilities) dmg *= 2;
+        remaining_cooldown = 1.0 / (p->fire_rate * fire_rate_mod);
         return dmg;
     }
     return 0.0;
@@ -60,7 +70,7 @@ void init_towers() {
         "Sentry"_str,
         "A simple sentry that shoots oncoming enemies."_str,
         50.0,
-        200.00, 150.00, false,
+        200.00, 250.00, false,
         TOWER_PHYSICAL,
         {
             {
@@ -71,7 +81,7 @@ void init_towers() {
                 false,
                 false,
                 1.0, 0.33, 1.0,
-                250.00, 175.00, 4,
+                2000.00, 175.00, 4,
                 1, 0.0, DAMAGE_BLUNT,
                 { }
             }

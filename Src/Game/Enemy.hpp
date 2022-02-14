@@ -54,6 +54,7 @@ struct spawned_enemy {
     // todo: Freezing, slowing, etc.
     std::mutex*                             lock                = nullptr;
     bool                                    schedule_removal    = false;
+    double                                  remove_in           = 0.0;
     line_strip_t*                           route               = nullptr;
     vertex_2d                               pos                 = { 0.0, 0.0 };
     double                                  distance_travelled  = 0.0;

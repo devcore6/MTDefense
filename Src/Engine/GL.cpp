@@ -1,14 +1,16 @@
 #include "GL.hpp"
 #include "Tools.hpp"
+#include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
+#include <SDL/SDL_image.h>
 
-vertex_2d vertex_2d::operator+(vertex_2d& rhs) { return vertex_2d { x + rhs.x, y + rhs.y }; }
-vertex_2d vertex_2d::operator-(vertex_2d& rhs) { return vertex_2d { x - rhs.x, y - rhs.y }; }
-vertex_2d vertex_2d::operator*(double d)       { return vertex_2d { x *     d, y *     d }; }
+vertex_2d vertex_2d::operator+(vertex_2d rhs) { return vertex_2d { x + rhs.x, y + rhs.y }; }
+vertex_2d vertex_2d::operator-(vertex_2d rhs) { return vertex_2d { x - rhs.x, y - rhs.y }; }
+vertex_2d vertex_2d::operator*(double d)      { return vertex_2d { x *     d, y *     d }; }
 
-vertex_2d& vertex_2d::operator+=(vertex_2d& rhs) { x += rhs.x; y += rhs.y; return *this; }
-vertex_2d& vertex_2d::operator-=(vertex_2d& rhs) { x -= rhs.x; y -= rhs.y; return *this; }
-vertex_2d& vertex_2d::operator*=(double d)       { x *=     d; y *=     d; return *this; }
+vertex_2d& vertex_2d::operator+=(vertex_2d rhs) { x += rhs.x; y += rhs.y; return *this; }
+vertex_2d& vertex_2d::operator-=(vertex_2d rhs) { x -= rhs.x; y -= rhs.y; return *this; }
+vertex_2d& vertex_2d::operator*=(double d)      { x *=     d; y *=     d; return *this; }
 
 double& vertex_2d::operator[](uint8_t id) { return !(id % 2) ? x : y; }
 
@@ -29,7 +31,7 @@ bool base_triangle_t::contains(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, vert
          get_area(v3, v1, vertex)
     ) == get_area(v1, v2, v3);
 }
-bool base_triangle_t::contains(vertex_2d& vertex) {
+bool base_triangle_t::contains(vertex_2d vertex) {
     return contains(vertices[0], vertices[1], vertices[2], vertex);
 }
 
@@ -37,7 +39,7 @@ vertex_2d& base_triangle_t::operator[](uint8_t id) { return vertices[limit(0_u8,
 
 vertex_2d& triangle_strip_t::operator[](size_t id) { return vertices[clamp(0_z, id, vertices.size())]; }
 
-bool triangle_strip_t::contains(vertex_2d& vertex) {
+bool triangle_strip_t::contains(vertex_2d vertex) {
     if(vertices.size() < 3) return false;
 
     for(size_t i = 0; i < vertices.size() - 2; i++)
@@ -51,7 +53,7 @@ double base_rect_t::get_area() {
          + base_triangle_t::get_area(vertices[2], vertices[3], vertices[0]);
 }
 
-bool base_rect_t::contains(vertex_2d& vertex) {
+bool base_rect_t::contains(vertex_2d vertex) {
     return (
         base_triangle_t::get_area(vertices[0], vertices[1], vertex) +
         base_triangle_t::get_area(vertices[1], vertices[2], vertex) +
@@ -107,7 +109,7 @@ void rect_t::render(vertex_2d offset, double& rot) {
 
 vertex_2d& line_strip_t::operator[](size_t id) { return vertices[clamp(0_z, id, vertices.size())]; }
 
-vertex_2d  line_strip_t::get_position_at(double d) {
+vertex_2d line_strip_t::get_position_at(double d) {
     double offset = 0.0;
     for(auto i : iterate(vertices.size())) {
         if(i == vertices.size() - 1) return vertices[i];
@@ -117,4 +119,62 @@ vertex_2d  line_strip_t::get_position_at(double d) {
         return diff * (d - offset) * (1.0 / length) + vertices[i];
     }
     return vertices[vertices.size() - 1];
+}
+
+void line_strip_t::render() {
+    glBegin(GL_LINE_STRIP);
+
+        for(auto&v : vertices) glVertex2d(v.x, v.y);
+
+    glEnd();
+}
+
+uint32_t render_circle(double radius, std::string fill_color, double stroke, std::string stroke_color) {
+    uint32_t textureid = 0;
+    std::string size = "\""_str + std::to_string((uint32_t)(radius * 2)) + '"';
+    std::string r    = "\""_str + std::to_string((uint32_t)(radius    )) + '"';
+    std::string svg_data =
+          "<svg height="_str     + size
+        + " width="              + size
+        + "><circle cx="         + r
+        + " cy="                 + r
+        + " r="                  + r
+        + " stroke=\""           + stroke_color           + '"'
+        + " stroke-width=\""     + std::to_string(stroke) + '"'
+        + " fill=\""             + fill_color             + '"'
+        + "/></svg>"    ;
+    SDL_RWops* mem = SDL_RWFromConstMem(svg_data.c_str(), (int)svg_data.length());
+    if(!mem) return 0;
+
+    SDL_Surface* surface = IMG_LoadSVG_RW(mem);
+
+    SDL_RWclose(mem);
+    if(!surface) return 0;
+
+    int mode = GL_RGB;
+    if(surface->format->BytesPerPixel == 4) {
+        if(surface->format->Rmask == 0x000000ff)
+            mode = GL_RGBA;
+        else
+            mode = GL_BGRA;
+    } else {
+        if(surface->format->Rmask == 0x000000ff)
+            mode = GL_RGB;
+        else
+            mode = GL_BGR;
+    }
+
+    glGenTextures(1, &textureid);
+    glBindTexture(GL_TEXTURE_2D, textureid);
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, surface->format->BytesPerPixel, surface->w, surface->h, 0, mode, GL_UNSIGNED_BYTE, surface->pixels);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    SDL_FreeSurface(surface);
+    
+    return textureid;
 }

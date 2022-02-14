@@ -28,6 +28,13 @@ enum {
     TOWER_SUPPORT
 };
 
+enum {
+    TARGETING_FIRST     = 0,
+    TARGETING_LAST,
+    TARGETING_WEAK,
+    TARGETING_STRONG
+};
+
 struct projectile {
     texture_t   texture;
 
@@ -101,10 +108,9 @@ struct tower {
 };
 
 class owned_tower {
-private:
+public:
     double      remaining_cooldown  = 0.0;
 
-public:
     tower*      base_type           = nullptr;
     rect_t      rect;
 
@@ -130,12 +136,14 @@ public:
 
     uint8_t     upgrade_paths[3]    = { 0, 0, 0 };
 
+    uint8_t     targeting_mode      = TARGETING_FIRST;
     std::string custom_name         = "";
+    projectile* last_projectile     = nullptr;
 
     owned_tower(tower* t, double c, double x, double y);
     void        tick(double time);
     bool        can_fire();
-    double      fire(spawned_enemy& e);
+    double      fire(spawned_enemy* e);
     void        render();
 };
 
