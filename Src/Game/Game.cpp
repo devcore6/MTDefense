@@ -65,8 +65,8 @@ void update_targeting_priorities(game_state& gs) {
         gs.weak.push_back(&e);
     }
 
-    std::sort(gs.first.begin(), gs.first.end(), [](spawned_enemy* e1, spawned_enemy* e2) -> bool { return e1->distance_travelled > e2->distance_travelled; });
-    std::sort(gs.last.begin(), gs.last.end(), [](spawned_enemy* e1, spawned_enemy* e2) -> bool { return e1->distance_travelled < e2->distance_travelled; });
+    std::sort(gs.first.begin(),  gs.first.end(),  [](spawned_enemy* e1, spawned_enemy* e2) -> bool { return e1->distance_travelled > e2->distance_travelled; });
+    std::sort(gs.last.begin(),   gs.last.end(),   [](spawned_enemy* e1, spawned_enemy* e2) -> bool { return e1->distance_travelled < e2->distance_travelled; });
     std::sort(gs.strong.begin(), gs.strong.end(), [](spawned_enemy* e1, spawned_enemy* e2) -> bool { return e1->max_health > e2->max_health; });
     std::sort(gs.strong.begin(), gs.strong.end(), [](spawned_enemy* e1, spawned_enemy* e2) -> bool { return e1->max_health < e2->max_health; });
 }
@@ -92,12 +92,14 @@ void init_game() {
 texture_t* sidebar = nullptr;
 texture_t* coin = nullptr;
 texture_t* life = nullptr;
+texture_t* upgrademenu = nullptr;
 extern void deinit_enemies();
 void deinit_game() {
     deinit_enemies();
     if(sidebar) delete sidebar;
     if(coin) delete coin;
     if(life) delete life;
+    if(upgrademenu) delete upgrademenu;
     if(cursor) SDL_FreeCursor(cursor);
 }
 
@@ -109,7 +111,10 @@ void init_match(map_t* map, difficulty diff) {
 }
 
 tower* dragging = nullptr;
+owned_tower* selecting = nullptr;
+owned_tower* selected = nullptr;
 GLuint range_texture = 0;
+GLuint hitbox_texture = 0;
 
 void mouse_hover_handler(int _x, int _y) {
     double x = (double)_x * 1920.0 / width;
@@ -122,12 +127,19 @@ void mouse_hover_handler(int _x, int _y) {
             valid_position = false;
         }
 
-        // todo: dont let towers be placed on track
+        if(valid_position)
+            for(auto& p : current_map->paths)
+                if(p.distance({ x, y }) < dragging->hitbox_radius * 0.8 + 20.0) { valid_position = false; break; }
 
-        if(valid_position && dragging->place_on_water) {
-            bool in_water = false;
-            for(auto& w : current_map->water) if(w.contains({ (double)x, (double)y })) { in_water = true; break; }
-            if(!in_water) valid_position = false;
+        if(valid_position)
+            for(auto& c : current_map->clips) if(c.contains({ (double)x, (double)y }, dragging->hitbox_radius * 0.8)) { valid_position = false; break; }
+
+        if(valid_position) {
+            if(dragging->place_on_water) {
+                bool in_water = false;
+                for(auto& w : current_map->water) if(w.contains({ (double)x, (double)y }, dragging->hitbox_radius * 0.8)) { in_water = true; break; }
+                if(!in_water) valid_position = false;
+            } else for(auto& w : current_map->water) if(w.contains({ (double)x, (double)y }, dragging->hitbox_radius * 0.8)) { valid_position = false; break; }
         }
 
         if(valid_position) for(auto& t : gs.towers) {
@@ -170,6 +182,38 @@ void mouse_hover_handler(int _x, int _y) {
 
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_TEXTURE_2D);
+    } else {
+        for(auto& t : gs.towers) {
+            double dx = x - t.pos_x;
+            double dy = y - t.pos_y;
+            if(sqrt(dx * dx + dy * dy) < t.base_type->hitbox_radius * 0.8) {
+                if(!hitbox_texture) hitbox_texture = render_circle(t.base_type->hitbox_radius, "#FFFFFF");
+
+                glEnable(GL_TEXTURE_2D);
+                glBindTexture(GL_TEXTURE_2D, hitbox_texture);
+                glColor4d(1.0, 1.0, 1.0, 0.5);
+
+                glBegin(GL_QUADS);
+
+                    glTexCoord2d(0.0, 0.0);
+                    glVertex2d(t.pos_x - t.base_type->hitbox_radius * 0.8, t.pos_y - t.base_type->hitbox_radius * 0.8);
+                    glTexCoord2d(1.0, 0.0);
+                    glVertex2d(t.pos_x + t.base_type->hitbox_radius * 0.8, t.pos_y - t.base_type->hitbox_radius * 0.8);
+                    glTexCoord2d(1.0, 1.0);
+                    glVertex2d(t.pos_x + t.base_type->hitbox_radius * 0.8, t.pos_y + t.base_type->hitbox_radius * 0.8);
+                    glTexCoord2d(0.0, 1.0);
+                    glVertex2d(t.pos_x - t.base_type->hitbox_radius * 0.8, t.pos_y + t.base_type->hitbox_radius * 0.8);
+
+                glEnd();
+                glBindTexture(GL_TEXTURE_2D, 0);
+                glDisable(GL_TEXTURE_2D);
+                glColor4d(1.0, 1.0, 1.0, 1.0);
+                t.render();
+                return;
+            }
+        }
+        if(hitbox_texture) { glDeleteTextures(1, &hitbox_texture); hitbox_texture = 0; }
+        if(range_texture && !selected) { glDeleteTextures(1, &range_texture); range_texture = 0; }
     }
 }
 
@@ -188,13 +232,18 @@ void mouse_press_handler(int _x, int _y) {
             }
         }
     } else {
-
+        for(auto& t : gs.towers) {
+            double dx = x - t.pos_x;
+            double dy = y - t.pos_y;
+            if(sqrt(dx * dx + dy * dy) < t.base_type->hitbox_radius * 0.8) { selecting = &t; return; }
+        }
     }
 }
 
 void mouse_release_handler(int _x, int _y) {
     double x = (double)_x * 1920.0 / width;
     double y = (double)_y * 1080.0 / height;
+    selected = nullptr;
     if(dragging) {
         if(x < dragging->hitbox_radius * 0.8 || x > 1620.0 - dragging->hitbox_radius * 0.8 ||
            y < dragging->hitbox_radius * 0.8 || y > 1080.0 - dragging->hitbox_radius * 0.8) {
@@ -203,16 +252,31 @@ void mouse_release_handler(int _x, int _y) {
             return;
         }
 
-        // todo: dont let towers be placed on track
+        for(auto& p : current_map->paths)
+            if(p.distance({ x, y }) < dragging->hitbox_radius * 0.8 + 20.0) {
+                dragging = nullptr;
+                if(range_texture) { glDeleteTextures(1, &range_texture); range_texture = 0; }
+                return;
+            }
+
+        for(auto& c : current_map->clips) if(c.contains({ (double)x, (double)y }, dragging->hitbox_radius * 0.8)) {
+            dragging = nullptr;
+            if(range_texture) { glDeleteTextures(1, &range_texture); range_texture = 0; }
+            return;
+        }
 
         if(dragging->place_on_water) {
             bool in_water = false;
-            for(auto& w : current_map->water) if(w.contains({ (double)x, (double)y })) { in_water = true; break; }
+            for(auto& w : current_map->water) if(w.contains({ (double)x, (double)y }, dragging->hitbox_radius * 0.8)) { in_water = true; break; }
             if(!in_water) {
                 dragging = nullptr;
                 if(range_texture) { glDeleteTextures(1, &range_texture); range_texture = 0; }
                 return;
             }
+        } else for(auto& w : current_map->water) if(w.contains({ (double)x, (double)y }, dragging->hitbox_radius * 0.8)) {
+            dragging = nullptr;
+            if(range_texture) { glDeleteTextures(1, &range_texture); range_texture = 0; }
+            return;
         }
 
         for(auto& t : gs.towers) {
@@ -235,15 +299,21 @@ void mouse_release_handler(int _x, int _y) {
 
         dragging = nullptr;
         if(range_texture) { glDeleteTextures(1, &range_texture); range_texture = 0; }
+    } else if(selecting) {
+        double dx = x - selecting->pos_x;
+        double dy = y - selecting->pos_y;
+        if(sqrt(dx * dx + dy * dy) < selecting->base_type->hitbox_radius * 0.8) selected = selecting;
+        selecting = nullptr;
     }
 }
 
 void render_sidebar() {
 
-    if(!sidebar) sidebar = new texture_t("Data/UI/Sidebar.png");
-    if(!coin)    coin    = new texture_t("Data/UI/Coin.png");
-    if(!life)    life    = new texture_t("Data/UI/Life.png");
-    if(!sidebar || !coin || !life) return;
+    if(!sidebar)     sidebar     = new texture_t("Data/UI/Sidebar.png");
+    if(!coin)        coin        = new texture_t("Data/UI/Coin.png");
+    if(!life)        life        = new texture_t("Data/UI/Life.png");
+    if(!upgrademenu) upgrademenu = new texture_t("Data/UI/Upgrades.png");
+    if(!sidebar || !coin || !life || !upgrademenu) return;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, sidebar->textid);
             
@@ -283,6 +353,8 @@ void render_sidebar() {
 
     render_text(std::to_string((size_t)gs.cash),  1524,  48, 255, 255, 255, 255, false, RIGHT, true);
     render_text(std::to_string((size_t)gs.lives), 1524, 128, 255, 255, 255, 255, false, RIGHT, true);
+    if(gs.cur_round < gs.diff.rounds_to_win - 1) render_text(std::to_string(gs.cur_round + 1) + '/' + std::to_string(gs.diff.rounds_to_win), 1524, 208, 255, 255, 255, 255, false, RIGHT, true);
+    else render_text(std::to_string(gs.cur_round + 1), 1524, 208, 255, 255, 255, 255, false, RIGHT, true);
 
     render_text("Towers"_str, 1770, 70, 255, 255, 255, 255, false, CENTER, true);
     // Todo: There will be more towers than fit on the side bar at once. Too bad for now. Add scrolling later!
@@ -318,6 +390,24 @@ void render_sidebar() {
 
         size_t price = (size_t)(t.base_price * gs.diff.tower_cost_modifier);
         render_text("$"_str + std::to_string(price), (int)x + 64, (int)y + 110, 255, price > gs.cash ? 0 : 255, price > gs.cash ? 0 : 255, 255, false, CENTER);
+    }
+
+    if(selected) {
+        double x = (selected->pos_x >= 810.0) ? 0.0 : 1220.0;
+
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, upgrademenu->textid);
+            
+        glBegin(GL_QUADS);
+
+            glTexCoord2d(0.0, 0.0); glVertex2d(x,         280.0);
+            glTexCoord2d(1.0, 0.0); glVertex2d(x + 400.0, 280.0);
+            glTexCoord2d(1.0, 1.0); glVertex2d(x + 400.0, 980.0);
+            glTexCoord2d(0.0, 1.0); glVertex2d(x,         980.0);
+
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_TEXTURE_2D);
     }
 }
 
@@ -539,6 +629,7 @@ void game_tick() {
                     gs.created_enemies.push_back(e);
                 }
 
+            // Todo: Make the projectiles do the actual damage instead of the towers. Also, allow projectiles to penetrate through enemies and damage multiple targets
             for(auto i : iterate(threads))
                 for(auto p : scheduled_projectiles[i]) {
                     gs.projectiles.push_back(p);
@@ -586,6 +677,42 @@ void game_tick() {
             }
 
             if(need_update) update_targeting_priorities(gs);
+
+            if(selected) {
+                if(!range_texture) range_texture = render_circle(selected->base_type->range * selected->range_mod, "#FFFFFF");
+
+                glEnable(GL_TEXTURE_2D);
+                glBindTexture(GL_TEXTURE_2D, range_texture);
+                glColor4d(0.0, 0.0, 0.0, 0.25);
+
+                glBegin(GL_QUADS);
+
+                    glTexCoord2d(0.0, 0.0);
+                    glVertex2d(
+                        selected->pos_x - selected->base_type->range * selected->range_mod,
+                        selected->pos_y - selected->base_type->range * selected->range_mod
+                    );
+                    glTexCoord2d(1.0, 0.0);
+                    glVertex2d(
+                        selected->pos_x + selected->base_type->range * selected->range_mod,
+                        selected->pos_y - selected->base_type->range * selected->range_mod
+                    );
+                    glTexCoord2d(1.0, 1.0);
+                    glVertex2d(
+                        selected->pos_x + selected->base_type->range * selected->range_mod,
+                        selected->pos_y + selected->base_type->range * selected->range_mod
+                    );
+                    glTexCoord2d(0.0, 1.0);
+                    glVertex2d(
+                        selected->pos_x - selected->base_type->range * selected->range_mod,
+                        selected->pos_y + selected->base_type->range * selected->range_mod
+                    );
+
+                glEnd();
+                glBindTexture(GL_TEXTURE_2D, 0);
+                glDisable(GL_TEXTURE_2D);
+                glColor4d(1.0, 1.0, 1.0, 1.0);
+            }
 
             // Render the towers
             for(auto t : gs.towers)

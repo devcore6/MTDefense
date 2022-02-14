@@ -19,10 +19,10 @@ struct vertex_2d {
 struct base_triangle_t {
     vertex_2d       vertices[3] = { };
 
-    static double   get_area(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3);
+    static double   get_area(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, double range = 0.0);
     double          get_area();
 
-    static bool     contains(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, vertex_2d& vertex);
+    static bool     contains(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, vertex_2d& vertex, double range);
     bool            contains(vertex_2d vertex);
 
     vertex_2d& operator[](uint8_t id);
@@ -32,7 +32,7 @@ struct triangle_strip_t {                                                       
                                                                                 // Used for clipping areas
     std::vector<vertex_2d> vertices;
     vertex_2d&      operator[](size_t id);
-    bool            contains(vertex_2d vertex);
+    bool            contains(vertex_2d vertex, double range);
 };
 
 struct base_rect_t {
@@ -57,6 +57,15 @@ struct line_strip_t {
     vertex_2d& operator[](size_t id);
     vertex_2d  get_position_at(double d);
     void render();
+
+    double distance(vertex_2d v);
+};
+
+struct line_t {
+    vertex_2d v1 = { 0.0, 0.0 };
+    vertex_2d v2 = { 0.0, 0.0 };
+
+    double distance(vertex_2d v);
 };
 
 extern uint32_t render_circle(double radius, std::string fill_color = "none", double stroke = 0, std::string stroke_color = "none");

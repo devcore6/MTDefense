@@ -14,36 +14,36 @@ vertex_2d& vertex_2d::operator*=(double d)      { x *=     d; y *=     d; return
 
 double& vertex_2d::operator[](uint8_t id) { return !(id % 2) ? x : y; }
 
-double base_triangle_t::get_area(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3) {
-    double a = sqrt((v1[1] - v2[1]) * (v1[1] - v2[1]) + (v1[0] - v2[0]) * (v1[0] - v2[0]));
-    double b = sqrt((v2[1] - v3[1]) * (v2[1] - v3[1]) + (v2[0] - v3[0]) * (v2[0] - v3[0]));
-    double c = sqrt((v3[1] - v1[1]) * (v3[1] - v1[1]) + (v3[0] - v1[0]) * (v3[0] - v1[0]));
+double base_triangle_t::get_area(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, double range) {
+    double a = sqrt((v1[1] - v2[1]) * (v1[1] - v2[1]) + (v1[0] - v2[0]) * (v1[0] - v2[0])) + range;
+    double b = sqrt((v2[1] - v3[1]) * (v2[1] - v3[1]) + (v2[0] - v3[0]) * (v2[0] - v3[0])) + range;
+    double c = sqrt((v3[1] - v1[1]) * (v3[1] - v1[1]) + (v3[0] - v1[0]) * (v3[0] - v1[0])) + range;
     double s = (a + b + c) / 2.0;
     return sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
 double base_triangle_t::get_area() { return get_area(vertices[0], vertices[1], vertices[2]); }
 
-bool base_triangle_t::contains(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, vertex_2d& vertex) {
+bool base_triangle_t::contains(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, vertex_2d& vertex, double range) {
     return (
          get_area(v1, v2, vertex) +
          get_area(v2, v3, vertex) +
          get_area(v3, v1, vertex)
-    ) == get_area(v1, v2, v3);
+    ) <= get_area(v1, v2, v3, range);
 }
 bool base_triangle_t::contains(vertex_2d vertex) {
-    return contains(vertices[0], vertices[1], vertices[2], vertex);
+    return contains(vertices[0], vertices[1], vertices[2], vertex, 1.0);
 }
 
 vertex_2d& base_triangle_t::operator[](uint8_t id) { return vertices[limit(0_u8, id, 2_u8)]; }
 
 vertex_2d& triangle_strip_t::operator[](size_t id) { return vertices[clamp(0_z, id, vertices.size())]; }
 
-bool triangle_strip_t::contains(vertex_2d vertex) {
+bool triangle_strip_t::contains(vertex_2d vertex, double range) {
     if(vertices.size() < 3) return false;
 
     for(size_t i = 0; i < vertices.size() - 2; i++)
-        if(base_triangle_t::contains(vertices[i], vertices[i + 1], vertices[i + 2], vertex)) return true;
+        if(base_triangle_t::contains(vertices[i], vertices[i + 1], vertices[i + 2], vertex, range)) return true;
     
     return false;
 }
@@ -127,6 +127,41 @@ void line_strip_t::render() {
         for(auto&v : vertices) glVertex2d(v.x, v.y);
 
     glEnd();
+}
+
+double line_strip_t::distance(vertex_2d v) {
+    double min = -1.0;
+
+    for(size_t i = 1; i < vertices.size(); i++) {
+        line_t l = { vertices[i - 1], vertices[i] };
+        double d = l.distance(v);
+        if(min == -1.0 || d < min) min = d;
+    }
+
+    return min;
+}
+
+double line_t::distance(vertex_2d v) {
+    vertex_2d ab = { v2.x - v1.x, v2.y - v1.y };
+    vertex_2d av = { v .x - v1.x, v .y - v1.y };
+    vertex_2d bv = { v .x - v2.x, v .y - v2.y };
+
+    double ab_bv = ab.x * bv.x + ab.y * bv.y;
+    double ab_av = ab.x * av.x + ab.y * av.y;
+    
+    if(ab_bv > 0.0) {
+        double x = v.x - v2.x;
+        double y = v.y - v2.y;
+        return sqrt(x * x + y * y);
+    }
+
+    if(ab_av < 0.0) {
+        double x = v.x - v1.x;
+        double y = v.y - v1.y;
+        return sqrt(x * x + y * y);
+    }
+
+    return abs(ab.x * av.y - ab.y * av.x) / sqrt(ab.x * ab.x + ab.y * ab.y);
 }
 
 uint32_t render_circle(double radius, std::string fill_color, double stroke, std::string stroke_color) {

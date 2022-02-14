@@ -12,7 +12,6 @@ extern void deinit_game();
 void render_frame() {
     if(current_map) {
         render_map();
-        render_sidebar();
     } else {
         render_menu();
     }
@@ -22,6 +21,7 @@ void render_frame() {
 
 void main_loop() {
     game_tick();
+    if(current_map) render_sidebar();
 }
 
 // temporary until there is a menu
