@@ -1,6 +1,7 @@
 #include "Engine.hpp"
 #include "../Game/Game.hpp"
 #include <thread>
+#include "Audio.hpp"
 
 using sc = std::chrono::steady_clock;
 
@@ -30,10 +31,22 @@ bvarpf(texture_compression, true, reload_graphics);
 ivarp(maxfps, 0, 0, 1000);
 ivarp(menufps, 0, 60, 1000);
 
+iconst(audio_format_u16, AUDIO_U16SYS);
+iconst(audio_format_s16, AUDIO_S16SYS);
+iconst(audio_format_s32, AUDIO_S32SYS);
+iconst(audio_format_f32, AUDIO_F32SYS);
+
 bool quit = false;
+
+ivarp(audio_device_frequency, 0, 44100, 192000);
+ivarp(audio_device_format, AUDIO_U16SYS, MIX_DEFAULT_FORMAT, AUDIO_F32SYS);
+ivarp(audio_device_channels, 1, 2, 16);
+ivarp(audio_device_chunksize, 256, 4096, 65536);
 
 bool init_gl() {
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) return false;
+
+    if(Mix_OpenAudio((int)audio_device_frequency, (uint16_t)audio_device_format, (int)audio_device_channels, (int)audio_device_chunksize) == -1) return false;
     
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -78,6 +91,7 @@ bool init_gl() {
 }
 
 void deinit_gl() {
+    Mix_CloseAudio();
     if(renderer) SDL_DestroyRenderer(renderer);
     renderer = nullptr;
     if(window) SDL_DestroyWindow(window);

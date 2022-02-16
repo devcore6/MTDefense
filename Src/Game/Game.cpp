@@ -570,7 +570,7 @@ void game_tick() {
                                 { t.pos_x, t.pos_y },
                                 e->pos - vertex_2d { t.pos_x, t.pos_y },
                                 0.0,
-                                dist / t.last_projectile->speed
+                                t.last_projectile->range * t.range_mod / t.last_projectile->speed
                             });
                             double excess_damage = e->health - d;
                             if(excess_damage >= 0.0) {

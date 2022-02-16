@@ -14,6 +14,8 @@ std::vector<var_t<double>>                          dvars;
 std::vector<var_t<bool>>                            bvars;
 std::vector<svar_t>                                 svars;
 
+std::vector<const_t<intmax_t>>                      iconsts;
+
 void savevars() {
     // Create config folder if it doesn't exist
     std::filesystem::create_directory("Data/Config");
@@ -84,10 +86,11 @@ void parsecmd(std::string cmd) {
 #define check(arr, member) for(auto& x : arr) if(x.member == identifier) { conerr("Cannot redefine built-in \"" + identifier + "\""); return false; }
 
         check(commands, first);
-        check(ivars, name);
-        check(dvars, name);
-        check(bvars, name);
-        check(svars, name);
+        check(ivars   , name);
+        check(dvars   , name);
+        check(bvars   , name);
+        check(svars   , name);
+        check(iconsts , name);
 
 #undef check
 
@@ -176,6 +179,28 @@ void execcmd(std::string cmd) {
         replace_all(arg, "\\v", "\v");
     }
 
+    for(auto& arg : args) {
+        if(arg[0] == '$') {
+            arg = arg.substr(1);
+            bool found = false;
+
+#define check(arr, conversion, deref) for(auto& x : arr) if(x.name == arg) { arg = conversion(deref x.ptr); found = true; break; }
+
+            check(ivars  , std::to_string, *);
+            check(hvars  , std::to_string, *);
+            check(dvars  , std::to_string, *);
+            check(bvars  , std::to_string, *);
+            check(svars  , , *);
+            check(iconsts, std::to_string, );
+
+#undef check
+
+            if(found) continue;
+            conerr("Unknown alias: "_str + arg);
+            arg = "";
+        }
+    }
+
     command_t* cur = nullptr;
     for(auto& c : commands) if(c.first == args[0]) cur = &c;
 
@@ -183,13 +208,14 @@ void execcmd(std::string cmd) {
     
         if(args.size() == 1) {
 
-#define check(arr, conversion) for(auto& x : arr) if(x.name == args[0]) { conout(conversion(*x.ptr)); return; }
+#define check(arr, conversion, deref) for(auto& x : arr) if(x.name == args[0]) { conout(conversion(deref x.ptr)); return; }
 
-            check(ivars, std::to_string);
-            check(hvars, std::to_string);
-            check(dvars, std::to_string);
-            check(bvars, std::to_string);
-            check(svars, );
+            check(ivars  , std::to_string, *);
+            check(hvars  , std::to_string, *);
+            check(dvars  , std::to_string, *);
+            check(bvars  , std::to_string, *);
+            check(svars  , , *);
+            check(iconsts, std::to_string, );
 
 #undef check
 
@@ -204,6 +230,12 @@ void execcmd(std::string cmd) {
             check(dvars, atof, .c_str());
             check(bvars, to_bool, );
             check(svars, , );
+
+#undef check
+
+#define check(arr) for(auto& x : arr) if(x.name == args[0]) { conerr("Cannot redefine built-in \""_str + x.name + "\" - it is a constant."); return; }
+
+            check(iconsts);
 
 #undef check
 

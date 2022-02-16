@@ -38,6 +38,12 @@ struct var_t {
     std::function<void()>   callback    = nullptr;
 };
 
+template<typename T>
+struct const_t {
+    const T                 ptr         = 0;
+    std::string             name        = "";
+};
+
 struct svar_t {
     std::string*            ptr         = nullptr;
     std::string             name        = "";
@@ -55,6 +61,8 @@ extern std::vector<var_t<uint32_t>>     hvars;
 extern std::vector<var_t<double>>       dvars;
 extern std::vector<var_t<bool>>         bvars;
 extern std::vector<svar_t>              svars;
+
+extern std::vector<const_t<intmax_t>>   iconsts;
 
 inline bool addcommand(std::string name, std::function<void(std::vector<std::string>)> f) { commands.push_back(std::make_pair(name, f)); return true; }
 
@@ -95,6 +103,8 @@ bool _initv_ ## name  = _initf_ ## name ();
 #define  svarf(name,      value,      f) _svar(                 name,        value,       false, f)
 #define  svarp(name,      value        ) _svar(                 name,        value,       true,  nullptr)
 #define svarpf(name,      value,      f) _svar(                 name,        value,       true,  f)
+
+#define iconst(name,      value        ) bool _initf_ ## name () { iconsts.push_back({value, #name}); return true; } bool _initv_ ## name = _initf_ ## name ();
 
 #define  command(name, f) static void __command__ ## name (std::vector<std::string> args) { f; }; static bool __command_init__ ## name = addcommand(#name, &__command__ ## name);
 
