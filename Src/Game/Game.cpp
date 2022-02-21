@@ -129,7 +129,7 @@ void mouse_hover_handler(int _x, int _y) {
         bool valid_position = true;
 
         if(x < dragging->hitbox_radius * 0.8 || x > 1620.0 - dragging->hitbox_radius * 0.8 ||
-            y < dragging->hitbox_radius * 0.8 || y > 1080.0 - dragging->hitbox_radius * 0.8) {
+           y < dragging->hitbox_radius * 0.8 || y > 1080.0 - dragging->hitbox_radius * 0.8) {
             valid_position = false;
         }
 

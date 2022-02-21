@@ -10,6 +10,7 @@ public:
         if(!body) return;
         int x = 0, y = 0;
         SDL_GetMouseState(&x, &y);
+        // todo: probably bugs out when full screen on non native res
         float rel_x = (float)x / width * 1920.0f, rel_y = (float)y / height * 1080.0f;
 
         // I am about 87% certain this will crash or otherwise break something as body is never a gui object
