@@ -1,4 +1,3 @@
-[submodule "MapTool/cxxgui"]
-	path = MapTool/cxxgui
-	url = https://github.com/devcore6/cxxgui
-	
+[submodule "MapTool/cxxgui/"]
+	path = MapTool/cxxgui/
+	url = https://github.com/devcore6/cxxgui.git

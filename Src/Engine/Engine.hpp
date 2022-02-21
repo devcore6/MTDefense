@@ -20,14 +20,6 @@ extern PFNGLBINDTEXTURESPROC    _glBindTextures;
 
 // Engine/Command.cpp
 // Credit: Command system is inspired by the system in Cube 2 @ https://sourceforge.net/p/sauerbraten/
-enum {
-    VAR_UNDEFINED = -1,
-    VAR_INT,
-    VAR_DOUBLE,
-    VAR_STRING,
-    VAR_BOOL
-};
-
 template<typename T>
 struct var_t {
     T                       min         = 0,
@@ -51,7 +43,7 @@ struct svar_t {
     std::function<void()>   callback    = nullptr;
 };
 
-using command_t = std::pair<std::string, std::function<void(std::vector<std::string>)>>;
+using command_t = std::pair<std::string, std::function<void(std::vector<std::string>&)>>;
 
 extern std::vector<std::pair<std::string, std::string>> aliases;
 
@@ -64,7 +56,7 @@ extern std::vector<svar_t>              svars;
 
 extern std::vector<const_t<intmax_t>>   iconsts;
 
-inline bool addcommand(std::string name, std::function<void(std::vector<std::string>)> f) { commands.push_back(std::make_pair(name, f)); return true; }
+inline bool addcommand(std::string name, std::function<void(std::vector<std::string>&)> f) { commands.push_back(std::make_pair(name, f)); return true; }
 
 extern void savevars();
 
@@ -106,13 +98,11 @@ bool _initv_ ## name  = _initf_ ## name ();
 
 #define iconst(name,      value        ) bool _initf_ ## name () { iconsts.push_back({value, #name}); return true; } bool _initv_ ## name = _initf_ ## name ();
 
-#define  command(name, f) static void __command__ ## name (std::vector<std::string> args) { f; }; static bool __command_init__ ## name = addcommand(#name, &__command__ ## name);
+#define  command(name, f) static void __command__ ## name (std::vector<std::string>& args) { f; }; static bool __command_init__ ## name = addcommand(#name, &__command__ ## name);
 
-#define rcommand(name, f) static void __command__ ## name (std::vector<std::string> args) { \
-    std::string ret = ""; \
-    f; \
-    for(size_t i = 0; i < aliases.size(); i++) if(aliases[i].first == "return") { aliases.erase(aliases.begin() + i); break; } \
-    aliases.push_back(std::make_pair(std::string("return"), ret)); \
+#define rcommand(name, f) static void __command__ ## name (std::vector<std::string>& args) { \
+    for(size_t i = 0; i < aliases.size(); i++) if(aliases[i].first == "ret") { aliases.erase(aliases.begin() + i); break; } \
+    aliases.push_back(std::make_pair(std::string("ret"), [](std::vector<std::string>& args) -> std::string { f }(args))); \
 }; static bool __command_init__ ## name = addcommand(#name, &__command__ ## name);
 
 // Engine/Console.cpp

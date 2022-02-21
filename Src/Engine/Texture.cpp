@@ -5,7 +5,7 @@
 #include <filesystem>
 
 #if defined(_WIN32) || defined(_WIN64)
-PFNGLGENERATEMIPMAPPROC _glGenerateMipmap;
+extern PFNGLGENERATEMIPMAPPROC _glGenerateMipmap;
 #endif
 
 #define glGenerateMipmap _glGenerateMipmap

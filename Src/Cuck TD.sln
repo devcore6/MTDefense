@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.1.31903.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cuck TD", "Cuck TD.vcxproj", "{35125F8F-99D0-4AD1-9534-C7ACCFDBCAEA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4B52B211-E5DF-4ABB-87BC-36F180950B63} = {4B52B211-E5DF-4ABB-87BC-36F180950B63}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MapTool", "..\MapTool\MapTool.vcxproj", "{F92C4C7D-8D5F-46F1-92D0-426D6C09874F}"
 	ProjectSection(ProjectDependencies) = postProject

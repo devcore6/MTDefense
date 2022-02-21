@@ -89,13 +89,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Include;../MapTool/cxxgui/src/include</AdditionalIncludeDirectories>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2_mixer.lib;SDL2.lib;SDL2_image.lib;SDL2_ttf.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2_mixer.lib;cxxgui.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib32</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -108,7 +108,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Include;../MapTool/cxxgui/src/include</AdditionalIncludeDirectories>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -116,7 +116,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2_mixer.lib;SDL2.lib;SDL2_image.lib;SDL2_ttf.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2_mixer.lib;cxxgui.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib32</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -127,14 +127,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Include;../MapTool/cxxgui/src/include</AdditionalIncludeDirectories>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2_mixer.lib;SDL2.lib;SDL2_image.lib;SDL2_ttf.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>lib64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2_mixer.lib;cxxgui.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib64;x64/Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,7 +146,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Include;../MapTool/cxxgui/src/include</AdditionalIncludeDirectories>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -154,10 +154,24 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2_mixer.lib;SDL2.lib;SDL2_image.lib;SDL2_ttf.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>lib64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2_mixer.lib;cxxgui.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib64;x64/Release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Engine\Audio.hpp" />
+    <ClInclude Include="Engine\Engine.hpp" />
+    <ClInclude Include="Engine\GL.hpp" />
+    <ClInclude Include="Engine\GUI.hpp" />
+    <ClInclude Include="Engine\Map.hpp" />
+    <ClInclude Include="Engine\Texture.hpp" />
+    <ClInclude Include="Engine\Tools.hpp" />
+    <ClInclude Include="Game\Difficulty.hpp" />
+    <ClInclude Include="Game\Enemy.hpp" />
+    <ClInclude Include="Game\Game.hpp" />
+    <ClInclude Include="Game\Tower.hpp" />
+    <ClInclude Include="Shared\Tools.hpp" />
+  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Audio.cpp" />
     <ClCompile Include="Engine\Command.cpp" />
@@ -171,18 +185,6 @@
     <ClCompile Include="Game\Enemy.cpp" />
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\Tower.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Engine\Audio.hpp" />
-    <ClInclude Include="Engine\Engine.hpp" />
-    <ClInclude Include="Engine\GL.hpp" />
-    <ClInclude Include="Engine\Map.hpp" />
-    <ClInclude Include="Engine\Texture.hpp" />
-    <ClInclude Include="Engine\Tools.hpp" />
-    <ClInclude Include="Game\Difficulty.hpp" />
-    <ClInclude Include="Game\Enemy.hpp" />
-    <ClInclude Include="Game\Game.hpp" />
-    <ClInclude Include="Game\Tower.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -126,6 +126,9 @@ public:
     double      armor_mod           = 1.0;
     double      damage_mod          = 1.0;
 
+    bool        can_hit_armored     = false;
+    bool        can_hit_stealth     = false;
+
     size_t      extra_damage_maxhits_linear = 0;
     size_t      extra_damage_maxhits_range  = 0;
     double      extra_damage_linear = 0.0;
@@ -145,6 +148,7 @@ public:
     bool        can_fire();
     double      fire(spawned_enemy* e);
     void        render();
+    void        try_upgrade(uint8_t path, double price);
 };
 
 extern std::vector<tower>       towers;

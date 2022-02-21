@@ -19,7 +19,7 @@ void reload_graphics() {
 }
 
 command(reload_graphics, { reload_graphics(); });
-rcommand(getfps, { ret += fps; });
+rcommand(getfps, { return std::to_string(fps); });
 
 ivarpf(width, 420, 1920, 8192, reload_graphics);
 ivarpf(height, 360, 1080, 4320, reload_graphics);

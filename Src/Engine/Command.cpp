@@ -38,25 +38,7 @@ void savevars() {
 
 bool to_bool(std::string& s) { return s == "1" || s == "true"; }
 
-constexpr char identifier_valid_characters[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-                                                 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                                                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                                                 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '_', 0 };
-
-// Replace escape sequences
-/*
-replace_all(cmd, "\\\'", "\'");
-replace_all(cmd, "\\\"", "\"");
-replace_all(cmd, "\\\?", "\?");
-replace_all(cmd, "\\\\", "\\");
-replace_all(cmd, "\\a" , "\a");
-replace_all(cmd, "\\b" , "\b");
-replace_all(cmd, "\\f" , "\f");
-replace_all(cmd, "\\n" , "\n");
-replace_all(cmd, "\\r" , "\r");
-replace_all(cmd, "\\t" , "\t");
-replace_all(cmd, "\\v" , "\v");
-*/
+constexpr char identifier_valid_characters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
 
 void parsecmd(std::string cmd) {
     // Remove comments

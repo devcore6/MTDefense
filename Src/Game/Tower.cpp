@@ -12,7 +12,6 @@ owned_tower::owned_tower(tower* t, double c, double x, double y) : base_type(t),
     rect.vertices[1] = {  t->hitbox_radius, -t->hitbox_radius };
     rect.vertices[2] = {  t->hitbox_radius,  t->hitbox_radius };
     rect.vertices[3] = { -t->hitbox_radius,  t->hitbox_radius };
-    rect.anim = t->animations["0-0-0"];
 }
 
 void owned_tower::tick(double time) {
@@ -48,6 +47,10 @@ double owned_tower::fire(spawned_enemy* e) {
 }
 
 void owned_tower::render() {
+    std::string upgrade_path = std::to_string(upgrade_paths[0]) + '-'
+                             + std::to_string(upgrade_paths[1]) + '-'
+                             + std::to_string(upgrade_paths[2]);
+    rect.anim = base_type->animations[upgrade_path];
     rect.render({ pos_x, pos_y }, rot);
 }
 
@@ -63,6 +66,28 @@ std::map<std::string, animation_t> map_animations(std::string path) {
     }
 
     return ret;
+}
+
+void owned_tower::try_upgrade(uint8_t path, double price) {
+    if(path > 2 || upgrade_paths[path] == 5) return;
+    cost += price;
+    upgrade* u = &base_type->upgrade_paths[path][upgrade_paths[path]];
+    range_mod                   *= u->range_mod;
+    fire_rate_mod               *= u->fire_rate_mod;
+    speed_mod                   *= u->speed_mod;
+    armor_mod                   *= u->armor_mod;
+    damage_mod                  *= u->damage_mod;
+
+    can_hit_armored             |= u->can_hit_armored;
+    can_hit_stealth             |= u->can_hit_stealth;
+
+    extra_damage_maxhits_linear += u->extra_damage_maxhits_linear;
+    extra_damage_maxhits_range  += u->extra_damage_maxhits_range;
+    extra_damage_linear         += u->extra_damage_linear;
+    extra_damage_range          += u->extra_damage_range;
+    extra_damage_types          += u->extra_damage_types;
+
+    upgrade_paths[path]++;
 }
 
 void init_towers() {
@@ -117,7 +142,7 @@ void init_towers() {
                 },
                 {
                     "Hotter gunpowder"_str,
-                    "More aggressive gunpowder burns hotter, which heats projectiles and releases more energy, increasing projectile speed, reach, damage, and allows it to damage more enemy types. Also shoots slightly faster."_str,
+                    "More aggressive gunpowder burns hotter, increasing firing rate, projectile speed, reach, damage, and allows it to damage more enemy types."_str,
                     800.00,
                     1.25, 1.10, 1.8, 1.25, 2.00,
                     false, false,

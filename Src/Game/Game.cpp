@@ -4,6 +4,7 @@
 
 #include "../Engine/Engine.hpp"
 #include "../Engine/Map.hpp"
+#include "../Engine/GUI.hpp"
 
 #include <thread>
 #include <future>
@@ -92,14 +93,12 @@ void init_game() {
 texture_t* sidebar = nullptr;
 texture_t* coin = nullptr;
 texture_t* life = nullptr;
-texture_t* upgrademenu = nullptr;
 extern void deinit_enemies();
 void deinit_game() {
     deinit_enemies();
     if(sidebar) delete sidebar;
     if(coin) delete coin;
     if(life) delete life;
-    if(upgrademenu) delete upgrademenu;
     if(cursor) SDL_FreeCursor(cursor);
 }
 
@@ -113,8 +112,14 @@ void init_match(map_t* map, difficulty diff) {
 tower* dragging = nullptr;
 owned_tower* selecting = nullptr;
 owned_tower* selected = nullptr;
+owned_tower* last_selected = nullptr;
 GLuint range_texture = 0;
 GLuint hitbox_texture = 0;
+
+bool clicking = false;
+bool send_click = false;
+int lastx = 0;
+int lasty = 0;
 
 void mouse_hover_handler(int _x, int _y) {
     double x = (double)_x * 1920.0 / width;
@@ -220,8 +225,13 @@ void mouse_hover_handler(int _x, int _y) {
 void mouse_press_handler(int _x, int _y) {
     double x = (double)_x * 1920.0 / width;
     double y = (double)_y * 1080.0 / height;
+
+    clicking = true;
+
     // Todo: There will be more towers than fit on the side bar at once. Too bad for now. Add scrolling later!
     if(x > 1620.0) {
+        if(selected) return;
+
         for(auto i : iterate(towers.size())) {
             double tx = 1630.0 + 140.0 * (i % 2);
             double ty =  140.0 + 140.0 * (i / 2);
@@ -243,6 +253,21 @@ void mouse_press_handler(int _x, int _y) {
 void mouse_release_handler(int _x, int _y) {
     double x = (double)_x * 1920.0 / width;
     double y = (double)_y * 1080.0 / height;
+
+    lastx = (int)x;
+    lasty = (int)y;
+    clicking = false;
+    send_click = true;
+
+    if(selected) {
+        double menux = (selected->pos_x >= 810.0) ? 0.0 : 1220.0;
+
+        if(x >= menux && x <= menux + 400 && y >= 280.0 && y <= 980.0) {
+
+            return;
+        }
+    }
+
     selected = nullptr;
     if(dragging) {
         if(x < dragging->hitbox_radius * 0.8 || x > 1620.0 - dragging->hitbox_radius * 0.8 ||
@@ -307,13 +332,14 @@ void mouse_release_handler(int _x, int _y) {
     }
 }
 
+void render_ui();
+
 void render_sidebar() {
 
     if(!sidebar)     sidebar     = new texture_t("Data/UI/Sidebar.png");
     if(!coin)        coin        = new texture_t("Data/UI/Coin.png");
     if(!life)        life        = new texture_t("Data/UI/Life.png");
-    if(!upgrademenu) upgrademenu = new texture_t("Data/UI/Upgrades.png");
-    if(!sidebar || !coin || !life || !upgrademenu) return;
+    if(!sidebar || !coin || !life) return;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, sidebar->textid);
             
@@ -392,22 +418,157 @@ void render_sidebar() {
         render_text("$"_str + std::to_string(price), (int)x + 64, (int)y + 110, 255, price > gs.cash ? 0 : 255, price > gs.cash ? 0 : 255, 255, false, CENTER);
     }
 
+    render_ui();
+}
+
+gui* upgrade_menu = nullptr;
+using namespace cxxgui;
+
+double update_menu_at = 0.0;
+
+void update_menu() {
+    if(!selected) return;
+    last_selected = selected;
+    update_menu_at = DBL_MAX;
+
+    std::string upgrade_path = std::to_string(selected->upgrade_paths[0]) + '-'
+                             + std::to_string(selected->upgrade_paths[1]) + '-'
+                             + std::to_string(selected->upgrade_paths[2]);
+
+    std::string upgrade_paths[3] = { std::to_string(selected->upgrade_paths[0] + 1) + '-'
+                                   + std::to_string(selected->upgrade_paths[1]    ) + '-'
+                                   + std::to_string(selected->upgrade_paths[2]    ),
+                                     std::to_string(selected->upgrade_paths[0]    ) + '-'
+                                   + std::to_string(selected->upgrade_paths[1] + 1) + '-'
+                                   + std::to_string(selected->upgrade_paths[2]    ),
+                                     std::to_string(selected->upgrade_paths[0]    ) + '-'
+                                   + std::to_string(selected->upgrade_paths[1]    ) + '-'
+                                   + std::to_string(selected->upgrade_paths[2] + 1) };
+
+    uint8_t upgrade_count = selected->upgrade_paths[0] + selected->upgrade_paths[1] + selected->upgrade_paths[2];
+
+    float x = (selected->pos_x >= 710.0) ? 0.0f : 1088.0f;
+
+    if(upgrade_menu->body) delete upgrade_menu->body;
+    upgrade_menu->body = new vstack {
+        new image(
+                   selected->base_type->animations[upgrade_path].frames[0].textid,
+            (float)selected->base_type->animations[upgrade_path].frames[0].width,
+            (float)selected->base_type->animations[upgrade_path].frames[0].height
+        )
+    };
+
+    upgrade_menu->body->frame( 500.0f,  500.0f,  500.0f,
+                              1080.0f, 1080.0f, 1080.0f,
+                              alignment_t::center);
+    upgrade_menu->body->offset(x, 0.0f);
+    upgrade_menu->body->padding(16.0f);
+    upgrade_menu->body->background_color(color::background);
+
+    vstack* s = new vstack {
+        (new text(selected->custom_name != "" ? selected->custom_name.c_str() : selected->base_type->name.c_str()))
+                ->font(title)
+    };
+
+    ((vstack*)upgrade_menu->body)->add(s);
+
+    for(uint8_t i = 0; i < 3; i++) {
+        if(upgrade_count == 8) {
+            // todo
+        } else if(selected->upgrade_paths[i] == 6) {
+            // todo
+        } else if(selected->upgrade_paths[i] == 0) {
+            double cost = selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].base_price * gs.diff.tower_cost_modifier;
+            if(cost > gs.cash && cost < update_menu_at) update_menu_at = cost;
+            s->add((new hstack {
+                (new vstack {})
+                    ->frame(200.0f, 200.0f, 200.0f, 0.0f, 0.0f, 0.0f, alignment_t::center),
+                symbols::forward()
+                    ->offset(-20.0f, 0.0f)
+                    ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
+                (new vstack {
+                    (new vstack {
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].name))
+                            ->font(headline)
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].desc))
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
+                        (new text("$"_str + to_string_digits(cost, 2)))
+                            ->font(headline)
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
+                    })
+                        ->offset(-16.0f, -16.0f)
+                })
+                    ->padding(16.0f)
+                    ->background_color(cost > gs.cash ? color::red : color::green)
+                    ->hover_background_color(color_multiply(cost > gs.cash ? color::red : color::green, 0.8))
+                    ->on_click([cost, i](view*, float, float, void*) {
+                        if(gs.cash >= cost) {
+                            selected->try_upgrade(i, cost);
+                            gs.cash -= cost;
+                            last_selected = nullptr;
+                        }
+                    })
+            })
+                ->padding(16.0f, 0.0f)
+                ->align(alignment_t::center));
+        } else {
+            double cost = selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].base_price * gs.diff.tower_cost_modifier;
+            if(cost > gs.cash && cost < update_menu_at) update_menu_at = cost;
+            s->add((new hstack {
+                (new vstack {
+                    (new vstack {
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i] - 1].name))
+                            ->font(headline)
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i] - 1].desc))
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
+                    })
+                        ->offset(-16.0f, -16.0f)
+                })
+                    ->padding(16.0f),
+                symbols::forward()
+                    ->offset(-20.0f, 0.0f)
+                    ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
+                (new vstack {
+                    (new vstack {
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].name))
+                            ->font(headline)
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].desc))
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
+                        (new text("$"_str + to_string_digits(cost, 2)))
+                            ->font(headline)
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
+                    })
+                        ->offset(-16.0f, -16.0f)
+                })
+                    ->padding(16.0f)
+                    ->background_color(cost > gs.cash ? color::red : color::green)
+                    ->hover_background_color(color_multiply(cost > gs.cash ? color::red : color::green, 0.8))
+                    ->on_click([cost, i](view*, float, float, void*) {
+                        if(gs.cash >= cost) {
+                            selected->try_upgrade(i, cost);
+                            gs.cash -= cost;
+                            last_selected = nullptr;
+                        }
+                    })
+            })
+                ->padding(16.0f, 0.0f)
+                ->align(alignment_t::center));
+        }
+    }
+}
+
+void render_ui() {
     if(selected) {
-        double x = (selected->pos_x >= 810.0) ? 0.0 : 1220.0;
-
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, upgrademenu->textid);
-            
-        glBegin(GL_QUADS);
-
-            glTexCoord2d(0.0, 0.0); glVertex2d(x,         280.0);
-            glTexCoord2d(1.0, 0.0); glVertex2d(x + 400.0, 280.0);
-            glTexCoord2d(1.0, 1.0); glVertex2d(x + 400.0, 980.0);
-            glTexCoord2d(0.0, 1.0); glVertex2d(x,         980.0);
-
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDisable(GL_TEXTURE_2D);
+        if(!upgrade_menu) {
+            upgrade_menu = new gui;
+            update_menu();
+        }
+        if(last_selected != selected || update_menu_at < gs.cash) update_menu();
+        upgrade_menu->render_wrapper(clicking, send_click, lastx, lasty);
+        send_click = false;
     }
 }
 
@@ -564,6 +725,7 @@ void game_tick() {
                         double dy   = e->pos.y - t.pos_y;
                         double dist = sqrt(dx * dx + dy * dy);
                         double d = 0.0;
+                        // todo: stealth detection and stuff
                         if((d = t.fire(e)) != -1.0) {
                             if(t.last_projectile) scheduled_projectiles[i].push_back({
                                 &t.last_projectile->texture,
@@ -572,7 +734,7 @@ void game_tick() {
                                 0.0,
                                 t.last_projectile->range * t.range_mod / t.last_projectile->speed
                             });
-                            double excess_damage = e->health - d;
+                            double excess_damage = d - e->health;
                             if(excess_damage >= 0.0) {
                                 e->remove_in = dist / t.last_projectile->speed;
                                 e->schedule_removal = true;

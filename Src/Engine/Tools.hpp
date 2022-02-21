@@ -231,6 +231,15 @@ inline constexpr T limit(U min_val, T val, V max_val) {
     return val;
 }
 
+inline std::string to_string_digits(double d, size_t decimal_digits = 2) {
+    std::ostringstream out;
+    out.precision(decimal_digits);
+    out << std::fixed << d;
+    return out.str();
+}
+
+template<typename T, T min, T val, T max>
+concept in_range = min < val && val < max;
 
 // String Utilities
 
@@ -290,4 +299,13 @@ inline std::vector<std::string> split(std::string& s, const char& separator, con
 
     if(cur != "") out.push_back(cur);
     return out;
+}
+
+// Color utilities
+
+inline uint32_t color_multiply(uint32_t c, double f) {
+    return ((((uint32_t)((double)((c >> 24) & 0xFF) * f)) << 24) & 0xFF000000) |
+           ((((uint32_t)((double)((c >> 16) & 0xFF) * f)) << 16) & 0x00FF0000) |
+           ((((uint32_t)((double)((c >>  8) & 0xFF) * f)) <<  8) & 0x0000FF00) |
+           (( (uint32_t)((double)( c        & 0xFF) * f))        & 0x000000FF);
 }
