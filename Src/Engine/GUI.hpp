@@ -10,7 +10,7 @@ public:
         if(!body) return;
         int x = 0, y = 0;
         SDL_GetMouseState(&x, &y);
-        float rel_x = (float)x * width / 1920.0f, rel_y = (float)y * height / 1080.0f;
+        float rel_x = (float)x / width * 1920.0f, rel_y = (float)y / height * 1080.0f;
 
         // I am about 87% certain this will crash or otherwise break something as body is never a gui object
         // Update: It doesn't. The fuck? I mean I guess I get why, but it's weird af

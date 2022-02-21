@@ -5,6 +5,13 @@ struct enemy_set {
     enemy**         e;
     double          spacing                     = 0.0;
     double          amount                      = 0.0;
+
+    bool            stealth                     = false;
+    bool            armored                     = false;
+    bool            shield                      = false;
+
+    uint16_t        immunities                  = 0;
+    uint16_t        vulnerabilities             = 0;
 };
 
 struct round_t {

@@ -110,12 +110,12 @@ private:
     reverse_iterator _rend;
 
 public:
-                     iterate_impl(size_t s) : _begin(s), _end(s, s), _rbegin(s), _rend(s, s)                         { }
-                     iterate_impl(size_t b, size_t s) : _begin(b, s), _end(s, s), _rbegin(b, s), _rend(s, s)         { }
-    iterator         begin()                                                                                         { return _begin; }
-    iterator         end()                                                                                           { return _end; }
-    reverse_iterator rbegin()                                                                                        { return _rbegin; }
-    reverse_iterator rend()                                                                                          { return _rend; }
+                     iterate_impl(size_t s) : _begin(s), _end(s, s), _rbegin(s), _rend(s, s)                 { }
+                     iterate_impl(size_t b, size_t s) : _begin(b, s), _end(s, s), _rbegin(b, s), _rend(s, s) { }
+    iterator         begin()                                                                                 { return _begin; }
+    iterator         end()                                                                                   { return _end; }
+    reverse_iterator rbegin()                                                                                { return _rbegin; }
+    reverse_iterator rend()                                                                                  { return _rend; }
 };
 
 template<std::convertible_to<size_t> T>

@@ -152,20 +152,61 @@ void deinit_enemies() {
 
 const rounds standard_rounds = {
     {
-        { { { &nano_matrioshka,        10.0,    20.0 } } },                 // Round 1
+        { { { &nano_matrioshka,        10.0,    20.0 } } },                 // Round  1
 
-        { { { &nano_matrioshka,        10.0,    20.0 },                     // Round 2
-            { &nano_matrioshka,         5.0,    10.0 } } },                 // Round 2
+        { { { &nano_matrioshka,        10.0,    20.0 },                     // Round  2
+            { &nano_matrioshka,         5.0,    10.0 } } },                 // Round  2
 
-        { { { &nano_matrioshka,        10.0,    25.0 },                     // Round 3
-            { &micro_matrioshka,        9.0,     5.0 } } },                 // Round 3
+        { { { &nano_matrioshka,        10.0,    25.0 },                     // Round  3
+            { &micro_matrioshka,        9.0,     5.0 } } },                 // Round  3
 
-        { { { &nano_matrioshka,         5.0,    15.0 },                     // Round 4
-            { &micro_matrioshka,        8.0,    20.0 } } },                 // Round 4
+        { { { &nano_matrioshka,         5.0,    15.0 },                     // Round  4
+            { &micro_matrioshka,        8.0,    20.0 } } },                 // Round  4
 
-        { { { &micro_matrioshka,        5.0,    20.0 },                     // Round 5
-            { &milli_matrioshka,        8.0,     8.0 } } },                 // Round 5
+        { { { &micro_matrioshka,        5.0,    20.0 },                     // Round  5
+            { &milli_matrioshka,        8.0,     8.0 } } },                 // Round  5
 
-        // todo: the other rounds
+        { { { &milli_matrioshka,        8.0,     8.0 },                     // Round  6
+            { &micro_matrioshka,        4.0,    24.0 },                     // Round  6
+            { &milli_matrioshka,        8.0,     8.0 } } },                 // Round  6
+
+        { { { &nano_matrioshka,         3.0,    12.0 },                     // Round  7
+            { &micro_matrioshka,        3.0,    12.0 },                     // Round  7
+            { &milli_matrioshka,        3.0,    12.0 } } },                 // Round  7
+
+        { { { &milli_matrioshka,        6.0,    30.0 } } },                 // Round  8
+
+        { { { &micro_matrioshka,        8.0,    60.0 },                     // Round  9
+            { &micro_matrioshka,        4.0,    20.0 },                     // Round  9
+            { &micro_matrioshka,        2.0,    20.0 },                     // Round  9
+            { &milli_matrioshka,        1.0,    10.0 } } },                 // Round  9
+
+        { { { &nano_matrioshka,        10.0,    10.0 },                     // Round 10
+            { &micro_matrioshka,       10.0,    10.0 },                     // Round 10
+            { &milli_matrioshka,       10.0,    10.0 },                     // Round 10
+            { &centi_matrioshka,       10.0,    10.0 } } },                 // Round 10
+
+        { { { &micro_matrioshka,       10.0,    16.0 },                     // Round 11
+            { &milli_matrioshka,        9.0,    14.0 },                     // Round 11
+            { &centi_matrioshka,        8.0,    12.0 } } },                 // Round 11
+
+        { { { &micro_matrioshka,        8.0,    32.0 },                     // Round 12
+            { &centi_matrioshka,        7.5,    20.0 },                     // Round 12
+            { &micro_matrioshka,        4.0,    24.0 },                     // Round 12
+            { &deci_matrioshka,        10.0,     1.0 } } },                 // Round 12
+
+        { { { &micro_matrioshka,        6.0,    16.0 },                     // Round 13
+            { &nano_matrioshka,         2.5,    64.0 },                     // Round 13
+            { &micro_matrioshka,        1.0,     8.0 },                     // Round 13
+            { &centi_matrioshka,        7.0,    32.0 } } },                 // Round 13
+
+        { { { &deci_matrioshka,         9.2,     8.0 },                     // Round 14
+            { &centi_matrioshka,        8.0,    20.0 },                     // Round 14
+            { &centi_matrioshka,        6.0,    10.0 },                     // Round 14
+            { &centi_matrioshka,        4.0,     8.0 },                     // Round 14
+            { &deci_matrioshka,         3.0,     4.0 } } },                 // Round 14
+
+        { { { &micro_matrioshka,        2.0,    64.0 },                     // Round 15
+            { &deci_matrioshka,         8.0,    16.0 } } },                 // Round 15
     }
 };

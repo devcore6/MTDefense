@@ -91,9 +91,10 @@ void init_game() {
 }
 
 texture_t* sidebar = nullptr;
-texture_t* coin = nullptr;
-texture_t* life = nullptr;
+texture_t* coin    = nullptr;
+texture_t* life    = nullptr;
 extern void deinit_enemies();
+
 void deinit_game() {
     deinit_enemies();
     if(sidebar) delete sidebar;
@@ -262,10 +263,7 @@ void mouse_release_handler(int _x, int _y) {
     if(selected) {
         double menux = (selected->pos_x >= 810.0) ? 0.0 : 1220.0;
 
-        if(x >= menux && x <= menux + 400 && y >= 280.0 && y <= 980.0) {
-
-            return;
-        }
+        if(x >= menux && x <= menux + 400 && y >= 280.0 && y <= 980.0) return;
     }
 
     selected = nullptr;
@@ -336,9 +334,9 @@ void render_ui();
 
 void render_sidebar() {
 
-    if(!sidebar)     sidebar     = new texture_t("Data/UI/Sidebar.png");
-    if(!coin)        coin        = new texture_t("Data/UI/Coin.png");
-    if(!life)        life        = new texture_t("Data/UI/Life.png");
+    if(!sidebar) sidebar = new texture_t("Data/UI/Sidebar.png");
+    if(!coin)    coin    = new texture_t("Data/UI/Coin.png");
+    if(!life)    life    = new texture_t("Data/UI/Life.png");
     if(!sidebar || !coin || !life) return;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, sidebar->textid);
@@ -890,7 +888,10 @@ void game_tick() {
                 gs.cur_round++;
                 gs.cash += 100.0 + gs.last_round;
                 gs.spawned_enemies = 0;
-                gs.created_enemies.clear();
+                if(gs.cur_round == gs.diff.rounds_to_win) {
+                    // todo: win screen
+                    gs.running = false;
+                }
             }
 
             // Update projectiles
