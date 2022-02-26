@@ -595,7 +595,8 @@ double count_lives(enemy* e) {
 
 double schedule_spawns(std::vector<spawned_enemy>& scheduled_additions, enemy* t, spawned_enemy& e, double excess_damage) {
     double ret = t->base_kill_reward * gs.diff.enemy_kill_reward_modifier * gs.diff.round_set->r[gs.cur_round].kill_cash_multiplier;
-    for(auto s : t->spawns) {
+    for(auto i : iterate(t->spawns.size())) {
+        auto& s = t->spawns[i];
         double health = s->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier;
         if(health <= excess_damage) ret += schedule_spawns(scheduled_additions, s, e, excess_damage - health);
         else scheduled_additions.push_back({
@@ -604,7 +605,7 @@ double schedule_spawns(std::vector<spawned_enemy>& scheduled_additions, enemy* t
             0.0,
             e.route,
             e.pos,
-            e.distance_travelled,
+            max(0.0, e.distance_travelled - i),
             health,
             health - excess_damage,
             s->base_speed * gs.diff.enemy_speed_modifier * gs.diff.round_set->r[gs.cur_round].enemy_speed_multiplier,
@@ -661,7 +662,7 @@ void game_tick() {
                             (*(set.e))->scale,
                             (uint16_t)((*(set.e))->immunities | gs.diff.enemy_base_immunities), // Why is the explicit conversion required here? Its uint16_t | uint16_t yet VisualStudio says the result is int?
                             (*(set.e))->vulnerabilities,
-                            (*(set.e))->stealth || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+                            (*(set.e))->stealth || set.stealth || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
                             (*(set.e))->armored || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
                             (rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
                             (*(set.e))->texture,

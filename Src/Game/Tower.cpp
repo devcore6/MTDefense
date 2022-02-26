@@ -27,12 +27,16 @@ double owned_tower::fire(spawned_enemy* e) {
     double d  = sqrt(dx * dx + dy * dy);
     if(d > base_type->range * range_mod) return -1.0;
     size_t odds = 0;
-    for(auto& p : projectiles) odds += p.odds;
-    if(odds == 0) return -1.0; // Should never happen
+    for(auto& p : projectiles) if(!e->stealth || can_hit_stealth || p.can_hit_stealth) odds += p.odds;
+    if(odds == 0) return -1.0;
     size_t r = rng() % odds;
     size_t offset = 0;
     projectile* p = nullptr;
-    for(auto i : iterate(projectiles.size())) if(projectiles[i].odds + offset >= r) { p = &projectiles[i]; break; }
+    for(auto i : iterate(projectiles.size())) {
+        if(e->stealth && !can_hit_stealth && !projectiles[i].can_hit_stealth) { offset += projectiles[i].odds; continue; }
+        if(projectiles[i].odds + offset >= r) { p = &projectiles[i]; break; }
+        offset += projectiles[i].odds;
+    }
     if(!p) return -1.0; // Should never happen
     last_projectile = p;
     uint16_t damage_type = p->damage_type | extra_damage_types;
@@ -95,7 +99,7 @@ void init_towers() {
         "Sentry"_str,
         "A simple sentry that shoots oncoming enemies."_str,
         50.0,
-        200.00, 250.00, false,
+        185.00, 250.00, false,
         TOWER_PHYSICAL,
         {
             {
@@ -116,7 +120,7 @@ void init_towers() {
                 {
                     "Faster firing"_str,
                     "Lighter bolt moves faster to allow for 15% faster firing rate."_str,
-                    80.00,
+                    75.00,
                     1.0, 1.15, 1.0, 1.00, 1.00,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
@@ -125,8 +129,8 @@ void init_towers() {
                 {
                     "Ported receiver"_str,
                     "Ported receiver allows for better cooling for even faster firing."_str,
-                    240.00,
-                    1.0, 1.33, 1.0, 1.00, 1.00,
+                    200.00,
+                    1.0, 1.38, 1.0, 1.00, 1.00,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
                     { }, { }
@@ -143,7 +147,7 @@ void init_towers() {
                 {
                     "Hotter gunpowder"_str,
                     "More aggressive gunpowder burns hotter, increasing firing rate, projectile speed, reach, damage, and allows it to damage more enemy types."_str,
-                    800.00,
+                    640.00,
                     1.25, 1.10, 1.8, 1.25, 2.00,
                     false, false,
                     0, 0, 0.0, 0.0, DAMAGE_HEAT,
@@ -152,10 +156,10 @@ void init_towers() {
                 {
                     "Explosive ammunition"_str,
                     "Adds minor explosive properties to ALL of this tower's ammunition."_str,
-                    2500.00,
+                    2900.00,
                     1.00, 1.00, 1.0, 1.00, 1.25,
                     false, false,
-                    0, 8, 0.0, 4.0, DAMAGE_PRESSURE,
+                    0, 12, 0.0, 6.0, DAMAGE_PRESSURE,
                     { }, {
                         // Add explosion animation here later
                     }
@@ -192,7 +196,7 @@ void init_towers() {
                 {
                     "AP rounds"_str,
                     "This sentry frequently fires armor piercing rounds, which do more damage and do full damage to armored opponents."_str,
-                    750.00,
+                    725.00,
                     1.00, 1.00, 1.0, 1.00, 1.00,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
@@ -214,7 +218,7 @@ void init_towers() {
                 {
                     "Longer barrel"_str,
                     "Replaces this sentry's barrels with longer ones, for additional range, bullet velocity and slightly larger damage."_str,
-                    800.00,
+                    700.00,
                     1.30, 1.00, 1.2, 1.00, 1.44,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
@@ -223,7 +227,7 @@ void init_towers() {
                 {
                     "Rifled barrel"_str,
                     "Replaces this sentry's barrels with rifled ones, for even longer range and slightly better armor penetration."_str,
-                    1200.00,
+                    1150.00,
                     2.50, 1.00, 1.0, 1.20, 1.00,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
@@ -232,8 +236,8 @@ void init_towers() {
                 {
                     "Special ammunition"_str,
                     "Adds different types of special ammunition that do extra damage to specific enemy classes. Also slightly increases all stats."_str,
-                    12000.00,
-                    1.10, 1.05, 1.1, 1.10, 1.13,
+                    15000.00,
+                    1.10, 1.10, 1.1, 1.10, 1.25,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
                     { }, {
@@ -280,7 +284,7 @@ void init_towers() {
                 {
                     "Copper jacket"_str,
                     "Adds a tough copper jacket to the projectiles which doubles the projectile's damage."_str,
-                    300.00,
+                    275.00,
                     1.00, 1.00, 1.0, 1.00, 2.00,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
@@ -298,7 +302,7 @@ void init_towers() {
                 {
                     "Hardened steel tripod"_str,
                     "Replaces the tripod with a studier hardened steel one, which allows for higher accuracy and thus higher damage. Doubles total damage output once more, and slightly increases fire rate."_str,
-                    2100.00,
+                    3100.00,
                     1.00, 1.20, 1.0, 1.00, 2.00,
                     false, false,
                     0, 0, 0.0, 0.0, 0,
@@ -307,10 +311,10 @@ void init_towers() {
                 {
                     "Steel penetrator cores"_str,
                     "Gives all projectiles steel penetrator cores, which slightly increase the damage output and allow all projectiles to go through one additional enemy."_str,
-                    3500.00,
+                    4500.00,
                     1.00, 1.00, 1.0, 1.00, 1.25,
                     false, false,
-                    1, 0, 16.0, 0.0, 0,
+                    1, 0, 128.0, 0.0, 0,
                     { }, { }
                 },
                 {
@@ -325,7 +329,7 @@ void init_towers() {
                 {
                     "Mana infusion"_str,
                     "Infuses bullets with pure mana. Greatly increases damage output."_str,
-                    12500.00,
+                    11500.00,
                     1.00, 1.00, 1.0, 1.00, 1.75,
                     false, false,
                     0, 0, 0.0, 0.0, DAMAGE_MAGIC,

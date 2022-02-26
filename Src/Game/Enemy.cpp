@@ -129,25 +129,25 @@ void init_enemies() {
 }
 
 void deinit_enemies() {
-    if(nano_matrioshka)         { delete nano_matrioshka;         nano_matrioshka = nullptr; }
-    if(micro_matrioshka)        { delete micro_matrioshka;        micro_matrioshka = nullptr; }
-    if(milli_matrioshka)        { delete milli_matrioshka;        milli_matrioshka = nullptr; }
-    if(centi_matrioshka)        { delete centi_matrioshka;        centi_matrioshka = nullptr; }
-    if(deci_matrioshka)         { delete deci_matrioshka;         deci_matrioshka = nullptr; }
-    if(matrioshka)              { delete matrioshka;              matrioshka = nullptr; }
-    if(volcanic_matrioshka)     { delete volcanic_matrioshka;     volcanic_matrioshka = nullptr; }
-    if(siberian_matrioshka)     { delete siberian_matrioshka;     siberian_matrioshka = nullptr; }
+    if(nano_matrioshka)         { delete nano_matrioshka;         nano_matrioshka         = nullptr; }
+    if(micro_matrioshka)        { delete micro_matrioshka;        micro_matrioshka        = nullptr; }
+    if(milli_matrioshka)        { delete milli_matrioshka;        milli_matrioshka        = nullptr; }
+    if(centi_matrioshka)        { delete centi_matrioshka;        centi_matrioshka        = nullptr; }
+    if(deci_matrioshka)         { delete deci_matrioshka;         deci_matrioshka         = nullptr; }
+    if(matrioshka)              { delete matrioshka;              matrioshka              = nullptr; }
+    if(volcanic_matrioshka)     { delete volcanic_matrioshka;     volcanic_matrioshka     = nullptr; }
+    if(siberian_matrioshka)     { delete siberian_matrioshka;     siberian_matrioshka     = nullptr; }
     if(experimental_matrioshka) { delete experimental_matrioshka; experimental_matrioshka = nullptr; }
-    if(iron_matrioshka)         { delete iron_matrioshka;         iron_matrioshka = nullptr; }
-    if(giga_matrioshka)         { delete giga_matrioshka;         giga_matrioshka = nullptr; }
-    if(hardened_matrioshka)     { delete hardened_matrioshka;     hardened_matrioshka = nullptr; }
+    if(iron_matrioshka)         { delete iron_matrioshka;         iron_matrioshka         = nullptr; }
+    if(giga_matrioshka)         { delete giga_matrioshka;         giga_matrioshka         = nullptr; }
+    if(hardened_matrioshka)     { delete hardened_matrioshka;     hardened_matrioshka     = nullptr; }
 
-    if(chonk)                   { delete chonk;                   chonk = nullptr; }
-    if(chonkers)                { delete chonkers;                chonkers = nullptr; }
-    if(monster_chonk)           { delete monster_chonk;           monster_chonk = nullptr; }
-    if(dark_chonky)             { delete dark_chonky;             dark_chonky = nullptr; }
-    if(soviet_chonkers)         { delete soviet_chonkers;         soviet_chonkers = nullptr; }
-    if(big_momma)               { delete big_momma;               big_momma = nullptr; }
+    if(chonk)                   { delete chonk;                   chonk                   = nullptr; }
+    if(chonkers)                { delete chonkers;                chonkers                = nullptr; }
+    if(monster_chonk)           { delete monster_chonk;           monster_chonk           = nullptr; }
+    if(dark_chonky)             { delete dark_chonky;             dark_chonky             = nullptr; }
+    if(soviet_chonkers)         { delete soviet_chonkers;         soviet_chonkers         = nullptr; }
+    if(big_momma)               { delete big_momma;               big_momma               = nullptr; }
 }
 
 const rounds standard_rounds = {
@@ -176,22 +176,22 @@ const rounds standard_rounds = {
 
         { { { &milli_matrioshka,        6.0,    30.0 } } },                 // Round  8
 
-        { { { &micro_matrioshka,        8.0,    60.0 },                     // Round  9
-            { &micro_matrioshka,        4.0,    20.0 },                     // Round  9
-            { &micro_matrioshka,        2.0,    20.0 },                     // Round  9
-            { &milli_matrioshka,        1.0,    10.0 } } },                 // Round  9
+        { { { &micro_matrioshka,        9.0,    60.0 },                     // Round  9
+            { &micro_matrioshka,        4.5,    20.0 },                     // Round  9
+            { &micro_matrioshka,        2.3,    10.0 },                     // Round  9
+            { &milli_matrioshka,        1.2,     5.0 } } },                 // Round  9
 
-        { { { &nano_matrioshka,        10.0,    10.0 },                     // Round 10
-            { &micro_matrioshka,       10.0,    10.0 },                     // Round 10
-            { &milli_matrioshka,       10.0,    10.0 },                     // Round 10
-            { &centi_matrioshka,       10.0,    10.0 } } },                 // Round 10
+        { { { &nano_matrioshka,        10.0,     8.0 },                     // Round 10
+            { &micro_matrioshka,       10.0,     8.0 },                     // Round 10
+            { &milli_matrioshka,       10.0,     8.0 },                     // Round 10
+            { &centi_matrioshka,       10.0,     8.0 } } },                 // Round 10
 
-        { { { &micro_matrioshka,       10.0,    16.0 },                     // Round 11
-            { &milli_matrioshka,        9.0,    14.0 },                     // Round 11
-            { &centi_matrioshka,        8.0,    12.0 } } },                 // Round 11
+        { { { &micro_matrioshka,        8.0,    14.0 },                     // Round 11
+            { &milli_matrioshka,        9.0,    12.0 },                     // Round 11
+            { &centi_matrioshka,       10.0,    10.0 } } },                 // Round 11
 
         { { { &micro_matrioshka,        8.0,    32.0 },                     // Round 12
-            { &centi_matrioshka,        7.5,    20.0 },                     // Round 12
+            { &centi_matrioshka,        7.5,    16.0 },                     // Round 12
             { &micro_matrioshka,        4.0,    24.0 },                     // Round 12
             { &deci_matrioshka,        10.0,     1.0 } } },                 // Round 12
 
@@ -207,6 +207,23 @@ const rounds standard_rounds = {
             { &deci_matrioshka,         3.0,     4.0 } } },                 // Round 14
 
         { { { &micro_matrioshka,        2.0,    64.0 },                     // Round 15
-            { &deci_matrioshka,         8.0,    16.0 } } },                 // Round 15
+            { &deci_matrioshka,         8.0,     9.0 } } },                 // Round 15
+
+        { { { &nano_matrioshka,        10.0,     8.0, true } } },           // Round 16
+
+        { { { &deci_matrioshka,         7.2,    16.0 },                     // Round 17
+            { &centi_matrioshka,        4.0,     2.0, true },               // Round 17
+            { &deci_matrioshka,         6.4,     8.0 },                     // Round 17
+            { &centi_matrioshka,        4.0,     4.0, true },               // Round 17
+            { &deci_matrioshka,         3.0,     6.0 },                     // Round 17
+            { &centi_matrioshka,        4.0,     8.0, true },               // Round 17
+            { &micro_matrioshka,        1.0,    32.0 } } },                 // Round 17
+
+        { { { &matrioshka,             10.0,     8.0 } } },                 // Round 18
+
+        { { { &matrioshka,              8.0,    16.0 },                     // Round 19
+            { &matrioshka,              6.2,    16.0 } } },                 // Round 19
+
+        { { { &volcanic_matrioshka,     8.0,     8.0 } } },                 // Round 20
     }
 };
