@@ -11,6 +11,16 @@
 #include <mutex>
 #include <random>
 
+svarp(language, "en_US"_str);
+constexpr const char* supported_languages[] = { "en_US" };
+
+std::string get_language() {
+    for(auto lang : supported_languages)
+        if(language == lang)
+            return language;
+    return "en_US"_str;
+}
+
 using sc = std::chrono::system_clock;
 
 std::mt19937_64 rng;
@@ -18,6 +28,19 @@ std::mt19937_64 rng;
 std::mutex lock;
 
 extern std::vector<tower> towers;
+
+extern bool encountered_nano_matrioshka;
+extern bool encountered_micro_matrioshka;
+extern bool encountered_milli_matrioshka;
+extern bool encountered_centi_matrioshka;
+extern bool encountered_deci_matrioshka;
+extern bool encountered_matrioshka;
+extern bool encountered_volcanic_matrioshka;
+extern bool encountered_siberian_matrioshka;
+extern bool encountered_experimental_matrioshka;
+extern bool encountered_iron_matrioshka;
+extern bool encountered_giga_matrioshka;
+extern bool encountered_hardened_matrioshka;
 
 struct game_state {
     size_t cur_round = 0;
@@ -261,9 +284,9 @@ void mouse_release_handler(int _x, int _y) {
     send_click = true;
 
     if(selected) {
-        double menux = (selected->pos_x >= 810.0) ? 0.0 : 1220.0;
+        double menux = (selected->pos_x >= 810.0) ? 0.0 : 1088.0;
 
-        if(x >= menux && x <= menux + 400 && y >= 280.0 && y <= 980.0) return;
+        if(x >= menux && x <= menux + 532) return;
     }
 
     selected = nullptr;
@@ -464,7 +487,7 @@ void update_menu() {
     upgrade_menu->body->background_color(color::background);
 
     vstack* s = new vstack {
-        (new text(selected->custom_name != "" ? selected->custom_name.c_str() : selected->base_type->name.c_str()))
+        (new text(selected->custom_name != "" ? selected->custom_name.c_str() : selected->base_type->name[get_language()].c_str()))
                 ->font(title)
     };
 
@@ -486,10 +509,10 @@ void update_menu() {
                     ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
                 (new vstack {
                     (new vstack {
-                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].name))
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].name[get_language()]))
                             ->font(headline)
                             ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].desc))
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].desc[get_language()]))
                             ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
                         (new text("$"_str + to_string_digits(cost, 2)))
                             ->font(headline)
@@ -516,10 +539,10 @@ void update_menu() {
             s->add((new hstack {
                 (new vstack {
                     (new vstack {
-                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i] - 1].name))
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i] - 1].name[get_language()]))
                             ->font(headline)
                             ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i] - 1].desc))
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i] - 1].desc[get_language()]))
                             ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
                     })
                         ->offset(-16.0f, -16.0f)
@@ -530,10 +553,10 @@ void update_menu() {
                     ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
                 (new vstack {
                     (new vstack {
-                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].name))
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].name[get_language()]))
                             ->font(headline)
                             ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].desc))
+                        (new text(selected->base_type->upgrade_paths[i][selected->upgrade_paths[i]].desc[get_language()]))
                             ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
                         (new text("$"_str + to_string_digits(cost, 2)))
                             ->font(headline)
@@ -605,7 +628,7 @@ double schedule_spawns(std::vector<spawned_enemy>& scheduled_additions, enemy* t
             0.0,
             e.route,
             e.pos,
-            max(0.0, e.distance_travelled - i),
+            max(0.0, e.distance_travelled - i * 24.0),
             health,
             health - excess_damage,
             s->base_speed * gs.diff.enemy_speed_modifier * gs.diff.round_set->r[gs.cur_round].enemy_speed_multiplier,
@@ -644,6 +667,9 @@ void game_tick() {
                 size_t n_spawn = (size_t)(time_elapsed * (gs.double_speed ? 0.05 : 0.025) / set.spacing);
                 if(n_spawn == 0) break;
                 if(n_left > 0) {
+                    /*
+                     * Print messages upon first appearance of a new type of enemy
+                     */
                     gs.last_spawned_tick = sc::now();
                     for(auto i : iterate(min(n_spawn, n_left))) {
                         gs.last_route = limit(0, gs.last_route + 1, current_map->paths.size() - 1);
@@ -738,29 +764,32 @@ void game_tick() {
                                 e->remove_in = dist / t.last_projectile->speed;
                                 e->schedule_removal = true;
                                 cash_added[i] += schedule_spawns(scheduled_additions[i], e->base_enemy, *e, excess_damage);
-                            } else if(e->spawns_when_damaged) scheduled_additions[i].push_back({
-                                new std::mutex(),
-                                false,
-                                0.0,
-                                e->route,
-                                e->pos,
-                                e->distance_travelled,
-                                e->spawns_when_damaged->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier,
-                                e->spawns_when_damaged->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier,
-                                e->spawns_when_damaged->base_speed * gs.diff.enemy_speed_modifier * gs.diff.round_set->r[gs.cur_round].enemy_speed_multiplier,
-                                e->spawns_when_damaged->base_kill_reward * gs.diff.enemy_kill_reward_modifier * gs.diff.round_set->r[gs.cur_round].kill_cash_multiplier,
-                                e->spawns_when_damaged->scale,
-                                (uint16_t)(e->spawns_when_damaged->immunities | gs.diff.enemy_base_immunities), // Why is the explicit conversion required here? Its uint16_t | uint16_t yet VisualStudio says the result is int?
-                                e->spawns_when_damaged->vulnerabilities,
-                                e->spawns_when_damaged->stealth || e->stealth || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
-                                e->spawns_when_damaged->armored || e->armored || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
-                                (rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
-                                e->spawns_when_damaged->texture,
-                                e->spawns_when_damaged->spawns_when_damaged,
-                                e->spawns_when_damaged->spawns,
-                                false,
-                                e->spawns_when_damaged
-                            });
+                            } else {
+                                e->health -= d;
+                                if(e->spawns_when_damaged) scheduled_additions[i].push_back({
+                                    new std::mutex(),
+                                    false,
+                                    0.0,
+                                    e->route,
+                                    e->pos,
+                                    e->distance_travelled,
+                                    e->spawns_when_damaged->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier,
+                                    e->spawns_when_damaged->base_health * gs.diff.enemy_health_modifier * gs.diff.round_set->r[gs.cur_round].enemy_health_multiplier,
+                                    e->spawns_when_damaged->base_speed * gs.diff.enemy_speed_modifier * gs.diff.round_set->r[gs.cur_round].enemy_speed_multiplier,
+                                    e->spawns_when_damaged->base_kill_reward * gs.diff.enemy_kill_reward_modifier * gs.diff.round_set->r[gs.cur_round].kill_cash_multiplier,
+                                    e->spawns_when_damaged->scale,
+                                    (uint16_t)(e->spawns_when_damaged->immunities | gs.diff.enemy_base_immunities), // Why is the explicit conversion required here? Its uint16_t | uint16_t yet VisualStudio says the result is int?
+                                    e->spawns_when_damaged->vulnerabilities,
+                                    e->spawns_when_damaged->stealth || e->stealth || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+                                    e->spawns_when_damaged->armored || e->armored || (rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+                                    (rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds * gs.diff.round_set->r[gs.cur_round].special_odds_multiplier))) == 0,
+                                    e->spawns_when_damaged->texture,
+                                    e->spawns_when_damaged->spawns_when_damaged,
+                                    e->spawns_when_damaged->spawns,
+                                    false,
+                                    e->spawns_when_damaged
+                                });
+                            }
                             e->lock->unlock();
                             break;
                         }

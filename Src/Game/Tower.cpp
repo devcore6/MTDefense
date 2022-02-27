@@ -96,8 +96,8 @@ void owned_tower::try_upgrade(uint8_t path, double price) {
 
 void init_towers() {
     towers.push_back({
-        "Sentry"_str,
-        "A simple sentry that shoots oncoming enemies."_str,
+        { { "en_US"_str, "Sentry"_str } },
+        { { "en_US"_str, "A simple sentry that shoots oncoming enemies."_str } },
         50.0,
         185.00, 250.00, false,
         TOWER_PHYSICAL,
@@ -118,8 +118,8 @@ void init_towers() {
         {
             {
                 {
-                    "Faster firing"_str,
-                    "Lighter bolt moves faster to allow for 15% faster firing rate."_str,
+                    { { "en_US"_str, "Faster firing"_str } },
+                    { { "en_US"_str, "Lighter bolt moves faster to allow for 15% faster firing rate."_str } },
                     75.00,
                     1.0, 1.15, 1.0, 1.00, 1.00,
                     false, false,
@@ -127,8 +127,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Ported receiver"_str,
-                    "Ported receiver allows for better cooling for even faster firing."_str,
+                    { { "en_US"_str, "Ported receiver"_str } },
+                    { { "en_US"_str, "Ported receiver allows for better cooling for even faster firing."_str } },
                     200.00,
                     1.0, 1.38, 1.0, 1.00, 1.00,
                     false, false,
@@ -136,8 +136,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Double barrel"_str,
-                    "Two barrels shoot twice as fast."_str,
+                    { { "en_US"_str, "Double barrel"_str } },
+                    { { "en_US"_str, "Two barrels shoot twice as fast."_str } },
                     400.00,
                     1.0, 2.00, 1.0, 1.00, 1.00,
                     false, false,
@@ -145,8 +145,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Hotter gunpowder"_str,
-                    "More aggressive gunpowder burns hotter, increasing firing rate, projectile speed, reach, damage, and allows it to damage more enemy types."_str,
+                    { { "en_US"_str, "Hotter gunpowder"_str } },
+                    { { "en_US"_str, "More aggressive gunpowder burns hotter, increasing firing rate, projectile speed, reach, damage, and allows it to damage more enemy types."_str } },
                     640.00,
                     1.25, 1.10, 1.8, 1.25, 2.00,
                     false, false,
@@ -154,8 +154,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Explosive ammunition"_str,
-                    "Adds minor explosive properties to ALL of this tower's ammunition."_str,
+                    { { "en_US"_str, "Explosive ammunition"_str } },
+                    { { "en_US"_str, "Adds minor explosive properties to ALL of this tower's ammunition."_str } },
                     2900.00,
                     1.00, 1.00, 1.0, 1.00, 1.25,
                     false, false,
@@ -165,8 +165,8 @@ void init_towers() {
                     }
                 },
                 {
-                    "The SHREDDER"_str,
-                    "Adds a third barrel, and DOUBLES the firing rate of each barrel for ultimate destruction."_str,
+                    { { "en_US"_str, "The SHREDDER"_str } },
+                    { { "en_US"_str, "Adds a third barrel, and DOUBLES the firing rate of each barrel for ultimate destruction."_str } },
                     12500.00,
                     1.00, 3.00, 1.0, 1.00, 1.00,
                     false, false,
@@ -176,26 +176,26 @@ void init_towers() {
             },
             {
                 {
-                    "Stealth detection"_str,
-                    "Allows this sentry to target and hit stealthed enemies."_str,
+                    { { "en_US"_str, "Stealth detection"_str } },
+                    { { "en_US"_str, "Allows this sentry to target and hit stealthed enemies."_str } },
                     200.00,
                     1.00, 1.00, 1.0, 1.00, 1.00,
-                    true, false,
+                    false, true,
                     0, 0, 0.0, 0.0, 0,
                     { }, { }
                 },
                 {
-                    "Sharpened bullets"_str,
-                    "This sentry fires sharpened bullets which can target armored enemies."_str,
+                    { { "en_US"_str, "Sharpened bullets"_str } },
+                    { { "en_US"_str, "This sentry fires sharpened bullets which can target armored enemies."_str } },
                     350.00,
                     1.00, 1.00, 1.0, 1.00, 1.00,
-                    false, true,
+                    true, false,
                     0, 0, 0.0, 0.0, DAMAGE_SHARP,
                     { }, { }
                 },
                 {
-                    "AP rounds"_str,
-                    "This sentry frequently fires armor piercing rounds, which do more damage and do full damage to armored opponents."_str,
+                    { { "en_US"_str, "AP rounds"_str } },
+                    { { "en_US"_str, "This sentry frequently fires armor piercing rounds, which do more damage and do full damage to armored opponents."_str } },
                     725.00,
                     1.00, 1.00, 1.0, 1.00, 1.00,
                     false, false,
@@ -216,8 +216,8 @@ void init_towers() {
                     }
                 },
                 {
-                    "Longer barrel"_str,
-                    "Replaces this sentry's barrels with longer ones, for additional range, bullet velocity and slightly larger damage."_str,
+                    { { "en_US"_str, "Longer barrel"_str } },
+                    { { "en_US"_str, "Replaces this sentry's barrels with longer ones, for additional range, bullet velocity and slightly larger damage."_str } },
                     700.00,
                     1.30, 1.00, 1.2, 1.00, 1.44,
                     false, false,
@@ -225,8 +225,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Rifled barrel"_str,
-                    "Replaces this sentry's barrels with rifled ones, for even longer range and slightly better armor penetration."_str,
+                    { { "en_US"_str, "Rifled barrel"_str } },
+                    { { "en_US"_str, "Replaces this sentry's barrels with rifled ones, for even longer range and slightly better armor penetration."_str } },
                     1150.00,
                     2.50, 1.00, 1.0, 1.20, 1.00,
                     false, false,
@@ -234,8 +234,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Special ammunition"_str,
-                    "Adds different types of special ammunition that do extra damage to specific enemy classes. Also slightly increases all stats."_str,
+                    { { "en_US"_str, "Special ammunition"_str } },
+                    { { "en_US"_str, "Adds different types of special ammunition that do extra damage to specific enemy classes. Also slightly increases all stats."_str } },
                     15000.00,
                     1.10, 1.10, 1.1, 1.10, 1.25,
                     false, false,
@@ -282,8 +282,8 @@ void init_towers() {
             },
             {
                 {
-                    "Copper jacket"_str,
-                    "Adds a tough copper jacket to the projectiles which doubles the projectile's damage."_str,
+                    { { "en_US"_str, "Copper jacket"_str } },
+                    { { "en_US"_str, "Adds a tough copper jacket to the projectiles which doubles the projectile's damage."_str } },
                     275.00,
                     1.00, 1.00, 1.0, 1.00, 2.00,
                     false, false,
@@ -291,8 +291,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Larger caliber"_str,
-                    "Replaces the projectiles with much stronger larger caliber ones, which doubles the damage once more."_str,
+                    { { "en_US"_str, "Larger caliber"_str } },
+                    { { "en_US"_str, "Replaces the projectiles with much stronger larger caliber ones, which doubles the damage once more."_str } },
                     1200.00,
                     1.00, 1.00, 1.0, 1.00, 2.00,
                     false, false,
@@ -300,8 +300,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Hardened steel tripod"_str,
-                    "Replaces the tripod with a studier hardened steel one, which allows for higher accuracy and thus higher damage. Doubles total damage output once more, and slightly increases fire rate."_str,
+                    { { "en_US"_str, "Hardened steel tripod"_str } },
+                    { { "en_US"_str, "Replaces the tripod with a studier hardened steel one, which allows for higher accuracy and thus higher damage. Doubles total damage output once more, and slightly increases fire rate."_str } },
                     3100.00,
                     1.00, 1.20, 1.0, 1.00, 2.00,
                     false, false,
@@ -309,8 +309,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Steel penetrator cores"_str,
-                    "Gives all projectiles steel penetrator cores, which slightly increase the damage output and allow all projectiles to go through one additional enemy."_str,
+                    { { "en_US"_str, "Steel penetrator cores"_str } },
+                    { { "en_US"_str, "Gives all projectiles steel penetrator cores, which slightly increase the damage output and allow all projectiles to go through one additional enemy."_str } },
                     4500.00,
                     1.00, 1.00, 1.0, 1.00, 1.25,
                     false, false,
@@ -318,8 +318,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Special concoction"_str,
-                    "Coats all bullets in a special biological and chemical concoction for assured destruction."_str,
+                    { { "en_US"_str, "Special concoction"_str } },
+                    { { "en_US"_str, "Coats all bullets in a special biological and chemical concoction for assured destruction."_str } },
                     1500.00,
                     1.00, 1.00, 1.0, 1.00, 1.25,
                     false, false,
@@ -327,8 +327,8 @@ void init_towers() {
                     { }, { }
                 },
                 {
-                    "Mana infusion"_str,
-                    "Infuses bullets with pure mana. Greatly increases damage output."_str,
+                    { { "en_US"_str, "Mana infusion"_str } },
+                    { { "en_US"_str, "Infuses bullets with pure mana. Greatly increases damage output."_str } },
                     11500.00,
                     1.00, 1.00, 1.0, 1.00, 1.75,
                     false, false,

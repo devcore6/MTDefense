@@ -1,3 +1,25 @@
+# r17 Language support, more rounds
+## Gameplay
+
+- Added convenient way to allow for future support of additional languages
+- Added rounds 21 ... 30
+- Increased spacing between spawns of enemies
+- Stopped cmd window from opening on Release build
+
+## Rounds balancing updates
+
+- Reduced amount of enemies in rounds 1 ... 6, 8, 9, and 19
+
+## Bug fixes
+### Generic
+
+- Fixed enemies not taking damage when tower does more damage than required to kill an enemy
+- Fixed bounding boxes of upgrade menus being wrong and resulting in it being difficult to purchase upgrades when menu was on left side
+
+### Sentry turret
+
+- Fixed stealth detection and sharpened bullets upgrades being swapped
+
 # r16 Balancing updates, more rounds, stealthed enemies
 ## Gameplay
 

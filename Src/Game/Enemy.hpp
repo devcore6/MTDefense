@@ -1,11 +1,12 @@
 #pragma once
 #include "../Engine/GL.hpp"
+#include "Language.hpp"
 #include <mutex>
 
 struct enemy {
     // todo: Freezing, slowing, etc.
-    std::string                             name                = "";
-    std::string                             description         = "";
+    dictionary_entry                        name;
+    dictionary_entry                        description;
 
     double                                  base_health         = 1.0;
     double                                  base_speed          = 1.0;

@@ -118,6 +118,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>SDL2_mixer.lib;cxxgui.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib32</AdditionalLibraryDirectories>
+      <AdditionalOptions> /SUBSYSTEM:windows /ENTRY:mainCRTStartup %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -156,9 +157,19 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>SDL2_mixer.lib;cxxgui.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib64;x64/Release</AdditionalLibraryDirectories>
+      <AdditionalOptions> /SUBSYSTEM:windows /ENTRY:mainCRTStartup %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="enet\include\enet\callbacks.h" />
+    <ClInclude Include="enet\include\enet\enet.h" />
+    <ClInclude Include="enet\include\enet\list.h" />
+    <ClInclude Include="enet\include\enet\protocol.h" />
+    <ClInclude Include="enet\include\enet\time.h" />
+    <ClInclude Include="enet\include\enet\types.h" />
+    <ClInclude Include="enet\include\enet\unix.h" />
+    <ClInclude Include="enet\include\enet\utility.h" />
+    <ClInclude Include="enet\include\enet\win32.h" />
     <ClInclude Include="Engine\Audio.hpp" />
     <ClInclude Include="Engine\Engine.hpp" />
     <ClInclude Include="Engine\GL.hpp" />
@@ -169,6 +180,7 @@
     <ClInclude Include="Game\Difficulty.hpp" />
     <ClInclude Include="Game\Enemy.hpp" />
     <ClInclude Include="Game\Game.hpp" />
+    <ClInclude Include="Game\Language.hpp" />
     <ClInclude Include="Game\Tower.hpp" />
     <ClInclude Include="Shared\Tools.hpp" />
   </ItemGroup>

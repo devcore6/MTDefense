@@ -65,8 +65,8 @@ struct animation_set {
 };
 
 struct upgrade {
-    std::string name                = "";
-    std::string desc                = "";
+    dictionary_entry name;
+    dictionary_entry desc;
     
     double      base_price          = 0.0;
     double      range_mod           = 1.0;
@@ -89,8 +89,8 @@ struct upgrade {
 };
 
 struct tower {
-    std::string name                = "";
-    std::string desc                = "";
+    dictionary_entry name;
+    dictionary_entry desc;
 
     double      hitbox_radius       = 0.0;
 

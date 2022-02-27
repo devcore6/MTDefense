@@ -51,6 +51,36 @@
     <ClInclude Include="Engine\GUI.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Language.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\callbacks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\enet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\protocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\unix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enet\include\enet\win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game\Enemy.cpp">
