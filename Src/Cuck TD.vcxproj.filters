@@ -18,16 +18,7 @@
     <ClInclude Include="Shared\Tools.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Difficulty.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Enemy.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Game\Game.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Tower.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Audio.hpp">
@@ -49,9 +40,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\GUI.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Language.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="enet\include\enet\callbacks.h">
@@ -81,12 +69,12 @@
     <ClInclude Include="enet\include\enet\win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Package.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Game\Enemy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\Game.cpp">
+    <ClCompile Include="Game\Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Game\Tower.cpp">
@@ -141,6 +129,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="enet\win32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

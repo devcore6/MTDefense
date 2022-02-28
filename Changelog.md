@@ -1,3 +1,12 @@
+# r18 Multiplayer begin
+## Gameplay
+
+- Began working towards multiplayer support
+
+## Miscellaneous
+
+- Began restructuring code for multiplayer support. (This is not finished!)
+
 # r17 Language support, more rounds
 ## Gameplay
 
@@ -13,7 +22,7 @@
 ## Bug fixes
 ### Generic
 
-- Fixed enemies not taking damage when tower does more damage than required to kill an enemy
+- Fixed enemies not taking damage when tower does less damage than required to kill an enemy
 - Fixed bounding boxes of upgrade menus being wrong and resulting in it being difficult to purchase upgrades when menu was on left side
 
 ### Sentry turret

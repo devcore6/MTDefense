@@ -3,8 +3,6 @@
 #include <thread>
 #include "Audio.hpp"
 
-using sc = std::chrono::steady_clock;
-
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
 SDL_GLContext context;

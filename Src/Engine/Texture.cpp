@@ -3,6 +3,7 @@
 #include <SDL/SDL_image.h>
 
 #include <filesystem>
+#include <map>
 
 #if defined(_WIN32) || defined(_WIN64)
 extern PFNGLGENERATEMIPMAPPROC _glGenerateMipmap;
@@ -10,7 +11,26 @@ extern PFNGLGENERATEMIPMAPPROC _glGenerateMipmap;
 
 #define glGenerateMipmap _glGenerateMipmap
 
+struct texture_ref {
+    uint32_t textid;
+    uint32_t width;
+    uint32_t height;
+    size_t ref_count;
+};
+
+std::map<std::string, texture_ref> texture_refs;
+
 texture_t::texture_t(std::string path) {
+    if(texture_refs.contains(path)) {
+        auto& ref = texture_refs[path];
+        textid    = ref.textid;
+        width     = ref.width;
+        height    = ref.height;
+        ref_count = &ref.ref_count;
+        (*ref_count)++;
+        return;
+    }
+
     SDL_Surface* surface = IMG_Load(path.c_str());
     if(!surface) return;
 
@@ -48,6 +68,9 @@ texture_t::texture_t(std::string path) {
     height = surface->h;
 
     SDL_FreeSurface(surface);
+
+    texture_refs.insert({ path, texture_ref { textid, width, height, 1 } });
+    ref_count = &texture_refs[path].ref_count;
 }
 
 texture_t::texture_t(SDL_RWops* data) {
@@ -91,8 +114,26 @@ texture_t::texture_t(SDL_RWops* data) {
     SDL_FreeSurface(surface);
 }
 
+texture_t::~texture_t() {
+    if(!ref_count || (ref_count && !--(*ref_count))) glDeleteTextures(1, &textid);
+}
+
 animation_t::animation_t(std::string folder) {
     for(const auto& f : std::filesystem::directory_iterator(folder))
         if(f.is_regular_file())
             frames.push_back(texture_t(f.path().string()));
+}
+
+std::map<std::string, animation_t> map_animations(std::string path) {
+    std::map<std::string, animation_t> ret;
+
+    for(auto& dir : std::filesystem::directory_iterator(path)) {
+        if(!dir.is_directory()) continue;
+        std::string name = dir.path().filename().string();
+        if(name.length() != 5) continue;
+        if(!isdigit(name[0]) || name[1] != '-' || !isdigit(name[2]) || name[3] != '-' || !isdigit(name[4])) continue;
+        ret.insert({ { name, animation_t(dir.path().string()) } });
+    }
+
+    return ret;
 }
