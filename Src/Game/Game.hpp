@@ -4,10 +4,10 @@
 #include <string>
 #include <mutex>
 
-#include "../Engine/Engine.hpp"
 #include "../Engine/GL.hpp"
 
 using dictionary_entry = std::map<const char*, const char*>;
+
 inline const char* get_entry(dictionary_entry t, const char* lang) {
     for(auto& val : t)
         if(!strcmp(val.first, lang)) 
@@ -1913,7 +1913,7 @@ static struct tower_t {
                 }
             }
         },
-        /* animations: */                               map_animations("Data/Towers/Sentry/"_str)
+        /* animations: */                               map_animations("Data/Towers/Sentry/")
     }
 };
 

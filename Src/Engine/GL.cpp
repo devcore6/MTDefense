@@ -64,6 +64,7 @@ bool base_rect_t::contains(vertex_2d vertex) {
 
 vertex_2d& base_rect_t::operator[](uint8_t id) { return vertices[limit(0_u8, id, 3_u8)]; }
 
+#ifndef __SERVER__
 void rect_t::render() {
     texture_t texture = { 0 };
     if(anim.frames.size() > 0) {
@@ -106,6 +107,7 @@ void rect_t::render(vertex_2d offset, double& rot) {
 
     glPopMatrix();
 }
+#endif
 
 vertex_2d& line_strip_t::operator[](size_t id) { return vertices[clamp(0_z, id, vertices.size())]; }
 
@@ -121,6 +123,7 @@ vertex_2d line_strip_t::get_position_at(double d) {
     return vertices[vertices.size() - 1];
 }
 
+#ifndef __SERVER__
 void line_strip_t::render() {
     glBegin(GL_LINE_STRIP);
 
@@ -128,6 +131,7 @@ void line_strip_t::render() {
 
     glEnd();
 }
+#endif
 
 double line_strip_t::distance(vertex_2d v) {
     double min = -1.0;
@@ -164,6 +168,7 @@ double line_t::distance(vertex_2d v) {
     return abs(ab.x * av.y - ab.y * av.x) / sqrt(ab.x * ab.x + ab.y * ab.y);
 }
 
+#ifndef __SERVER__
 uint32_t render_circle(double radius, std::string fill_color, double stroke, std::string stroke_color) {
     uint32_t textureid = 0;
     std::string size = "\""_str + std::to_string((uint32_t)(radius * 2)) + '"';
@@ -213,3 +218,4 @@ uint32_t render_circle(double radius, std::string fill_color, double stroke, std
     
     return textureid;
 }
+#endif

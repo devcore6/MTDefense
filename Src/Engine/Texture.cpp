@@ -1,16 +1,21 @@
 #include "Texture.hpp"
-#include <SDL/SDL_opengl.h>
-#include <SDL/SDL_image.h>
+#ifndef __SERVER__
+# include <SDL/SDL_opengl.h>
+# include <SDL/SDL_image.h>
+#endif
 
 #include <filesystem>
 #include <map>
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifndef __SERVER__
+# if defined(_WIN32) || defined(_WIN64)
 extern PFNGLGENERATEMIPMAPPROC _glGenerateMipmap;
+# endif
 #endif
 
 #define glGenerateMipmap _glGenerateMipmap
 
+#ifndef __SERVER__
 struct texture_ref {
     uint32_t textid;
     uint32_t width;
@@ -18,9 +23,11 @@ struct texture_ref {
     size_t ref_count;
 };
 
-std::map<std::string, texture_ref> texture_refs;
+std::map<std::string, texture_ref> texture_refs { };
+#endif
 
 texture_t::texture_t(std::string path) {
+#ifndef __SERVER__
     if(texture_refs.contains(path)) {
         auto& ref = texture_refs[path];
         textid    = ref.textid;
@@ -55,12 +62,12 @@ texture_t::texture_t(std::string path) {
 
     glTexImage2D(GL_TEXTURE_2D, 0, surface->format->BytesPerPixel, surface->w, surface->h, 0, mode, GL_UNSIGNED_BYTE, surface->pixels);
 
-#if defined(_WIN32) || defined(_WIN64)
+# if defined(_WIN32) || defined(_WIN64)
     if(!glGenerateMipmap) glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress("glGenerateMipmap");
     if(glGenerateMipmap) glGenerateMipmap(GL_TEXTURE_2D);
-#else
+# else
     glGenerateMipmap(GL_TEXTURE_2D);
-#endif
+# endif
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -71,8 +78,10 @@ texture_t::texture_t(std::string path) {
 
     texture_refs.insert({ path, texture_ref { textid, width, height, 1 } });
     ref_count = &texture_refs[path].ref_count;
+#endif
 }
 
+#ifndef __SERVER__
 texture_t::texture_t(SDL_RWops* data) {
     SDL_Surface* surface = IMG_LoadPNG_RW(data);
     if(!surface) surface = IMG_LoadJPG_RW(data);
@@ -99,12 +108,12 @@ texture_t::texture_t(SDL_RWops* data) {
 
     glTexImage2D(GL_TEXTURE_2D, 0, surface->format->BytesPerPixel, surface->w, surface->h, 0, mode, GL_UNSIGNED_BYTE, surface->pixels);
 
-#if defined(_WIN32) || defined(_WIN64)
+# if defined(_WIN32) || defined(_WIN64)
     if(!glGenerateMipmap) glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress("glGenerateMipmap");
     if(glGenerateMipmap) glGenerateMipmap(GL_TEXTURE_2D);
-#else
+# else
     glGenerateMipmap(GL_TEXTURE_2D);
-#endif
+# endif
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -123,10 +132,11 @@ animation_t::animation_t(std::string folder) {
         if(f.is_regular_file())
             frames.push_back(texture_t(f.path().string()));
 }
+#endif
 
 std::map<std::string, animation_t> map_animations(std::string path) {
     std::map<std::string, animation_t> ret;
-
+#ifndef __SERVER__
     for(auto& dir : std::filesystem::directory_iterator(path)) {
         if(!dir.is_directory()) continue;
         std::string name = dir.path().filename().string();
@@ -134,6 +144,6 @@ std::map<std::string, animation_t> map_animations(std::string path) {
         if(!isdigit(name[0]) || name[1] != '-' || !isdigit(name[2]) || name[3] != '-' || !isdigit(name[4])) continue;
         ret.insert({ { name, animation_t(dir.path().string()) } });
     }
-
+#endif
     return ret;
 }

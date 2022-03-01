@@ -17,6 +17,7 @@ std::vector<svar_t>                                 svars;
 std::vector<const_t<intmax_t>>                      iconsts;
 
 void savevars() {
+#ifndef __SERVER__
     // Create config folder if it doesn't exist
     std::filesystem::create_directory("Data/Config");
 
@@ -34,6 +35,7 @@ void savevars() {
     save(bvars);
     save(svars, "\""_str, "\""_str);
     config.close();
+#endif
 }
 
 bool to_bool(std::string& s) { return s == "1" || s == "true"; }
@@ -227,7 +229,7 @@ void execcmd(std::string cmd) {
     } else { cur->second(args); }
 }
 
-void execfile(std::string file, bool silent) {
+bool execfile(std::string file, bool silent) {
 #ifdef __APPLE__
     std::string  path = std::string(GAME_NAME) + ".app/Contents/Resources/" + file;
 #else
@@ -237,13 +239,14 @@ void execfile(std::string file, bool silent) {
     in.open(path);
     if(!in.is_open()) {
         if(!silent) conerr("Could not open script \"" + file + "\"");
-        return;
+        return false;
     }
     std::ostringstream cmd_stream;
     cmd_stream << in.rdbuf();
     std::string cmd = cmd_stream.str();
     in.close();
     parsecmd(cmd);
+    return true;
 }
 
 command(exec, if(args.size() < 2) conerr("Usage: exec <file>"); else execfile(args[1], false));

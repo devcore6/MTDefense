@@ -138,70 +138,75 @@ struct offset_impl {
 template<two_way_iterable T, std::convertible_to<size_t> U>
 offset_impl<T> iterate(T arr, U offset) { return { arr, offset }; }
 
-template<template<typename> class T, typename _Ty> requires iterable<T<_Ty>>
+template<iterable T>
 class sized_iterator {
 private:
-          T<_Ty>& data;
+    using reference   = T::reference;
+    using pointer     = T::pointer;
+          T&     data;
           size_t it   = 0;
     const size_t size = 0;
     const size_t N    = 1;
 
 public:
     constexpr         sized_iterator() = default;
-    constexpr         sized_iterator(T<_Ty>& val, size_t i, size_t s, size_t n) :
+    constexpr         sized_iterator(T& val, size_t i, size_t s, size_t n) :
                                     data(val), N(n), it(i), size(s)    { }
-    _Ty&              operator*()                                      { return data[it]; }
+    reference         operator*()                                      { return data[it]; }
+    pointer           operator->()                                     { return &data[it]; }
     constexpr auto&   operator++()                                     { it += N; return *this; }
-    constexpr bool    operator==(sized_iterator<T, _Ty>& y)            { return it >= y.it; }
+    constexpr bool    operator==(sized_iterator<T>& y)                 { return it >= y.it; }
 };
 
-template<template<typename> class T, typename _Ty> requires reverse_iterable<T<_Ty>>
+template<reverse_iterable T>
 class reverse_sized_iterator {
 private:
-          T<_Ty>& data;
+    using reference   = T::reference;
+    using pointer     = T::pointer;
+          T&      data;
           size_t  it   = 0;
     const size_t  size = 0;
     const size_t  N    = 1;
 
 public:
     constexpr         reverse_sized_iterator() = default;
-    constexpr         reverse_sized_iterator(T<_Ty>& val, size_t i, size_t s, size_t n) :
+    constexpr         reverse_sized_iterator(T& val, size_t i, size_t s, size_t n) :
                                             data(val), N(n), it(s - 1 - i), size(s) { }
-    _Ty&              operator*()                                                   { return data[it]; }
+    reference         operator*()                                                   { return data[it]; }
+    pointer           operator->()                                                  { return &data[it]; }
     constexpr auto&   operator++()                                                  { it -= N; return *this; }
-    constexpr bool    operator==(reverse_sized_iterator<T, _Ty>& y)                 { return it <= y.it; }
+    constexpr bool    operator==(reverse_sized_iterator<T>& y)                      { return it <= y.it; }
 };
 
-template<template<typename> class T, typename _Ty> requires two_way_iterable<T<_Ty>>
+template<two_way_iterable T>
 class sized_iterator_impl {
 public:
-    using iterator         = sized_iterator<T, _Ty>;
-    using reverse_iterator = reverse_sized_iterator<T, _Ty>;
-    using value_type       = _Ty;
-    using reference_type   = _Ty&;
+    using iterator         = sized_iterator<T>;
+    using reverse_iterator = reverse_sized_iterator<T>;
+    using value_type       = T::value_type;
+    using reference        = T::reference;
 
 private:
-    T<_Ty>&          data;
+    T&               data;
     iterator         _begin;
     iterator         _end;
     reverse_iterator _rbegin;
     reverse_iterator _rend;
 
 public:
-         sized_iterator_impl(T<_Ty>& val, size_t N, size_t O) : data(val),
-                                                                _begin(val, O, val.size(), N),
-                                                                _end(val, val.size(), val.size(), N),
-                                                                _rbegin(val, O, val.size(), N),
-                                                                _rend(val, val.size(), val.size(), N) { }
-    auto begin()                                                                                      { return _begin; }
-    auto rbegin()                                                                                     { return _rbegin; }
-    auto end()                                                                                        { return _end; }
-    auto rend()                                                                                       { return _rend; }
+         sized_iterator_impl(T& val, size_t N, size_t O) : data(val),
+                                                           _begin(val, O, val.size(), N),
+                                                           _end(val, val.size(), val.size(), N),
+                                                           _rbegin(val, O, val.size(), N),
+                                                           _rend(val, val.size(), val.size(), N) { }
+    auto begin()                                                                                 { return _begin; }
+    auto rbegin()                                                                                { return _rbegin; }
+    auto end()                                                                                   { return _end; }
+    auto rend()                                                                                  { return _rend; }
 };
 
-template<template<typename> class T, typename _Ty> requires two_way_iterable<T<_Ty>>
-sized_iterator_impl<T, _Ty> iterate(T<_Ty>& arr, size_t N, size_t O) { return sized_iterator_impl<T, _Ty>(arr, N, O); }
-
+template<two_way_iterable T>
+sized_iterator_impl<T> iterate(T& arr, size_t N, size_t O) { return sized_iterator_impl<T>(arr, N, O); }
 
 // Numeric utilities
 // min, max and clamp exist in <algorithm>, oh well, this is kind of neater anyway.

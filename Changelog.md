@@ -1,3 +1,10 @@
+# r19 Multiplayer
+## Miscellaneous
+
+- Fixed wrong compile order on VisualStudio
+- Updated CXXGUI to r57
+- Began working on dedicated server
+
 # r18 Multiplayer begin
 ## Gameplay
 
