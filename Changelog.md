@@ -1,3 +1,9 @@
+# r20 Bugfix
+## Bug fixes
+### Generic
+
+- Fix typo in Network.hpp
+
 # r19 Multiplayer
 ## Miscellaneous
 
