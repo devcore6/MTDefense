@@ -65,6 +65,7 @@ double tower::fire(enemy* e) {
     return 0.0;
 }
 
+#ifndef __SERVER__
 void tower::render() {
     std::string upgrade_path = std::to_string(upgrade_paths[0]) + '-'
                              + std::to_string(upgrade_paths[1]) + '-'
@@ -72,6 +73,7 @@ void tower::render() {
     rect.anim = tower_types[base_type].animations[upgrade_path];
     rect.render({ pos_x, pos_y }, rot);
 }
+#endif
 
 void tower::try_upgrade(uint8_t path, double price) {
     if(path > 2 || upgrade_paths[path] == 5) return;

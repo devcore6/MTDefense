@@ -1,3 +1,9 @@
+# r21 Multiplayer
+## Server
+
+- Packet handling
+- Connection/disconnection
+
 # r20 Bugfix
 ## Bug fixes
 ### Generic

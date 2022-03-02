@@ -314,3 +314,163 @@ inline uint32_t color_multiply(uint32_t c, double f) {
            ((((uint32_t)((double)((c >>  8) & 0xFF) * f)) <<  8) & 0x0000FF00) |
            (( (uint32_t)((double)( c        & 0xFF) * f))        & 0x000000FF);
 }
+
+// Network utilities
+template<class CharT>
+class basic_packetstream {
+protected:
+    using       char_type     = CharT;
+    using       const_type    = const CharT;
+    using       reference     = CharT&;
+    using       pointer       = CharT*;
+    using       const_pointer = const CharT*;
+
+    using       iostate       = std::ios_base::iostate;
+
+    pointer     _data         = nullptr;
+    size_t      used_size     = 0;
+    size_t      allocated     = 0;
+    size_t      g             = 0;
+    size_t      p             = 0;
+
+    iostate     state;
+
+    static constexpr size_t alloc_size = 4096 / sizeof(char_type);
+    static constexpr size_t char_size  = sizeof(char_type);
+
+    void resize(size_t new_size) {
+        char_type* buf = new char_type[new_size];
+        if(_data) {
+            memcpy((void*)buf, (const void*)_data, char_size * new_size);
+            delete[] _data;
+        }
+        _data = buf;
+    }
+
+    void grow(size_t grow_by) {
+        if(grow_by <= allocated - used_size) return;
+        size_t new_size = allocated + grow_by;
+        if(new_size % alloc_size) new_size += alloc_size - new_size % alloc_size;
+        resize(new_size);
+    }
+
+public:
+    basic_packetstream() = default;
+    basic_packetstream(const_pointer value, size_t size) { write(value, size); }
+
+    ~basic_packetstream() { if(_data) delete[] _data; }
+
+    basic_packetstream& put(const_type value) {
+        grow(1);
+        _data[p++] = value;
+        used_size = max(p, used_size);
+        return *this;
+    }
+
+    basic_packetstream& get(reference value) {
+        if(g >= used_size) state |= std::ios_base::failbit | std::ios_base::eofbit;
+        else value = _data[g++];
+        return *this;
+    }
+
+    basic_packetstream& write(const_pointer value, size_t size) {
+        if(size) {
+            grow(size);
+            for(size_t i = 0; i < size; i++) _data[p++] = value[i];
+            used_size += size;
+        } else for(size_t i = 0; value[i]; i++) put(value[i]);
+        return *this;
+    }
+
+    basic_packetstream& read(pointer value, size_t size) {
+        for(size_t i = 0; i < size; i++) get(value[i]);
+        return *this;
+    }
+
+    bool good()                                         { return state == 0; }
+    bool eof()                                          { return state &  std::ios_base::eofbit; }
+    bool fail()                                         { return state &  std::ios_base::failbit; }
+    bool bad()                                          { return state &  std::ios_base::badbit; }
+
+    bool operator!()                                    { return state &  std::ios_base::failbit; }
+         operator bool()                                { return state & ~std::ios_base::failbit; }
+
+    iostate rdstate()                                   { return state; }
+    void setstate(iostate s)                            { state = s; }
+    void clear(iostate s = std::ios_base::goodbit)      { state = s; }
+
+    size_t tellg()                                      { return g; }
+    basic_packetstream& seekg(size_t pos)               { g = pos;                                                       return *this; }
+
+    size_t tellp()                                      { return p; }
+    basic_packetstream& seekp(size_t pos)               { p = pos;                                                       return *this; }
+
+    basic_packetstream& operator<<(const_type    value) { put(value);                                                    return *this; }
+    basic_packetstream& operator<<( int16_t      value) { write((const_pointer)&value, 2                   / char_size); return *this; }
+    basic_packetstream& operator<<(uint16_t      value) { write((const_pointer)&value, 2                   / char_size); return *this; }
+    basic_packetstream& operator<<( int32_t      value) { write((const_pointer)&value, 4                   / char_size); return *this; }
+    basic_packetstream& operator<<(uint32_t      value) { write((const_pointer)&value, 4                   / char_size); return *this; }
+    basic_packetstream& operator<<( int64_t      value) { write((const_pointer)&value, 8                   / char_size); return *this; }
+    basic_packetstream& operator<<(uint64_t      value) { write((const_pointer)&value, 8                   / char_size); return *this; }
+    basic_packetstream& operator<<(float         value) { write((const_pointer)&value, 4                   / char_size); return *this; }
+    basic_packetstream& operator<<(     double   value) { write((const_pointer)&value, 8                   / char_size); return *this; }
+    basic_packetstream& operator<<(long double   value) { write((const_pointer)&value, sizeof(long double) / char_size); return *this; }
+    basic_packetstream& operator<<(bool          value) { write((const_pointer)&value, sizeof(bool)        / char_size); return *this; }
+    basic_packetstream& operator<<(const void*   value) { write((const_pointer) value, 0);                               return *this; }
+
+    basic_packetstream& operator>>(char_type   & value) { get(value);                                                    return *this; }
+    basic_packetstream& operator>>( int16_t    & value) { read((pointer)       &value, 2                   / char_size); return *this; }
+    basic_packetstream& operator>>(uint16_t    & value) { read((pointer)       &value, 2                   / char_size); return *this; }
+    basic_packetstream& operator>>( int32_t    & value) { read((pointer)       &value, 4                   / char_size); return *this; }
+    basic_packetstream& operator>>(uint32_t    & value) { read((pointer)       &value, 4                   / char_size); return *this; }
+    basic_packetstream& operator>>( int64_t    & value) { read((pointer)       &value, 8                   / char_size); return *this; }
+    basic_packetstream& operator>>(uint64_t    & value) { read((pointer)       &value, 8                   / char_size); return *this; }
+    basic_packetstream& operator>>(float       & value) { read((pointer)       &value, 4                   / char_size); return *this; }
+    basic_packetstream& operator>>(     double & value) { read((pointer)       &value, 8                   / char_size); return *this; }
+    basic_packetstream& operator>>(long double & value) { read((pointer)       &value, sizeof(long double) / char_size); return *this; }
+    basic_packetstream& operator>>(bool        & value) { read((pointer)       &value, sizeof(bool)        / char_size); return *this; }
+
+    basic_packetstream& operator<<(std::basic_string<char_type>& value) { write(value.c_str(), 0);                       return *this; }
+    basic_packetstream& operator>>(std::basic_string<char_type>& value) {
+        value = "";
+        for(; g < used_size && _data[g]; g++) value += _data[g];
+        return *this;
+    }
+
+    pointer data()                                      { return _data; }
+    size_t size()                                       { return used_size; }
+};
+
+using packetstream = basic_packetstream<char>;
+
+// Error handling
+template<class T, class E>
+class result {
+private:
+    bool state;
+
+public:
+    T ok;
+    E err;
+
+    result(T ok)  : ok(ok), err(),    state(true)  { }
+    result(E err) : ok(),   err(err), state(false) { }
+
+    bool operator!    () { return !state; }
+         operator bool() { return  state; }
+};
+
+template<class E>
+class result<void, E> {
+private:
+    bool state;
+
+public:
+    E err;
+
+    result()      : err(),    state(true)  { }
+    result(E err) : err(err), state(false) { }
+
+    bool operator!    () { return !state; }
+         operator bool() { return  state; }
+};

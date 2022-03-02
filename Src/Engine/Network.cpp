@@ -3,6 +3,8 @@
 # include "Server.hpp"
 #endif
 
+#include "Tools.hpp"
+
 uint32_t ip_to_uint32(std::string ip) {
     if(ip == "" || ip == "0") return ENET_HOST_ANY;
 
@@ -29,19 +31,17 @@ std::string uint32_to_ip(uint32_t ip) {
     return val;
 }
 
-void send_packet(ENetPeer* peer, uint8_t chan, bool reliable, std::ostringstream& data) {
+void send_packet(ENetPeer* peer, uint8_t chan, bool reliable, packetstream& data) {
     if(!peer) {
 #ifdef __SERVER__
-        std::string str = data.str();
-        ENetPacket* packet = enet_packet_create(str.c_str(), str.length(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+        ENetPacket* packet = enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
         for(auto& client : clients)
             enet_peer_send(client.peer, chan, packet);
         enet_packet_destroy(packet);
 #endif
         return;
     }
-    std::string str = data.str();
-    ENetPacket* packet = enet_packet_create(str.c_str(), str.length(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+    ENetPacket* packet = enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     enet_peer_send(peer, chan, packet);
     enet_packet_destroy(packet);
 }

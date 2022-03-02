@@ -3,7 +3,6 @@
 #include <functional>
 #include <future>
 
-#include "Tools.hpp"
 #include "Server.hpp"
 #include "Command.hpp"
 
@@ -20,7 +19,11 @@ void conout(std::string str) { std::cout << str << '\n'; }
 
 std::vector<client_t> clients;
 
-void disconnect_client(client_iterator cn) {
+void disconnect_client(client_iterator cn, int reason) {
+    if(reason < NUMDISCS && reason > 0) {
+        const char* r = disconnect_reason[reason];
+        // send reason
+    }
     enet_peer_disconnect(cn->peer, 0);
     cn->pending_disconnect = true;
     cn->disconnect_at = sc::now() + 3_s;
@@ -36,7 +39,7 @@ void server_main(std::future<void> quit) {
     address.host = ip_to_uint32(serverip);
     address.port = (uint16_t)serverport;
 
-    server = enet_host_create(&address, 4, 2, 0, 0);
+    server = enet_host_create(&address, 4, 1, 0, 0);
     if(server == nullptr) {
         std::cerr << "An error occurred while trying to create an ENet server host.\n";
         exit(EXIT_FAILURE);
@@ -45,29 +48,35 @@ void server_main(std::future<void> quit) {
     ENetEvent event { };
 
     while(enet_host_service(server, &event, 1000) >= 0) {
+        bool client_disconnected = false;
         switch(event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
                 std::cout << "connection attempt from " << uint32_to_ip(event.peer->address.host) << ':' << event.peer->address.port << '\n';
                 break;
             }
             case ENET_EVENT_TYPE_RECEIVE: {
-                handle_packets(event.packet, event.peer);
+                auto ret = handle_packets({ (const char*)event.packet->data, event.packet->dataLength }, event.peer);
                 enet_packet_destroy(event.packet);
+                if(!ret) {
+                    if(event.peer->data) disconnect_client(((client_t*)(event.peer->data))->cn, ret.err);
+                    else enet_peer_reset(event.peer);
+                }
                 break;
             }
             case ENET_EVENT_TYPE_DISCONNECT: {
                 if(event.peer->data == nullptr)
                     std::cout << uint32_to_ip(event.peer->address.host) << ':' << event.peer->address.port << " disconnected.\n";
                 else {
+                    client_disconnected = true;
                     client_t* client = (client_t*)event.peer->data;
                     std::cout << client->name << " disconnected\n";
+                    do_disconnect(client->cn);
                     clients.erase(client->cn);
                     event.peer->data = nullptr;
                 }
                 break;
             }
         }
-        bool client_disconnected = false;
         for(auto& c : clients) if(c.pending_disconnect) if(sc::now() > c.disconnect_at) {
             clients.erase(c.cn);
             client_disconnected = true;

@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    client = enet_host_create(nullptr, 1, 2, 0, 0);
+    client = enet_host_create(nullptr, 1, 1, 0, 0);
     if(client == nullptr) {
         std::cerr << "An error occurred while trying to create an ENet client host.\n";
         return EXIT_FAILURE;
