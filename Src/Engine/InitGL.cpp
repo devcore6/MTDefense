@@ -16,8 +16,8 @@ void reload_graphics() {
     init_gl();
 }
 
-command(reload_graphics, { reload_graphics(); });
-rcommand(getfps, { return std::to_string(fps); });
+command(reload_graphics, [](std::vector<std::string>& args) { reload_graphics(); });
+rcommand(getfps, [](std::vector<std::string>& args) -> std::string { return std::to_string(fps); });
 
 ivarpf(width, 420, 1920, 8192, reload_graphics);
 ivarpf(height, 360, 1080, 4320, reload_graphics);

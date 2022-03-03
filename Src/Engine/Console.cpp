@@ -33,7 +33,7 @@ void conerr(std::string msg) {
     console_messages.push_back(std::make_pair(sc::now(), "\\1"_str + msg));
 }
 
-command(echo, {
+command(echo, [](std::vector<std::string>& args) {
     if(args.size() == 1) conout("Usage: echo \"message\";");
     else conout(args[1]);
 })
@@ -43,7 +43,7 @@ void say(std::string msg) {
     chat_messages.push_back(std::make_pair(sc::now(), name + ": " + msg));
 }
 
-command(say, {
+command(say, [](std::vector<std::string>& args) {
     if(args.size() == 1) conout("Usage: say \"message\";");
     else say(args[1]);
 })

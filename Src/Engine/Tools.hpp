@@ -9,11 +9,14 @@
 
 // Convenient literal suffixes
 
-inline consteval   uint8_t operator ""   _u8(size_t arg) noexcept { return static_cast<  uint8_t>(arg); }
+using  int08_t =  int8_t;
+using uint08_t = uint8_t;
+
+inline consteval  uint08_t operator ""   _u8(size_t arg) noexcept { return static_cast< uint08_t>(arg); }
 inline consteval  uint16_t operator ""  _u16(size_t arg) noexcept { return static_cast< uint16_t>(arg); }
 inline consteval  uint32_t operator ""  _u32(size_t arg) noexcept { return static_cast< uint32_t>(arg); }
 
-inline consteval    int8_t operator ""   _i8(size_t arg) noexcept { return static_cast<   int8_t>(arg); }
+inline consteval   int08_t operator ""   _i8(size_t arg) noexcept { return static_cast<  int08_t>(arg); }
 inline consteval   int16_t operator ""  _i16(size_t arg) noexcept { return static_cast<  int16_t>(arg); }
 inline consteval   int32_t operator ""  _i32(size_t arg) noexcept { return static_cast<  int32_t>(arg); }
 
@@ -333,7 +336,7 @@ protected:
     size_t      g             = 0;
     size_t      p             = 0;
 
-    iostate     state;
+    iostate     state { };
 
     static constexpr size_t alloc_size = 4096 / sizeof(char_type);
     static constexpr size_t char_size  = sizeof(char_type);
@@ -400,37 +403,41 @@ public:
     void clear(iostate s = std::ios_base::goodbit)      { state = s; }
 
     size_t tellg()                                      { return g; }
-    basic_packetstream& seekg(size_t pos)               { g = pos;                                                       return *this; }
+    basic_packetstream& seekg(size_t pos)               { g = pos;                                                     return *this; }
 
     size_t tellp()                                      { return p; }
-    basic_packetstream& seekp(size_t pos)               { p = pos;                                                       return *this; }
+    basic_packetstream& seekp(size_t pos)               { p = pos;                                                     return *this; }
 
-    basic_packetstream& operator<<(const_type    value) { put(value);                                                    return *this; }
-    basic_packetstream& operator<<( int16_t      value) { write((const_pointer)&value, 2                   / char_size); return *this; }
-    basic_packetstream& operator<<(uint16_t      value) { write((const_pointer)&value, 2                   / char_size); return *this; }
-    basic_packetstream& operator<<( int32_t      value) { write((const_pointer)&value, 4                   / char_size); return *this; }
-    basic_packetstream& operator<<(uint32_t      value) { write((const_pointer)&value, 4                   / char_size); return *this; }
-    basic_packetstream& operator<<( int64_t      value) { write((const_pointer)&value, 8                   / char_size); return *this; }
-    basic_packetstream& operator<<(uint64_t      value) { write((const_pointer)&value, 8                   / char_size); return *this; }
-    basic_packetstream& operator<<(float         value) { write((const_pointer)&value, 4                   / char_size); return *this; }
-    basic_packetstream& operator<<(     double   value) { write((const_pointer)&value, 8                   / char_size); return *this; }
-    basic_packetstream& operator<<(long double   value) { write((const_pointer)&value, sizeof(long double) / char_size); return *this; }
-    basic_packetstream& operator<<(bool          value) { write((const_pointer)&value, sizeof(bool)        / char_size); return *this; }
-    basic_packetstream& operator<<(const void*   value) { write((const_pointer) value, 0);                               return *this; }
+    static size_t rel_size(size_t s)                    { return s / char_size + bool(s % char_size); }
 
-    basic_packetstream& operator>>(char_type   & value) { get(value);                                                    return *this; }
-    basic_packetstream& operator>>( int16_t    & value) { read((pointer)       &value, 2                   / char_size); return *this; }
-    basic_packetstream& operator>>(uint16_t    & value) { read((pointer)       &value, 2                   / char_size); return *this; }
-    basic_packetstream& operator>>( int32_t    & value) { read((pointer)       &value, 4                   / char_size); return *this; }
-    basic_packetstream& operator>>(uint32_t    & value) { read((pointer)       &value, 4                   / char_size); return *this; }
-    basic_packetstream& operator>>( int64_t    & value) { read((pointer)       &value, 8                   / char_size); return *this; }
-    basic_packetstream& operator>>(uint64_t    & value) { read((pointer)       &value, 8                   / char_size); return *this; }
-    basic_packetstream& operator>>(float       & value) { read((pointer)       &value, 4                   / char_size); return *this; }
-    basic_packetstream& operator>>(     double & value) { read((pointer)       &value, 8                   / char_size); return *this; }
-    basic_packetstream& operator>>(long double & value) { read((pointer)       &value, sizeof(long double) / char_size); return *this; }
-    basic_packetstream& operator>>(bool        & value) { read((pointer)       &value, sizeof(bool)        / char_size); return *this; }
+    basic_packetstream& operator>>( int08_t      value) { write((const_pointer)&value, rel_size(1                  )); return *this; }
+    basic_packetstream& operator>>(uint08_t      value) { write((const_pointer)&value, rel_size(1                  )); return *this; }
+    basic_packetstream& operator<<( int16_t      value) { write((const_pointer)&value, rel_size(2                  )); return *this; }
+    basic_packetstream& operator<<(uint16_t      value) { write((const_pointer)&value, rel_size(2                  )); return *this; }
+    basic_packetstream& operator<<( int32_t      value) { write((const_pointer)&value, rel_size(4                  )); return *this; }
+    basic_packetstream& operator<<(uint32_t      value) { write((const_pointer)&value, rel_size(4                  )); return *this; }
+    basic_packetstream& operator<<( int64_t      value) { write((const_pointer)&value, rel_size(8                  )); return *this; }
+    basic_packetstream& operator<<(uint64_t      value) { write((const_pointer)&value, rel_size(8                  )); return *this; }
+    basic_packetstream& operator<<(float         value) { write((const_pointer)&value, rel_size(4                  )); return *this; }
+    basic_packetstream& operator<<(     double   value) { write((const_pointer)&value, rel_size(8                  )); return *this; }
+    basic_packetstream& operator<<(long double   value) { write((const_pointer)&value, rel_size(sizeof(long double))); return *this; }
+    basic_packetstream& operator<<(bool          value) { write((const_pointer)&value, rel_size(sizeof(bool       ))); return *this; }
+    basic_packetstream& operator<<(const void*   value) { write((const_pointer) value, 0);                             return *this; }
 
-    basic_packetstream& operator<<(std::basic_string<char_type>& value) { write(value.c_str(), 0);                       return *this; }
+    basic_packetstream& operator>>( int08_t    & value) { read(       (pointer)&value, rel_size(1                  )); return *this; }
+    basic_packetstream& operator>>(uint08_t    & value) { read(       (pointer)&value, rel_size(1                  )); return *this; }
+    basic_packetstream& operator>>( int16_t    & value) { read(       (pointer)&value, rel_size(2                  )); return *this; }
+    basic_packetstream& operator>>(uint16_t    & value) { read(       (pointer)&value, rel_size(2                  )); return *this; }
+    basic_packetstream& operator>>( int32_t    & value) { read(       (pointer)&value, rel_size(4                  )); return *this; }
+    basic_packetstream& operator>>(uint32_t    & value) { read(       (pointer)&value, rel_size(4                  )); return *this; }
+    basic_packetstream& operator>>( int64_t    & value) { read(       (pointer)&value, rel_size(8                  )); return *this; }
+    basic_packetstream& operator>>(uint64_t    & value) { read(       (pointer)&value, rel_size(8                  )); return *this; }
+    basic_packetstream& operator>>(float       & value) { read(       (pointer)&value, rel_size(4                  )); return *this; }
+    basic_packetstream& operator>>(     double & value) { read(       (pointer)&value, rel_size(8                  )); return *this; }
+    basic_packetstream& operator>>(long double & value) { read(       (pointer)&value, rel_size(sizeof(long double))); return *this; }
+    basic_packetstream& operator>>(bool        & value) { read(       (pointer)&value, rel_size(sizeof(bool       ))); return *this; }
+
+    basic_packetstream& operator<<(std::basic_string<char_type>& value) { write(value.c_str(), value.length());        return *this; }
     basic_packetstream& operator>>(std::basic_string<char_type>& value) {
         value = "";
         for(; g < used_size && _data[g]; g++) value += _data[g];

@@ -249,4 +249,7 @@ bool execfile(std::string file, bool silent) {
     return true;
 }
 
-command(exec, if(args.size() < 2) conerr("Usage: exec <file>"); else execfile(args[1], false));
+command(exec, [](std::vector<std::string>& args) {
+    if(args.size() < 2) conerr("Usage: exec <file>");
+    else execfile(args[1], false);
+});

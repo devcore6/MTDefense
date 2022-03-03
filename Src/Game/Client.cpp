@@ -1,3 +1,7 @@
+#include "Game.hpp"
+
+clientinfo playerinfo;
+
 void init_game() {
 
 }

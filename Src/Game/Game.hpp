@@ -7,6 +7,7 @@
 #include "../Engine/GL.hpp"
 
 using dictionary_entry = std::map<const char*, const char*>;
+using sc = std::chrono::system_clock;
 
 inline const char* get_entry(dictionary_entry t, const char* lang) {
     for(auto& val : t)
@@ -159,8 +160,7 @@ static const struct enemy_t {
     double                          scale;
     uint16_t                        immunities;
     uint16_t                        vulnerabilities;
-    bool                            stealth;
-    bool                            armored;
+    uint8_t                         flags;
     texture_t                       texture;
     int                             spawns_when_damaged;
     std::initializer_list<int>      spawns;
@@ -179,8 +179,7 @@ static const struct enemy_t {
         /* scale: */                0.125,
         /* immunities: */           DAMAGE_NONE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/nmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */               { }
@@ -199,8 +198,7 @@ static const struct enemy_t {
         /* scale: */                0.160,
         /* immunities: */           DAMAGE_NONE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/umatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -221,8 +219,7 @@ static const struct enemy_t {
         /* scale: */                0.200,
         /* immunities: */           DAMAGE_NONE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/mmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -243,8 +240,7 @@ static const struct enemy_t {
         /* scale: */                0.240,
         /* immunities: */           DAMAGE_NONE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/cmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -265,8 +261,7 @@ static const struct enemy_t {
         /* scale: */                0.280,
         /* immunities: */           DAMAGE_NONE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/dmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -288,8 +283,7 @@ static const struct enemy_t {
         /* scale: */                0.333,
         /* immunities: */           DAMAGE_NONE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/matrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -311,8 +305,7 @@ static const struct enemy_t {
         /* scale: */                0.250,
         /* immunities: */           DAMAGE_HEAT | DAMAGE_PRESSURE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/vmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -335,8 +328,7 @@ static const struct enemy_t {
         /* scale: */                0.250,
         /* immunities: */           DAMAGE_COLD,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/smatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -359,8 +351,7 @@ static const struct enemy_t {
         /* scale: */                0.225,
         /* immunities: */           DAMAGE_CHEMICAL | DAMAGE_MAGIC | DAMAGE_BLUNT,
         /* vulnerabilities: */      DAMAGE_BIOLOGICAL,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/xmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -383,8 +374,7 @@ static const struct enemy_t {
         /* scale: */                0.375,
         /* immunities: */           DAMAGE_BLUNT | DAMAGE_SHARP,
         /* vulnerabilities: */      DAMAGE_HEAT | DAMAGE_CHEMICAL,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/imatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -409,8 +399,7 @@ static const struct enemy_t {
         /* scale: */                0.340,
         /* immunities: */           DAMAGE_PRESSURE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/gmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -435,8 +424,7 @@ static const struct enemy_t {
         /* scale: */                0.350,
         /* immunities: */           DAMAGE_SHARP | DAMAGE_PRESSURE,
         /* vulnerabilities: */      DAMAGE_NONE,
-        /* stealth: */              false,
-        /* armored: */              false,
+        /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("Data/Enemies/hmatrioshka.png"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
@@ -462,6 +450,8 @@ struct enemy {
     uint8_t         flags;
     double          slowed_for;
     double          frozen_for;
+
+    ~enemy() { if(lock) delete lock; }
 };
 
 struct enemy_set {
@@ -1257,7 +1247,7 @@ static const struct difficulty {
     double          projectile_speed_modifier;
     bool            disable_knowledge_and_powers;
     double          reward_modifier;
-    const rounds    round_set;
+    rounds          round_set;
 } difficulties[] = {
     /* DIFF_EASY: */ {
         /* rounds_to_win: */                40,
@@ -1958,29 +1948,32 @@ struct game_state {
     size_t                  last_round;
     size_t                  last_route;
     double                  lives;
-    double                  cash;
     bool                    double_speed;
+    bool                    paused;
     bool                    running;
     difficulty              diff;
-    size_t                  spawned_enemies = 0;
+    size_t                  spawned_enemies;
+    bool                    done_spawning;
     std::vector<enemy>      created_enemies;
-    std::vector<tower>      towers;
     std::vector<enemy*>     first;
     std::vector<enemy*>     last;
     std::vector<enemy*>     strong;
     std::vector<enemy*>     weak;
     std::vector<projectile> projectiles;
-    std::chrono::system_clock::time_point last_tick;
-    std::chrono::system_clock::time_point last_spawned_tick;
+    sc::time_point          last_tick;
+    sc::time_point          last_spawned_tick;
 };
 
-struct gamestate {
-    double lives      = 0.0;
-    bool running      = false;
-    bool paused       = false;
-    bool fast_forward = false;
-    size_t cur_round  = 0;
-    size_t last_round = -1;
+extern game_state gs;
+
+struct clientinfo {
+    uint32_t id = 0;
+    void* cn = nullptr;
+    sc::time_point last_message = sc::now();
+    double cash = 0.0;
+    std::vector<tower> towers;
 };
 
-extern gamestate gs;
+#ifndef __SERVER__
+extern clientinfo playerinfo;
+#endif

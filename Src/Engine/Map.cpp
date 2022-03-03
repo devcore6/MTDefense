@@ -7,9 +7,11 @@
 std::vector<map_t> maps;
 map_t* current_map = nullptr;
 
+#ifndef __SERVER__
 void render_map() {
     current_map->map.render();
 }
+#endif
 
 map_t* init_map(std::string path, uint8_t difficulty) {
     map_t map;
@@ -37,6 +39,7 @@ map_t* init_map(std::string path, uint8_t difficulty) {
         return nullptr;
     }
 
+#ifndef __SERVER__
     std::ostringstream img_data_stream;
     img_data_stream << file.rdbuf();
     std::string img_data = img_data_stream.str();
@@ -60,7 +63,7 @@ map_t* init_map(std::string path, uint8_t difficulty) {
     map.map.vertices[2] = { 1620, 1080 };
     map.map.vertices[3] = { 0, 1080 };
     maps.push_back(map);
-    
+#endif
     file.close();
     return &maps[maps.size() - 1];
 }

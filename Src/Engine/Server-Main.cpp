@@ -15,6 +15,9 @@ ivarp(maxclients, 1, 2, 4);
 #ifdef __SERVER__
 void conerr(std::string str) { std::cerr << str << '\n'; }
 void conout(std::string str) { std::cout << str << '\n'; }
+#else
+extern void conerr(std::string str);
+extern void conout(std::string str);
 #endif
 
 std::vector<client_t> clients;
@@ -29,29 +32,21 @@ void disconnect_client(client_iterator cn, int reason) {
     cn->disconnect_at = sc::now() + 3_s;
 }
 
-#ifdef __SERVER__
-void server_main() {
-#else
-void server_main(std::future<void> quit) {
-#endif
-    ENetAddress address { };
+ivarp(tickrate, 1, 100, 1000);
 
-    address.host = ip_to_uint32(serverip);
-    address.port = (uint16_t)serverport;
-
-    server = enet_host_create(&address, 4, 1, 0, 0);
-    if(server == nullptr) {
-        std::cerr << "An error occurred while trying to create an ENet server host.\n";
-        exit(EXIT_FAILURE);
-    }
-
+void serverslice() {
+    bool done = false;
     ENetEvent event { };
-
-    while(enet_host_service(server, &event, 1000) >= 0) {
+    while(!done) {
+        if(enet_host_check_events(server, &event) <= 0) {
+            if(enet_host_service(server, &event, (uint32_t)(1000 / tickrate)) <= 0)
+                break;
+            done = true;
+        }
         bool client_disconnected = false;
         switch(event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
-                std::cout << "connection attempt from " << uint32_to_ip(event.peer->address.host) << ':' << event.peer->address.port << '\n';
+                conout("Connection attempt from "_str + uint32_to_ip(event.peer->address.host) + ':' + std::to_string(event.peer->address.port));
                 break;
             }
             case ENET_EVENT_TYPE_RECEIVE: {
@@ -65,11 +60,11 @@ void server_main(std::future<void> quit) {
             }
             case ENET_EVENT_TYPE_DISCONNECT: {
                 if(event.peer->data == nullptr)
-                    std::cout << uint32_to_ip(event.peer->address.host) << ':' << event.peer->address.port << " disconnected.\n";
+                    conout(uint32_to_ip(event.peer->address.host) + ':' + std::to_string(event.peer->address.port) + " disconnected.");
                 else {
                     client_disconnected = true;
                     client_t* client = (client_t*)event.peer->data;
-                    std::cout << client->name << " disconnected\n";
+                    conout(client->name + " disconnected");
                     do_disconnect(client->cn);
                     clients.erase(client->cn);
                     event.peer->data = nullptr;
@@ -83,15 +78,46 @@ void server_main(std::future<void> quit) {
             enet_peer_reset(c.peer);
         }
         if(client_disconnected) for(auto cn = clients.begin(); cn != clients.end(); cn++) { cn->cn = cn; }
-#ifndef __SERVER__
-        if(quit.wait_for(1_us) != std::future_status::timeout) break;
-#endif
+        enet_host_flush(server);
     }
-    
+}
+
+void server_main(std::future<void> quit) {
+    ENetAddress address { };
+
+    if(serverip != "" || enet_address_set_host(&address, serverip.c_str()) < 0)
+        address.host = ENET_HOST_ANY;
+    address.port = (uint16_t)serverport;
+
+    server = enet_host_create(&address, maxclients, 1, 0, 0);
+    if(server == nullptr) {
+        conerr("An error occurred while trying to create an ENet server host.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    ENetEvent event { };
+
+    conout("Server started!");
+
+    while(quit.wait_for(0_s) == std::future_status::timeout) {
+        sc::time_point last_tick = sc::now();
+        serverslice();
+
+        servertick();
+
+        std::chrono::milliseconds sleep_time = 1000_ms / tickrate - std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - last_tick);
+        if(sleep_time.count() > 0)
+            if(quit.wait_for(sleep_time) != std::future_status::timeout)
+                break;
+    }
+
     enet_host_destroy(server);
 }
 
+std::promise<void> quit_server;
+
 #ifdef __SERVER__
+
 int main(int argc, char* argv[]) {
     if(argc > 1) {
         if(!execfile(argv[1])) {
@@ -106,6 +132,14 @@ int main(int argc, char* argv[]) {
     }
     atexit(enet_deinitialize);
 
-    server_main();
+    server_main(quit_server.get_future());
 }
 #endif
+
+#ifndef __SERVER__
+command(startserver, [](std::vector<std::string>& args) {
+    quit_server = { };
+    server_main(quit_server.get_future());
+});
+#endif
+command(stopserver, [](std::vector<std::string>& args) { quit_server.set_value(); })

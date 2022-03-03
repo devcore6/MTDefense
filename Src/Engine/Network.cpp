@@ -31,12 +31,13 @@ std::string uint32_to_ip(uint32_t ip) {
     return val;
 }
 
+extern ENetHost* server;
+
 void send_packet(ENetPeer* peer, uint8_t chan, bool reliable, packetstream& data) {
     if(!peer) {
 #ifdef __SERVER__
         ENetPacket* packet = enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-        for(auto& client : clients)
-            enet_peer_send(client.peer, chan, packet);
+        enet_host_broadcast(server, chan, packet);
         enet_packet_destroy(packet);
 #endif
         return;

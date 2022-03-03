@@ -78,9 +78,9 @@ bool _initv_ ## name  = _initf_ ## name ();
 
 #define iconst(name,      value        ) bool _initf_ ## name () { iconsts.push_back({value, #name}); return true; } bool _initv_ ## name = _initf_ ## name ();
 
-#define  command(name, f) static void __command__ ## name (std::vector<std::string>& args) { f; }; static bool __command_init__ ## name = addcommand(#name, &__command__ ## name);
+#define  command(name, f) static bool __command_init__ ## name = addcommand(#name, f);
 
 #define rcommand(name, f) static void __command__ ## name (std::vector<std::string>& args) { \
     for(size_t i = 0; i < aliases.size(); i++) if(aliases[i].first == "ret") { aliases.erase(aliases.begin() + i); break; } \
-    aliases.push_back(std::make_pair(std::string("ret"), [](std::vector<std::string>& args) -> std::string { f }(args))); \
+    aliases.push_back(std::make_pair(std::string("ret"), f(args))); \
 }; static bool __command_init__ ## name = addcommand(#name, &__command__ ## name);

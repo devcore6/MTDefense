@@ -1,3 +1,16 @@
+# r22 More Multiplayer WIP
+## Server
+
+- Began porting single player game logic to server
+- More robust server main loop
+- Local server can now be started with a simple command
+- Added a Linux Makefile
+
+## Client
+
+- Added command to connect to server
+
+
 # r21 Multiplayer
 ## Server
 

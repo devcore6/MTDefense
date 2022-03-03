@@ -4,20 +4,42 @@
 #include "Network.hpp"
 #include <iostream>
 #include <enet/enet.h>
+#include "../Game/Game.hpp"
 
 ENetHost* client = nullptr;
+ENetPeer* peer = nullptr;
 
-command(connect, [](std::vector<std::string> args) {
+extern std::string name;
+
+command(connect, [](std::vector<std::string>& args) {
     if(args.size() == 0) { conerr("Usage: connect <ip address> [port]"); return; }
-    uint32_t addr = ip_to_uint32(args[0]);
-    if(addr == ENET_HOST_ANY) { conerr("Not a valid IP address. Usage: connect <ip address> [port]"); return; }
     uint16_t port = 20069;
-    if(args.size() >= 2) {
-        port = std::stoi(args[1]);
+    if(args.size() > 2) {
+        port = std::stoi(args[2]);
         if(port == 0) { conerr("Not a valid port. Usage: connect <ip address> [port]"); return; }
     }
-    // todo: finish this function
+    ENetEvent event { };
+    ENetAddress address { };
+    enet_address_set_host(&address, args[1].c_str());
+    address.port = port;
+    conout("Attempting to connect to "_str + args[1] + ":" + std::to_string(port));
+    for(int i = 0; i < 5; i++) {
+        peer = enet_host_connect(client, &address, 1, 0);
+        if(!peer) continue;
+        if(enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
+            conout("Connected!");
+            packetstream connection_packet;
+            connection_packet << N_CONNECT << name.length() << name;
+            send_packet(peer, 0, true, connection_packet);
+            enet_host_flush(client);
+            return;
+        }
+        enet_peer_reset(peer);
+        if(i != 4) conout("...");
+    }
+    conerr("Connection failed.");
 });
+command(quit, [](std::vector<std::string>& args) { quit = true; })
 
 extern void game_tick();
 extern void init_game();
@@ -42,6 +64,18 @@ void main_loop() {
 }
 
 int main(int argc, char* argv[]) {
+    if(enet_initialize() != 0) {
+        std::cerr << "An error occurred while initializing ENet.\n";
+        return EXIT_FAILURE;
+    }
+    atexit(enet_deinitialize);
+
+    client = enet_host_create(nullptr, 1, 1, 0, 0);
+    if(client == nullptr) {
+        std::cerr << "An error occurred while trying to create an ENet client host.\n";
+        return EXIT_FAILURE;
+    }
+
     TTF_Init();
 
     execfile("Data/Config/Config.conf");
@@ -49,12 +83,6 @@ int main(int argc, char* argv[]) {
 
     if(!init_gl()) {
         std::cerr << "Could not initialize SDL2/openGL.\n";
-        return EXIT_FAILURE;
-    }
-
-    client = enet_host_create(nullptr, 1, 1, 0, 0);
-    if(client == nullptr) {
-        std::cerr << "An error occurred while trying to create an ENet client host.\n";
         return EXIT_FAILURE;
     }
 
@@ -69,6 +97,7 @@ int main(int argc, char* argv[]) {
 
     //deinit_game();
 
+    if(peer) enet_peer_reset(peer);
     enet_host_destroy(client);
     deinit_fonts();
     deinit_gl();
