@@ -38,11 +38,9 @@ void send_packet(ENetPeer* peer, uint8_t chan, bool reliable, packetstream& data
 #ifdef __SERVER__
         ENetPacket* packet = enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
         enet_host_broadcast(server, chan, packet);
-        enet_packet_destroy(packet);
 #endif
         return;
     }
     ENetPacket* packet = enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     enet_peer_send(peer, chan, packet);
-    enet_packet_destroy(packet);
 }

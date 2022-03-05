@@ -35,14 +35,8 @@ void disconnect_client(client_iterator cn, int reason) {
 ivarp(tickrate, 1, 100, 1000);
 
 void serverslice() {
-    bool done = false;
     ENetEvent event { };
-    while(!done) {
-        if(enet_host_check_events(server, &event) <= 0) {
-            if(enet_host_service(server, &event, (uint32_t)(1000 / tickrate)) <= 0)
-                break;
-            done = true;
-        }
+    if(enet_host_service(server, &event, (uint32_t)(1000 / tickrate)) > 0) {
         bool client_disconnected = false;
         switch(event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
@@ -50,11 +44,19 @@ void serverslice() {
                 break;
             }
             case ENET_EVENT_TYPE_RECEIVE: {
+                conout("Received packet - size: "_str + std::to_string(event.packet->dataLength) + " - data: " + (const char*)event.packet->data);
                 auto ret = handle_packets({ (const char*)event.packet->data, event.packet->dataLength }, event.peer);
                 enet_packet_destroy(event.packet);
                 if(!ret) {
-                    if(event.peer->data) disconnect_client(((client_t*)(event.peer->data))->cn, ret.err);
-                    else enet_peer_reset(event.peer);
+                    if(event.peer->data) {
+                        client_t* client = (client_t*)event.peer->data;
+                        conout(client->name + " kicked from server ("_str + disconnect_reason[ret] + ')');
+                        std::cerr << ret.err;
+                        disconnect_client(((client_t*)(event.peer->data))->cn, ret);
+                    } else {
+                        conout(uint32_to_ip(event.peer->address.host) + ':' + std::to_string(event.peer->address.port) + " kicked from server ("_str + disconnect_reason[ret] + ")");
+                        enet_peer_reset(event.peer);
+                    }
                 }
                 break;
             }
@@ -78,7 +80,6 @@ void serverslice() {
             enet_peer_reset(c.peer);
         }
         if(client_disconnected) for(auto cn = clients.begin(); cn != clients.end(); cn++) { cn->cn = cn; }
-        enet_host_flush(server);
     }
 }
 
@@ -103,7 +104,7 @@ void server_main(std::future<void> quit) {
         sc::time_point last_tick = sc::now();
         serverslice();
 
-        servertick();
+        //servertick();
 
         std::chrono::milliseconds sleep_time = 1000_ms / tickrate - std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - last_tick);
         if(sleep_time.count() > 0)

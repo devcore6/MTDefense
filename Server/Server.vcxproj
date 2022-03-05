@@ -165,6 +165,7 @@
     <ClCompile Include="..\Src\enet\win32.c" />
     <ClCompile Include="..\Src\Engine\Command.cpp" />
     <ClCompile Include="..\Src\Engine\GL.cpp" />
+    <ClCompile Include="..\Src\Engine\Map.cpp" />
     <ClCompile Include="..\Src\Engine\Network.cpp" />
     <ClCompile Include="..\Src\Engine\Server-Main.cpp" />
     <ClCompile Include="..\Src\Engine\Texture.cpp" />
@@ -174,6 +175,7 @@
   <ItemGroup>
     <ClInclude Include="..\Src\Engine\Command.hpp" />
     <ClInclude Include="..\Src\Engine\GL.hpp" />
+    <ClInclude Include="..\Src\Engine\Map.hpp" />
     <ClInclude Include="..\Src\Engine\Network.hpp" />
     <ClInclude Include="..\Src\Engine\Server.hpp" />
     <ClInclude Include="..\Src\Engine\Texture.hpp" />

@@ -29,9 +29,8 @@ command(connect, [](std::vector<std::string>& args) {
         if(enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
             conout("Connected!");
             packetstream connection_packet;
-            connection_packet << N_CONNECT << name.length() << name;
+            connection_packet << N_CONNECT << (uint32_t)name.length() << name;
             send_packet(peer, 0, true, connection_packet);
-            enet_host_flush(client);
             return;
         }
         enet_peer_reset(peer);
@@ -80,6 +79,26 @@ int main(int argc, char* argv[]) {
 
     execfile("Data/Config/Config.conf");
     execfile("Data/Config/Autoexec.conf");
+
+    // this is just for testing
+    if(peer) {
+        for(;;) {
+            ENetEvent e { };
+            if(enet_host_service(client, &e, 5000) > 0) {
+                switch(e.type) {
+                    case ENET_EVENT_TYPE_RECEIVE: {
+                        conout("pong");
+                        break;
+                    }
+                    case ENET_EVENT_TYPE_DISCONNECT: exit(1);
+                    default: break;
+                }
+            }
+            packetstream p;
+            p << N_PING << 0_u32;
+            send_packet(peer, 0, true, p);
+        }
+    }
 
     if(!init_gl()) {
         std::cerr << "Could not initialize SDL2/openGL.\n";

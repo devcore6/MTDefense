@@ -1,48 +1,58 @@
 #pragma once
 #include <cstdint>
+#include <cstring>
 
 #include <chrono>
 #include <string>
 #include <concepts>
 #include <functional>
 #include <atomic>
+#include <ios>
+#include <sstream>
+
+// GCC 11.2.0 has an issue with constexpr functions that return non-POD types - does GCC treat consteval and constexpr the same?
+#ifdef __GNUC__
+# define INLINE_CONSTEXPR inline
+#else
+# define INLINE_CONSTEXPR inline constexpr
+#endif
 
 // Convenient literal suffixes
 
 using  int08_t =  int8_t;
 using uint08_t = uint8_t;
 
-inline consteval  uint08_t operator ""   _u8(size_t arg) noexcept { return static_cast< uint08_t>(arg); }
-inline consteval  uint16_t operator ""  _u16(size_t arg) noexcept { return static_cast< uint16_t>(arg); }
-inline consteval  uint32_t operator ""  _u32(size_t arg) noexcept { return static_cast< uint32_t>(arg); }
+inline consteval  uint08_t operator ""   _u8(unsigned long long arg) noexcept { return static_cast< uint08_t>(arg); }
+inline consteval  uint16_t operator ""  _u16(unsigned long long arg) noexcept { return static_cast< uint16_t>(arg); }
+inline consteval  uint32_t operator ""  _u32(unsigned long long arg) noexcept { return static_cast< uint32_t>(arg); }
+inline consteval  uint64_t operator ""  _u64(unsigned long long arg) noexcept { return static_cast< uint64_t>(arg); }
 
-inline consteval   int08_t operator ""   _i8(size_t arg) noexcept { return static_cast<  int08_t>(arg); }
-inline consteval   int16_t operator ""  _i16(size_t arg) noexcept { return static_cast<  int16_t>(arg); }
-inline consteval   int32_t operator ""  _i32(size_t arg) noexcept { return static_cast<  int32_t>(arg); }
+inline consteval   int08_t operator ""   _i8(unsigned long long arg) noexcept { return static_cast<  int08_t>(arg); }
+inline consteval   int16_t operator ""  _i16(unsigned long long arg) noexcept { return static_cast<  int16_t>(arg); }
+inline consteval   int32_t operator ""  _i32(unsigned long long arg) noexcept { return static_cast<  int32_t>(arg); }
+inline consteval   int64_t operator ""  _i64(unsigned long long arg) noexcept { return static_cast<  int64_t>(arg); }
 
-#ifdef UINT64_MAX // Check for 64-bit integer support
-inline consteval  uint64_t operator ""  _u64(size_t arg) noexcept { return static_cast< uint64_t>(arg); }
-
-inline consteval   int64_t operator ""  _i64(size_t arg) noexcept { return static_cast<  int64_t>(arg); }
-#endif
-
-inline consteval  intmax_t operator "" _imax(size_t arg) noexcept { return static_cast< intmax_t>(arg); }
-inline consteval uintmax_t operator "" _umax(size_t arg) noexcept { return static_cast<uintmax_t>(arg); }
+inline consteval  intmax_t operator "" _imax(unsigned long long arg) noexcept { return static_cast< intmax_t>(arg); }
+inline consteval uintmax_t operator "" _umax(unsigned long long arg) noexcept { return static_cast<uintmax_t>(arg); }
 
 // This is only needed until "z" and "zu" suffixes are finalized
-inline consteval ptrdiff_t operator ""    _z(size_t arg) noexcept { return static_cast<ptrdiff_t>(arg); }
-inline consteval    size_t operator ""   _zu(size_t arg) noexcept { return arg; }
+inline consteval ptrdiff_t operator ""    _z(unsigned long long arg) noexcept { return static_cast<ptrdiff_t>(arg); }
+inline consteval    size_t operator ""   _zu(unsigned long long arg) noexcept { return static_cast<   size_t>(arg); }
 
 // These also exist in std::literals
 
-inline constexpr std::string operator "" _str(const char* arg, size_t size) noexcept { return std::string(arg); }
+INLINE_CONSTEXPR std::string operator "" _str(const char* arg, size_t size) noexcept { return std::string(arg); }
 
-inline constexpr std::chrono::nanoseconds  operator "" _ns(size_t arg) noexcept { return static_cast<std::chrono::nanoseconds >(arg); }
-inline constexpr std::chrono::microseconds operator "" _us(size_t arg) noexcept { return static_cast<std::chrono::microseconds>(arg); }
-inline constexpr std::chrono::microseconds operator "" _µs(size_t arg) noexcept { return static_cast<std::chrono::microseconds>(arg); }
-inline constexpr std::chrono::milliseconds operator "" _ms(size_t arg) noexcept { return static_cast<std::chrono::milliseconds>(arg); }
-inline constexpr std::chrono::seconds      operator ""  _s(size_t arg) noexcept { return static_cast<std::chrono::seconds     >(arg); }
-
+INLINE_CONSTEXPR std::chrono::nanoseconds  operator "" _ns(unsigned long long arg) noexcept {
+    return static_cast<std::chrono::nanoseconds >(arg); }
+INLINE_CONSTEXPR std::chrono::microseconds operator "" _us(unsigned long long arg) noexcept {
+    return static_cast<std::chrono::microseconds>(arg); }
+INLINE_CONSTEXPR std::chrono::microseconds operator "" _µs(unsigned long long arg) noexcept {
+    return static_cast<std::chrono::microseconds>(arg); }
+INLINE_CONSTEXPR std::chrono::milliseconds operator "" _ms(unsigned long long arg) noexcept {
+    return static_cast<std::chrono::milliseconds>(arg); }
+INLINE_CONSTEXPR std::chrono::seconds      operator ""  _s(unsigned long long arg) noexcept {
+    return static_cast<std::chrono::seconds     >(arg); }
 
 // Container and loop utilities
 
@@ -481,3 +491,302 @@ public:
     bool operator!    () { return !state; }
          operator bool() { return  state; }
 };
+
+// Preprocessor repetitions and utilities
+// 
+// Usage: REPEAT(m, l, c, ...)
+//        m: main repetition macro
+//        l: last repetition macro
+//        c: amount of repetitions
+//        d: data for macro
+//      ...: additional data for macro
+// 
+// Usage: ENUM_PARAMS(c, p)
+//        c: amount of parameters
+//        p: parameter prefix
+// 
+// Example:    template<ENUM_PARAMS(3, typename T)>
+// 
+// Expands to: template<typename T1, typename T2, typename T3>
+// 
+// Usage: EXPAND(c, m, d, ...)
+//        c: amount of repetitions
+//        m: macro being repeated for each parameter
+//        d: data passed to macro
+//      ...: list of parameters to loop through the macro
+// 
+// Example:    #define PRINT(x) printf("%i", x);
+//             EXPAND(4, PRINT, 3, 2, 1, 0)
+// 
+// Expands to: printf("%i", 3);
+//             printf("%i", 2);
+//             printf("%i", 1);
+//             printf("%i", 0);
+
+#define REPEAT_F(m, c, d, ...) REPEAT_   ## c(m, d, ## __VA_ARGS__)
+#define REPEAT_P(c)            REPEAT_P_ ## c
+
+#define REPEAT_0( m, d, ...)
+#define REPEAT_1( m, d, ...)
+#define REPEAT_2( m, d, ...) REPEAT_1( m, d, ## __VA_ARGS__) m( 1, d, ## __VA_ARGS__)
+#define REPEAT_3( m, d, ...) REPEAT_2( m, d, ## __VA_ARGS__) m( 2, d, ## __VA_ARGS__)
+#define REPEAT_4( m, d, ...) REPEAT_3( m, d, ## __VA_ARGS__) m( 3, d, ## __VA_ARGS__)
+#define REPEAT_5( m, d, ...) REPEAT_4( m, d, ## __VA_ARGS__) m( 4, d, ## __VA_ARGS__)
+#define REPEAT_6( m, d, ...) REPEAT_5( m, d, ## __VA_ARGS__) m( 5, d, ## __VA_ARGS__)
+#define REPEAT_7( m, d, ...) REPEAT_6( m, d, ## __VA_ARGS__) m( 6, d, ## __VA_ARGS__)
+#define REPEAT_8( m, d, ...) REPEAT_7( m, d, ## __VA_ARGS__) m( 7, d, ## __VA_ARGS__)
+#define REPEAT_9( m, d, ...) REPEAT_8( m, d, ## __VA_ARGS__) m( 8, d, ## __VA_ARGS__)
+#define REPEAT_10(m, d, ...) REPEAT_9( m, d, ## __VA_ARGS__) m( 9, d, ## __VA_ARGS__)
+#define REPEAT_11(m, d, ...) REPEAT_10(m, d, ## __VA_ARGS__) m(10, d, ## __VA_ARGS__)
+#define REPEAT_12(m, d, ...) REPEAT_11(m, d, ## __VA_ARGS__) m(11, d, ## __VA_ARGS__)
+#define REPEAT_13(m, d, ...) REPEAT_12(m, d, ## __VA_ARGS__) m(12, d, ## __VA_ARGS__)
+#define REPEAT_14(m, d, ...) REPEAT_13(m, d, ## __VA_ARGS__) m(13, d, ## __VA_ARGS__)
+#define REPEAT_15(m, d, ...) REPEAT_14(m, d, ## __VA_ARGS__) m(14, d, ## __VA_ARGS__)
+#define REPEAT_16(m, d, ...) REPEAT_15(m, d, ## __VA_ARGS__) m(15, d, ## __VA_ARGS__)
+#define REPEAT_17(m, d, ...) REPEAT_16(m, d, ## __VA_ARGS__) m(16, d, ## __VA_ARGS__)
+#define REPEAT_18(m, d, ...) REPEAT_17(m, d, ## __VA_ARGS__) m(17, d, ## __VA_ARGS__)
+#define REPEAT_19(m, d, ...) REPEAT_18(m, d, ## __VA_ARGS__) m(18, d, ## __VA_ARGS__)
+#define REPEAT_20(m, d, ...) REPEAT_19(m, d, ## __VA_ARGS__) m(19, d, ## __VA_ARGS__)
+#define REPEAT_21(m, d, ...) REPEAT_20(m, d, ## __VA_ARGS__) m(20, d, ## __VA_ARGS__)
+#define REPEAT_22(m, d, ...) REPEAT_21(m, d, ## __VA_ARGS__) m(21, d, ## __VA_ARGS__)
+#define REPEAT_23(m, d, ...) REPEAT_22(m, d, ## __VA_ARGS__) m(22, d, ## __VA_ARGS__)
+#define REPEAT_24(m, d, ...) REPEAT_23(m, d, ## __VA_ARGS__) m(23, d, ## __VA_ARGS__)
+#define REPEAT_25(m, d, ...) REPEAT_24(m, d, ## __VA_ARGS__) m(24, d, ## __VA_ARGS__)
+#define REPEAT_26(m, d, ...) REPEAT_25(m, d, ## __VA_ARGS__) m(25, d, ## __VA_ARGS__)
+#define REPEAT_27(m, d, ...) REPEAT_26(m, d, ## __VA_ARGS__) m(26, d, ## __VA_ARGS__)
+#define REPEAT_28(m, d, ...) REPEAT_27(m, d, ## __VA_ARGS__) m(27, d, ## __VA_ARGS__)
+#define REPEAT_29(m, d, ...) REPEAT_28(m, d, ## __VA_ARGS__) m(28, d, ## __VA_ARGS__)
+#define REPEAT_30(m, d, ...) REPEAT_29(m, d, ## __VA_ARGS__) m(29, d, ## __VA_ARGS__)
+#define REPEAT_31(m, d, ...) REPEAT_30(m, d, ## __VA_ARGS__) m(30, d, ## __VA_ARGS__)
+#define REPEAT_32(m, d, ...) REPEAT_31(m, d, ## __VA_ARGS__) m(31, d, ## __VA_ARGS__)
+
+#define REPEAT(m, l, c, d, ...) REPEAT_F(m, c, d, ## __VA_ARGS__) l(c, d, ## __VA_ARGS__)
+
+#define ENUM_PARAMS_L(c, p) p ## c
+#define ENUM_PARAMS_M(c, p) p ## c,
+#define ENUM_PARAMS(c, p) REPEAT(ENUM_PARAMS_M, ENUM_PARAMS_L, c, p)
+
+#define EXPAND_1( m, d,  N, ...)                                                                                             m( 1, d, N)
+#define EXPAND_2( m, d, _0,   N, ...)                               EXPAND_1( m, d, _0)                                      m( 2, d, N)
+#define EXPAND_3( m, d, _0,  _1,   N, ...)                          EXPAND_2( m, d, _0,  _1)                                 m( 3, d, N)
+#define EXPAND_4( m, d, _0,  _1,  _2,   N, ...)                     EXPAND_3( m, d, _0,  _1,  _2)                            m( 4, d, N)
+#define EXPAND_5( m, d, _0,  _1,  _2,  _3,   N, ...)                EXPAND_4( m, d, _0,  _1,  _2,  _3)                       m( 5, d, N)
+#define EXPAND_6( m, d, _0,  _1,  _2,  _3,  _4,   N, ...)           EXPAND_5( m, d, _0,  _1,  _2,  _3,  _4)                  m( 6, d, N)
+#define EXPAND_7( m, d, _0,  _1,  _2,  _3,  _4,  _5,   N, ...)      EXPAND_6( m, d, _0,  _1,  _2,  _3,  _4,  _5)             m( 7, d, N)
+#define EXPAND_8( m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,   N, ...) EXPAND_7( m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6)        m( 8, d, N) 
+
+#define EXPAND_9( m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                         N, ...)                                    EXPAND_8( m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7)   m( 9, d, N)
+#define EXPAND_10(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,   N, ...)                               EXPAND_9( m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8)                                      m(10, d, N)
+#define EXPAND_11(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9,   N, ...)                          EXPAND_10(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9)                                 m(11, d, N)
+#define EXPAND_12(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10,   N, ...)                     EXPAND_11(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10)                            m(12, d, N)
+#define EXPAND_13(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11,   N, ...)                EXPAND_12(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11)                       m(13, d, N)
+#define EXPAND_14(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12,   N, ...)           EXPAND_13(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12)                  m(14, d, N)
+#define EXPAND_15(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13,   N, ...)      EXPAND_14(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13)             m(15, d, N)
+#define EXPAND_16(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14,   N, ...) EXPAND_15(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14)        m(16, d, N)
+
+#define EXPAND_17(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                         N, ...)                                    EXPAND_16(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15)  m(17, d, N)
+#define EXPAND_18(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16,   N, ...)                               EXPAND_17(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16)                                      m(18, d, N)
+
+#define EXPAND_19(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17,   N, ...)                          EXPAND_18(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17)                                 m(19, d, N)
+
+#define EXPAND_20(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18,   N, ...)                     EXPAND_19(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18)                            m(20, d, N)
+
+#define EXPAND_21(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19,   N, ...)                EXPAND_20(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19)                       m(21, d, N)
+
+#define EXPAND_22(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20,   N, ...)           EXPAND_21(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20)                  m(22, d, N)
+
+#define EXPAND_23(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21,   N, ...)      EXPAND_22(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21)             m(23, d, N)
+
+#define EXPAND_24(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22,   N, ...) EXPAND_23(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22)        m(24, d, N)
+
+#define EXPAND_25(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                         N, ...)                                    EXPAND_24(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23)   m(25, d, N)
+
+#define EXPAND_26(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                       _24,   N, ...)                               EXPAND_25(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23, \
+                                                                                   _24)                                      m(26, d, N)
+
+#define EXPAND_27(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                       _24, _25,   N, ...)                          EXPAND_26(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23, \
+                                                                                   _24, _25)                                 m(27, d, N)
+
+#define EXPAND_28(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                       _24, _25, _26,   N, ...)                     EXPAND_27(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23, \
+                                                                                   _24, _25, _26)                            m(28, d, N)
+
+#define EXPAND_29(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                       _24, _25, _26, _27,   N, ...)                EXPAND_28(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23, \
+                                                                                   _24, _25, _26, _27)                       m(29, d, N)
+
+#define EXPAND_30(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                       _24, _25, _26, _27, _28,   N, ...)           EXPAND_29(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23, \
+                                                                                   _24, _25, _26, _27, _28)                  m(30, d, N)
+
+#define EXPAND_31(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                       _24, _25, _26, _27, _28, _29,   N, ...)      EXPAND_30(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23, \
+                                                                                   _24, _25, _26, _27, _28, _29)             m(31, d, N)
+
+#define EXPAND_32(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                        _8,  _9, _10, _11, _12, _13, _14, _15, \
+                       _16, _17, _18, _19, _20, _21, _22, _23, \
+                       _24, _25, _26, _27, _28, _29, _30,   N, ...) EXPAND_31(m, d, _0,  _1,  _2,  _3,  _4,  _5,  _6,  _7, \
+                                                                                    _8,  _9, _10, _11, _12, _13, _14, _15, \
+                                                                                   _16, _17, _18, _19, _20, _21, _22, _23, \
+                                                                                   _24, _25, _26, _27, _28, _29, _30)        m(32, d, N)
+
+#define EXPAND(c, m, d, ...) EXPAND_ ## c(m, d, ## __VA_ARGS__)
+
+#define VANISH() 
+#define FORWARD_ASSIST(...)  ISH() __VA_ARGS__
+#define FORWARD_ESCAPE(...)  VAN ## __VA_ARGS__
+#define FORWARD(X) FORWARD_ESCAPE(FORWARD_ASSIST X)
+
+// Named arguments
+// Inspired by an article on Fluent C++ (https://www.fluentcpp.com/2018/12/14/named-arguments-cpp/)
+// 
+// Example: using length_t = named_arg<double, struct length_s>;
+//          using  width_t = named_arg<double, struct  width_s>;
+//          using  depth_t = named_arg<double, struct  depth_s>;
+//          static const length_t::arg_t length;
+//          static const  width_t::arg_t  width;
+//          static const  depth_t::arg_t  depth;
+//          template<class T, class U, class V>
+//          double get_largest_side(T arg1, U arg2, V arg3) {
+//              length_t length = pick(arg1, arg2, arg3);
+//               width_t  width = pick(arg1, arg2, arg3);
+//               depth_t  depth = pick(arg1, arg2, arg3);
+//              return max(max(length, width), depth);
+//          }
+// 
+// Call with: get_largest_side(length = 1.0, width = 2.0, depth = 3.0);
+//            parameters can be in any order.
+// 
+// Can also be done using a simple macro
+// Usage: NAMED_ARGS(T, n, c, Ts, ns, f)
+//        T:  function return type
+//        n:  function name
+//        c:  amount of parameters
+//        Ts: function parameter types
+//        ns: function parameter names
+//        f:  function code
+// 
+// Example: NAMED_ARGS(double, get_largest_side, 3, (double, double, double), (length, width, depth), {
+//     return max(max(length, width), depth);
+// });
+// 
+// Call with: get_largest_side(length = 1.0, width = 2.0, depth = 3.0);
+// 
+
+template<class T, class P>
+class named_arg {
+private:
+    T value;
+
+public:
+    named_arg() = default;
+    explicit named_arg(const T&  val) : value(          val ) { }
+    explicit named_arg(      T&& val) : value(std::move(val)) { }
+
+    struct arg_t {
+        template<class U>
+        named_arg operator=(U&& val) const { return named_arg(std::forward<U>(val)); }
+        arg_t           (             ) = default;
+        arg_t           (const arg_t& ) = delete;
+        arg_t           (      arg_t&&) = delete;
+        arg_t& operator=(const arg_t& ) = delete;
+        arg_t& operator=(      arg_t&&) = delete;
+    };
+
+    operator T () { return value; }
+};
+
+template<class T, class... Ts>
+T pick(Ts&&... args) { return std::get<T>(std::make_tuple(std::forward<Ts>(args)...)); }
+
+#define NAMED_ARGS_TYPES_M(c, p, T)     using named_arg_ ## p ## _ ## c ## _t = named_arg<T, struct named_arg_ ## p ## _ ## c ## _s>;
+#define NAMED_ARGS_VARS_M(c, p, n)      static const named_arg_ ## p ## _ ## c ## _t::arg_t n;
+#define NAMED_ARGS_ENUM_PARAMS_L(c)     Arg ## c val ## c
+#define NAMED_ARGS_ENUM_PARAMS_M(c)     Arg ## c val ## c,
+#define NAMED_ARGS_ENUM_PARAMS(c)       REPEAT(NAMED_ARGS_ENUM_PARAMS_M, NAMED_ARGS_ENUM_PARAMS_L, c)
+#define NAMED_ARGS_INIT_PARAMS(c, p, n) named_arg_ ## p ## _ ## c ## _t n = pick(ENUM_PARAMS(c, val));
+#define NAMED_ARGS(T, n, c, Ts, ns, f)  EXPAND(c, NAMED_ARGS_TYPES_M,   n, FORWARD(Ts)) \
+                                        EXPAND(c, NAMED_ARGS_VARS_M,    n, FORWARD(ns)) \
+                                        template<ENUM_PARAMS(c, class Arg)> \
+                                        T n(NAMED_ARGS_ENUM_PARAMS(c)) { \
+                                            EXPAND(c, NAMED_ARGS_INIT_PARAMS, n, FORWARD(ns)) \
+                                            f \
+                                        }

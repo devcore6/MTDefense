@@ -126,28 +126,28 @@ enum {
 
 // Message sizes in bytes, -1 for unchecked/variable sizes. First value is for the server, second client.
 constexpr uint32_t msgsizes[NUMMSG][2] = {
-    /* N_CONNECT: */               { -1, -1 },
-    /* N_TEXT: */                  { -1, -1 },
-    /* N_PLACETOWER: */            { 20, 20 },
-    /* N_UPGRADETOWER: */          {  5,  5 },
-    /* N_UPDATETARGETING: */       {  5,  5 },
-    /* N_SELLTOWER: */             {  4,  4 },
-    /* N_UPDATE_CASH: */           {  8, 12 },
-    /* N_UPDATE_LIVES: */          {  8,  8 },
-    /* N_REQUEST_UPDATE: */        {  0,  0 },
-    /* N_UPDATE_ENTITIES: */       { -1, -1 },
-    /* N_PING: */                  {  4,  4 },
-    /* N_PONG: */                  {  4,  4 },
-    /* N_ROUNDINFO: */             {  4,  4 },
-    /* N_STARTROUND: */            {  0,  0 },
-    /* N_SET_SPEED: */             {  1,  1 },
-    /* N_PAUSE: */                 {  0,  4 },
-    /* N_RESUME: */                {  0,  4 },
-    /* N_ROUNDOVER: */             {  0,  0 },
-    /* N_GAMEOVER: */              {  0,  0 }, // This will probably send some stuff later like what enemy was leaked and some kind of score
-    /* N_RESTART: */               {  0,  4 },
-    /* N_CONTINUE: */              {  0,  0 },
-    /* N_DISCONNECT: */            {  0,  0 }
+    /* N_CONNECT:                   */   { (uint32_t)-1, (uint32_t)-1 },
+    /* N_TEXT:                      */   { (uint32_t)-1, (uint32_t)-1 },
+    /* N_PLACETOWER:                */   {           20,           20 },
+    /* N_UPGRADETOWER:              */   {            5,            5 },
+    /* N_UPDATETARGETING:           */   {            5,            5 },
+    /* N_SELLTOWER:                 */   {            4,            4 },
+    /* N_UPDATE_CASH:               */   {            8,           12 },
+    /* N_UPDATE_LIVES:              */   {            8,            8 },
+    /* N_REQUEST_UPDATE:            */   {            0,            0 },
+    /* N_UPDATE_ENTITIES:           */   { (uint32_t)-1, (uint32_t)-1 },
+    /* N_PING:                      */   {            0,            0 },
+    /* N_PONG:                      */   {            0, (uint32_t)-1 },
+    /* N_ROUNDINFO:                 */   {            4,            4 },
+    /* N_STARTROUND:                */   {            0,            0 },
+    /* N_SET_SPEED:                 */   {            1,            1 },
+    /* N_PAUSE:                     */   {            0,            4 },
+    /* N_RESUME:                    */   {            0,            4 },
+    /* N_ROUNDOVER:                 */   {            0,            0 },
+    /* N_GAMEOVER:                  */   {            0,            0 }, // This will probably send some stuff later like what enemy was leaked and some kind of score
+    /* N_RESTART:                   */   {            0,            4 },
+    /* N_CONTINUE:                  */   {            0,            0 },
+    /* N_DISCONNECT:                */   {            0,            0 }
 };
 
 static const struct enemy_t {

@@ -1,3 +1,15 @@
+# r23 Multiplayer WIP
+## Bug fixes
+### Server
+
+- Server now receives connection and packages correctly
+- Server now processes connections and disconnections properly
+
+## Generic
+
+- Server can now be built on Linux (GCC 11.2.0)
+- Everything can now be built on 32-bit Windows
+
 # r22 More Multiplayer WIP
 ## Server
 
@@ -9,7 +21,6 @@
 ## Client
 
 - Added command to connect to server
-
 
 # r21 Multiplayer
 ## Server

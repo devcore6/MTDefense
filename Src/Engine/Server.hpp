@@ -28,7 +28,7 @@ enum {
     NUMDISCS
 };
 
-constexpr const char* disconnect_reason[NUMDISCS] = {
+constexpr const char* disconnect_reason[NUMDISCS - 1] = {
     "",
     "end of packet",
     "server is full",

@@ -13,32 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Enet">
+      <UniqueIdentifier>{36e856d7-738f-4aca-a997-feb0a579c124}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Src\enet\callbacks.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\enet\compress.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\enet\host.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\enet\list.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\enet\packet.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\enet\peer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\enet\protocol.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\enet\win32.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Src\Engine\Server-Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,6 +39,33 @@
     <ClCompile Include="..\Src\Game\Tower.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Src\Engine\Map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\callbacks.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\compress.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\host.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\list.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\packet.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\peer.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\protocol.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\enet\win32.c">
+      <Filter>Enet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Src\Engine\Command.hpp">
@@ -75,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Src\Engine\Texture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Src\Engine\Map.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

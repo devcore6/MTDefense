@@ -59,9 +59,14 @@ void update_targeting_priorities() {
     std::sort(gs.strong.begin(), gs.strong.end(), [](enemy* e1, enemy* e2) -> bool { return e1->max_health < e2->max_health; });
 }
 
+void enemy_cycle() {
+
+}
+
+ivarp(serverthreads, 1, std::thread::hardware_concurrency() - 1, INTMAX_MAX);
+
 void servertick() {
     if(gs.lives > 0 && gs.running) {
-        std::vector<std::future<void>> Ts;
         if(gs.last_round != gs.cur_round) init_round();
 
         if(!gs.done_spawning) {
@@ -122,17 +127,16 @@ void servertick() {
             }
         }
 
-        // todo left off here
+        std::vector<std::future<void>> enemy_cycles;
+        for(auto i : iterate(serverthreads)) enemy_cycles.push_back(std::async(enemy_cycle));
     }
 }
 
 result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
     if(!packet.size()) return false;
-
     if(!peer->data) {
         uint32_t packet_type = NUMMSG;
         packet >> packet_type;
-
         if(packet_type == N_CONNECT) {
             if(clients.size() == maxclients)
                 return DISC_SERVER_FULL;
@@ -154,6 +158,7 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
             clients[clients.size() - 1].data = (void*)&clientinfos[clientinfos.size() - 1];
 
             conout(c.name + " connected");
+            peer->data = &clients[clients.size() - 1];
 
             // SEND INFO BACK TO PLAYER
             return true;
@@ -173,10 +178,19 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
         uint32_t packet_type = NUMMSG;
         packet >> packet_type;
 
+#ifdef _DEBUG
+        conout("packet_type: "_str + std::to_string(packet_type));
+#endif
+
         if(!packet) break;
 
         uint32_t size = 0;
         packet >> size;
+
+#ifdef _DEBUG
+        conout("size: "_str + std::to_string(size));
+        conout("expected size: "_str + std::to_string(msgsizes[packet_type][0]));
+#endif
 
         if(msgsizes[packet_type][0] != -1 && msgsizes[packet_type][0] != size) return DISC_MSGERR;
 
@@ -217,7 +231,7 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             case N_UPDATE_ENTITIES: return DISC_MSGERR;
 
-            case N_PING:            reply << N_PONG << 0_u32; break;
+            case N_PING:            reply << N_PONG << 0_u32; break; // todo: send all connected clients' ping in response
 
             case N_PONG:            return DISC_MSGERR;
             case N_ROUNDINFO:       return DISC_MSGERR;

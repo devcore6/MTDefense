@@ -1,19 +1,23 @@
 #pragma once
-#define SDL_MAIN_HANDLED
-#include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
-#include <SDL/SDL_ttf.h>
-#include <SDL/SDL_image.h>
-#include <gl/GLU.h>
+#ifndef __SERVER__
+# define SDL_MAIN_HANDLED
+# include <SDL/SDL.h>
+# include <SDL/SDL_opengl.h>
+# include <SDL/SDL_ttf.h>
+# include <SDL/SDL_image.h>
+# include <gl/GLU.h>
+#endif
 #include <functional>
 #include <vector>
 
-#ifdef _WIN32
+#ifndef __SERVER__
+# ifdef _WIN32
 // For some reason SDL can't find some extensions on windows...
 extern PFNGLACTIVETEXTUREPROC   _glActiveTexture;
 extern PFNGLBINDTEXTURESPROC    _glBindTextures;
-# define glActiveTexture        _glActiveTexture
-# define glBindTextures         _glBindTextures
+#  define glActiveTexture        _glActiveTexture
+#  define glBindTextures         _glBindTextures
+# endif
 #endif
 
 #include "Tools.hpp"
@@ -24,6 +28,7 @@ extern PFNGLBINDTEXTURESPROC    _glBindTextures;
 // Engine/Console.cpp
 extern void conout(std::string msg);
 extern void conerr(std::string msg);
+#ifndef __SERVER__
 extern void add_to_chat(std::string msg);
 extern void render_console();
 extern void render_chat();
@@ -59,3 +64,4 @@ enum {
 extern intmax_t font_size;
 extern int render_text(std::string text, int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, bool monospace = false, uint8_t alignemnt = LEFT, bool large = false);
 extern void deinit_fonts();
+#endif

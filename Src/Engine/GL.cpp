@@ -1,8 +1,11 @@
 #include "GL.hpp"
 #include "Tools.hpp"
+#ifndef __SERVER__
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #include <SDL/SDL_image.h>
+#endif
+#include <cmath>
 
 vertex_2d vertex_2d::operator+(vertex_2d rhs) { return vertex_2d { x + rhs.x, y + rhs.y }; }
 vertex_2d vertex_2d::operator-(vertex_2d rhs) { return vertex_2d { x - rhs.x, y - rhs.y }; }

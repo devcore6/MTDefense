@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 #include <chrono>
+#include <string>
 
 #ifndef __SERVER__
 # ifndef SDL_MAIN_HANDLED
