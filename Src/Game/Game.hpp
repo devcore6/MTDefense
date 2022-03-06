@@ -3,7 +3,9 @@
 #include <map>
 #include <string>
 #include <mutex>
+#include <atomic>
 
+#include "../Engine/Tools.hpp"
 #include "../Engine/GL.hpp"
 
 using dictionary_entry = std::map<const char*, const char*>;
@@ -121,33 +123,45 @@ enum {
     N_RESTART,
     N_CONTINUE,
     N_DISCONNECT,
+    N_SPAWN_ENEMY,
+    N_PROJECTILE,
+    N_DETONATE,
+    N_DELETE_PROJECTILE,
+    N_ENEMY_SURVIVED,
+    N_KILL_ENEMY,
     NUMMSG
 };
 
-// Message sizes in bytes, -1 for unchecked/variable sizes. First value is for the server, second client.
-constexpr uint32_t msgsizes[NUMMSG][2] = {
-    /* N_CONNECT:                   */   { (uint32_t)-1, (uint32_t)-1 },
-    /* N_TEXT:                      */   { (uint32_t)-1, (uint32_t)-1 },
-    /* N_PLACETOWER:                */   {           20,           20 },
-    /* N_UPGRADETOWER:              */   {            5,            5 },
-    /* N_UPDATETARGETING:           */   {            5,            5 },
-    /* N_SELLTOWER:                 */   {            4,            4 },
-    /* N_UPDATE_CASH:               */   {            8,           12 },
-    /* N_UPDATE_LIVES:              */   {            8,            8 },
-    /* N_REQUEST_UPDATE:            */   {            0,            0 },
-    /* N_UPDATE_ENTITIES:           */   { (uint32_t)-1, (uint32_t)-1 },
-    /* N_PING:                      */   {            0,            0 },
-    /* N_PONG:                      */   {            0, (uint32_t)-1 },
-    /* N_ROUNDINFO:                 */   {            4,            4 },
-    /* N_STARTROUND:                */   {            0,            0 },
-    /* N_SET_SPEED:                 */   {            1,            1 },
-    /* N_PAUSE:                     */   {            0,            4 },
-    /* N_RESUME:                    */   {            0,            4 },
-    /* N_ROUNDOVER:                 */   {            0,            0 },
-    /* N_GAMEOVER:                  */   {            0,            0 }, // This will probably send some stuff later like what enemy was leaked and some kind of score
-    /* N_RESTART:                   */   {            0,            4 },
-    /* N_CONTINUE:                  */   {            0,            0 },
-    /* N_DISCONNECT:                */   {            0,            0 }
+// Message sizes in bytes, -1 for unchecked/variable sizes.
+constexpr uint32_t msgsizes[NUMMSG] = {
+    /* N_CONNECT:                   */   (uint32_t)-1,
+    /* N_TEXT:                      */   (uint32_t)-1,
+    /* N_PLACETOWER:                */             20,
+    /* N_UPGRADETOWER:              */              5,
+    /* N_UPDATETARGETING:           */              5,
+    /* N_SELLTOWER:                 */              4,
+    /* N_UPDATE_CASH:               */              8,
+    /* N_UPDATE_LIVES:              */              8,
+    /* N_REQUEST_UPDATE:            */              0,
+    /* N_UPDATE_ENTITIES:           */   (uint32_t)-1,
+    /* N_PING:                      */              0,
+    /* N_PONG:                      */              0,
+    /* N_ROUNDINFO:                 */              4,
+    /* N_STARTROUND:                */              0,
+    /* N_SET_SPEED:                 */              1,
+    /* N_PAUSE:                     */              0,
+    /* N_RESUME:                    */              0,
+    /* N_ROUNDOVER:                 */              0,
+    /* N_GAMEOVER:                  */              0, // This will probably send some stuff later like what enemy was leaked and some kind of score
+    /* N_RESTART:                   */              0,
+    /* N_CONTINUE:                  */              0,
+    /* N_DISCONNECT:                */              0,
+    /* N_SPAWN_ENEMY:               */              0,
+    /* N_PROJECTILE:                */              0,
+    /* N_DETONATE:                  */              0,
+    /* N_DELETE_PROJECTILE:         */              0,
+    /* N_ENEMY_SURVIVED:            */              0,
+    /* N_KILL_ENEMY:                */              0
 };
 
 static const struct enemy_t {
@@ -450,6 +464,7 @@ struct enemy {
     uint8_t         flags;
     double          slowed_for;
     double          frozen_for;
+    uint32_t        id;
 
     ~enemy() { if(lock) delete lock; }
 };
@@ -1349,6 +1364,7 @@ static const struct difficulty {
 
 struct projectile_t {
     texture_t   texture;
+    uint32_t    id;
     uint8_t     flags;
     double      base_damage;
     double      armor_modifier;
@@ -1358,6 +1374,7 @@ struct projectile_t {
     size_t      odds;
     double      lifetime;
     size_t      damage_maxhits;
+    size_t      range_maxhits;
     double      damage_range;
     uint16_t    damage_type;
     animation_t hit_animation;
@@ -1365,15 +1382,21 @@ struct projectile_t {
 
 struct projectile {
     texture_t   texture;
+    uint32_t    id;
     vertex_2d   start;
     vertex_2d   direction_vector;
     double      travelled;
     double      range;
     double      remaining_lifetime;
     size_t      remaining_hits;
+    size_t      remaining_range_hits;
     double      damage;
+    double      damage_range;
     uint16_t    damage_type;
     uint8_t     flags;
+    double      armor_mod;
+    uint32_t    pid;
+    std::vector<enemy*> hits;
 };
 
 struct upgrade {
@@ -1424,6 +1447,7 @@ static struct tower_t {
         /* projectiles: */ {
             {
                 /* texture: */                          texture_t("Data/Towers/Sentry/Projectiles/Basic pellet.png"),
+                /* id: */                               0,
                 /* flags: */                            P_FLAG_NONE,
                 /* base_damage: */                      1.0,
                 /* armor_modifier: */                   0.33,
@@ -1433,6 +1457,7 @@ static struct tower_t {
                 /* odds: */                             4,
                 /* lifetime: */                         0.0,
                 /* damage_maxhits: */                   1,
+                /* range_maxhits: */                    0,
                 /* damage_range: */                     0.0,
                 /* damage_type: */                      DAMAGE_BLUNT,
                 /* hit_animation: */                    { }
@@ -1641,6 +1666,7 @@ static struct tower_t {
                     /* projectiles: */ {
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/AP pellet.png"),
+                            /* id: */                   1,
                             /* flags: */                P_FLAG_ARMORED_TAR,
                             /* base_damage: */          2.0,
                             /* armor_modifier: */       1.0,
@@ -1650,6 +1676,7 @@ static struct tower_t {
                             /* odds: */                 2,
                             /* lifetime: */             0.0,
                             /* damage_maxhits: */       1,
+                            /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_SHARP,
                             /* hit_animation: */        { }
@@ -1723,6 +1750,7 @@ static struct tower_t {
                     /* projectiles: */                  {
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Chemical pellet.png"),
+                            /* id: */                   2,
                             /* flags: */                P_FLAG_NONE,
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
@@ -1732,12 +1760,14 @@ static struct tower_t {
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
                             /* damage_maxhits: */       1,
+                            /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_BLUNT | DAMAGE_CHEMICAL,
                             /* hit_animation: */        { }
                         },
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Biological pellet.png"),
+                            /* id: */                   3,
                             /* flags: */                P_FLAG_NONE,
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
@@ -1747,12 +1777,14 @@ static struct tower_t {
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
                             /* damage_maxhits: */       1,
+                            /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_BLUNT | DAMAGE_BIOLOGICAL,
                             /* hit_animation: */        { }
                         },
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Stripping pellet.png"),
+                            /* id: */                   4,
                             /* flags: */                P_FLAG_STEALTH_TAR | P_FLAG_ARMORED_TAR | P_FLAG_STRIP_STEALTH | P_FLAG_STRIP_ARMOR,
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
@@ -1762,6 +1794,7 @@ static struct tower_t {
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
                             /* damage_maxhits: */       1,
+                            /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_BLUNT | DAMAGE_MAGIC,
                             /* hit_animation: */        { }
@@ -1933,26 +1966,26 @@ public:
     uint8_t         upgrade_paths[3]            = { 0, 0, 0 };
     uint8_t         targeting_mode              = TARGETING_FIRST;
     std::string     custom_name                 = "";
-    projectile_t*   last_projectile             = nullptr;
 
-    tower(tower_t* t, double c, double x, double y);
-    void        tick(double time);
-    bool        can_fire();
-    double      fire(enemy* e);
-    void        render();
-    void        try_upgrade(uint8_t path, double price);
+                             tower(tower_t* t, double c, double x, double y);
+    void                     tick(double time);
+    bool                     can_fire();
+    result<projectile, void> fire(enemy* e);
+    void                     render();
+    void                     try_upgrade(uint8_t path, double price);
 };
 
 struct game_state {
     size_t                  cur_round;
     size_t                  last_round;
     size_t                  last_route;
-    double                  lives;
+    std::atomic<double>     lives;
     bool                    double_speed;
     bool                    paused;
     bool                    running;
     difficulty              diff;
-    size_t                  spawned_enemies;
+    uint32_t                spawned_enemies;
+    uint32_t                spawned_projectiles;
     bool                    done_spawning;
     std::vector<enemy>      created_enemies;
     std::vector<enemy*>     first;
@@ -1962,6 +1995,7 @@ struct game_state {
     std::vector<projectile> projectiles;
     sc::time_point          last_tick;
     sc::time_point          last_spawned_tick;
+    std::vector<tower>      towers;
 };
 
 extern game_state gs;
@@ -1971,7 +2005,7 @@ struct clientinfo {
     void* cn = nullptr;
     sc::time_point last_message = sc::now();
     double cash = 0.0;
-    std::vector<tower> towers;
+    std::vector<tower*> towers;
 };
 
 #ifndef __SERVER__

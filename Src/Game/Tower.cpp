@@ -21,48 +21,58 @@ void tower::tick(double time) {
 
 bool tower::can_fire() { return remaining_cooldown <= 0.0; }
 
-double tower::fire(enemy* e) {
-    if(!can_fire()) return -1.0;
+result<projectile, void> tower::fire(enemy* e) {
+    // if(!can_fire()) return { };
+
     double dx = e->pos.x - pos_x;
     double dy = e->pos.y - pos_y;
-    double d  = sqrt(dx * dx + dy * dy);
-    if(d > tower_types[base_type].range * range_mod) return -1.0;
+    double d = sqrt(dx * dx + dy * dy);
 
+    if(d > tower_types[base_type].range * range_mod) return { };
+    
     size_t odds = 0;
     for(auto& p : projectiles)
-        if((~e->flags & E_FLAG_STEALTH || flags & T_FLAG_STEALTH_TAR || p.flags & P_FLAG_STEALTH_TAR)
-        && (~e->flags & E_FLAG_ARMORED || flags & T_FLAG_ARMORED_TAR || p.flags & P_FLAG_ARMORED_TAR))
+        if((~e->flags & E_FLAG_STEALTH || (flags | p.flags) & T_FLAG_STEALTH_TAR)
+        && (~e->flags & E_FLAG_ARMORED || (flags | p.flags) & T_FLAG_ARMORED_TAR))
             odds += p.odds;
-    if(odds == 0) return -1.0;
+
+    if(odds == 0) return { }; // No projectile can target this enemy
 
     size_t r = rng() % odds;
     size_t offset = 0;
-    projectile_t* p = nullptr;
+    projectile_t* pt = nullptr;
+
     for(auto i : iterate(projectiles.size())) {
-        if((~e->flags & E_FLAG_STEALTH || flags & T_FLAG_STEALTH_TAR || projectiles[i].flags & P_FLAG_STEALTH_TAR)
-            && (~e->flags & E_FLAG_ARMORED || flags & T_FLAG_ARMORED_TAR || projectiles[i].flags & P_FLAG_ARMORED_TAR)) {
+        if((~e->flags & E_FLAG_STEALTH || (flags | projectiles[i].flags) & T_FLAG_STEALTH_TAR)
+        && (~e->flags & E_FLAG_ARMORED || (flags | projectiles[i].flags) & T_FLAG_ARMORED_TAR)) {
             offset += projectiles[i].odds;
             continue;
         }
 
-        if(projectiles[i].odds + offset >= r) { p = &projectiles[i]; break; }
+        if(projectiles[i].odds + offset >= r) { pt = &projectiles[i]; break; }
         offset += projectiles[i].odds;
     }
 
-    if(!p) return -1.0; // Should never happen
-    last_projectile = p;
-    uint16_t damage_type = p->damage_type | extra_damage_types;
+    if(!pt) return { }; // Should never happen
 
-    if(damage_type & ~e->immunities) {
-        double dmg = p->base_damage * damage_mod;
-        if(e->flags & E_FLAG_ARMORED)
-            dmg *= armor_mod;
-        if(damage_type & e->vulnerabilities)
-            dmg *= 2;
-        remaining_cooldown = 1.0 / (p->fire_rate * fire_rate_mod);
-        return dmg;
-    }
-    return 0.0;
+    remaining_cooldown = 1.0 / (pt->fire_rate * fire_rate_mod);
+
+    return projectile {
+        /* texture:              */ pt->texture,
+        /* id:                   */ pt->id,
+        /* start:                */ { pos_x, pos_y },
+        /* direction_vector:     */ (vertex_2d { pos_x, pos_y } - e->pos).normalize(),
+        /* travelled:            */ 0.0,
+        /* range:                */ pt->range * range_mod * gs.diff.tower_range_modifier + extra_damage_linear,
+        /* remaining_lifetime:   */ pt->lifetime,
+        /* remaining_hits:       */ pt->damage_maxhits + extra_damage_maxhits_linear,
+        /* remaining_range_hits: */ pt->range_maxhits + extra_damage_maxhits_range,
+        /* damage:               */ pt->base_damage * damage_mod,
+        /* damage_range:         */ pt->damage_range + extra_damage_range,
+        /* damage_type:          */ (uint16_t)(pt->damage_type | extra_damage_types),
+        /* flags:                */ (uint08_t)(flags | pt->flags),
+        /* armor_mod:            */ max(pt->armor_modifier, armor_mod)
+    };
 }
 
 #ifndef __SERVER__

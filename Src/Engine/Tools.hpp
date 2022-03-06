@@ -492,6 +492,21 @@ public:
          operator bool() { return  state; }
 };
 
+template<class T>
+class result<T, void> {
+private:
+    bool state;
+
+public:
+    T ok;
+
+    result(T ok) : ok(), state(true) { }
+    result() :           state(false) { }
+
+    bool operator!    () { return !state; }
+    operator bool()      { return  state; }
+};
+
 // Preprocessor repetitions and utilities
 // 
 // Usage: REPEAT(m, l, c, ...)
@@ -790,3 +805,26 @@ T pick(Ts&&... args) { return std::get<T>(std::make_tuple(std::forward<Ts>(args)
                                             EXPAND(c, NAMED_ARGS_INIT_PARAMS, n, FORWARD(ns)) \
                                             f \
                                         }
+
+// Nested for loop utility that allows to break out of multiple loops at once
+// Usage: loop(id, c, f)
+//        id: unique loop id
+//        c:  for loop condition
+//        f:  for loop function
+// 
+// Usage: break(id);
+//        id: unique loop id
+// 
+// Usage: continue(id);
+//        id: unique loop id
+// 
+// Example: loop(2, (int i = 0; i < 32; i++),
+//              loop(1, (int j = 0; j < 32; j++),
+//                  if(j == 8) break(2);
+//              )
+//          )
+//
+
+#define loop(id, c, f) for c { f __loop__ ## id ## __continue: { } } __loop__ ## id ## __break:
+#define break(id) goto __loop__ ## id ## __break
+#define continue(id) goto __loop__ ## id ## __continue

@@ -1,3 +1,15 @@
+# r24 Multiplayer WIP
+## Server
+
+- Server can now process enemies, tower and projectiles update cycles
+
+## Gameplay
+
+- Projectiles can now penetrate through enemies
+- Projectiles can now explode
+- Projectiles can now strip properties
+- Enemies can now be shielded, which makes them immune to the first hit they receive regardless of the amount of damage
+
 # r23 Multiplayer WIP
 ## Bug fixes
 ### Server

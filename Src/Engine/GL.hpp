@@ -13,6 +13,9 @@ struct vertex_2d {
     vertex_2d&      operator-=(vertex_2d rhs);
     vertex_2d&      operator*=(double d);
 
+    double          magnitude();
+    vertex_2d       normalize();
+
     double&         operator[](uint8_t id);                                     // 0 = x, 1 = y, 2 ... 255 = y
 };
 

@@ -7,13 +7,17 @@
 #endif
 #include <cmath>
 
-vertex_2d vertex_2d::operator+(vertex_2d rhs) { return vertex_2d { x + rhs.x, y + rhs.y }; }
-vertex_2d vertex_2d::operator-(vertex_2d rhs) { return vertex_2d { x - rhs.x, y - rhs.y }; }
-vertex_2d vertex_2d::operator*(double d)      { return vertex_2d { x *     d, y *     d }; }
+vertex_2d  vertex_2d::operator+ (vertex_2d rhs) { return { x + rhs.x, y + rhs.y }; }
+vertex_2d  vertex_2d::operator- (vertex_2d rhs) { return { x - rhs.x, y - rhs.y }; }
+vertex_2d  vertex_2d::operator* (double d)      { return { x *     d, y *     d }; }
 
 vertex_2d& vertex_2d::operator+=(vertex_2d rhs) { x += rhs.x; y += rhs.y; return *this; }
 vertex_2d& vertex_2d::operator-=(vertex_2d rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 vertex_2d& vertex_2d::operator*=(double d)      { x *=     d; y *=     d; return *this; }
+
+double     vertex_2d::magnitude()               { return sqrt(x * x + y * y); }
+
+vertex_2d  vertex_2d::normalize()               { return { x / magnitude(), y / magnitude() }; }
 
 double& vertex_2d::operator[](uint8_t id) { return !(id % 2) ? x : y; }
 
