@@ -54,6 +54,11 @@ INLINE_CONSTEXPR std::chrono::milliseconds operator "" _ms(unsigned long long ar
 INLINE_CONSTEXPR std::chrono::seconds      operator ""  _s(unsigned long long arg) noexcept {
     return static_cast<std::chrono::seconds     >(arg); }
 
+constexpr long double pi = 3.141592653589793238462643383279502884197169399375105820974L;
+
+inline consteval long double operator "" _rad(long double arg) noexcept { return arg; }
+inline consteval long double operator "" _deg(long double arg) noexcept { return arg * 180.0L / pi; }
+
 // Container and loop utilities
 
 template<class T>
@@ -447,8 +452,8 @@ public:
     basic_packetstream& operator>>(long double & value) { read(       (pointer)&value, rel_size(sizeof(long double))); return *this; }
     basic_packetstream& operator>>(bool        & value) { read(       (pointer)&value, rel_size(sizeof(bool       ))); return *this; }
 
-    basic_packetstream& operator<<(std::basic_string<char_type>& value) { write(value.c_str(), value.length());        return *this; }
-    basic_packetstream& operator>>(std::basic_string<char_type>& value) {
+    basic_packetstream& operator<<(std::basic_string<char_type> value) { write(value.c_str(), value.length());         return *this; }
+    basic_packetstream& operator>>(std::basic_string<char_type> value) {
         value = "";
         for(; g < used_size && _data[g]; g++) value += _data[g];
         return *this;
@@ -828,3 +833,146 @@ T pick(Ts&&... args) { return std::get<T>(std::make_tuple(std::forward<Ts>(args)
 #define loop(id, c, f) for c { f __loop__ ## id ## __continue: { } } __loop__ ## id ## __break:
 #define break(id) goto __loop__ ## id ## __break
 #define continue(id) goto __loop__ ## id ## __continue
+
+// Math utilities
+
+template<class T, size_t size>
+class vec;
+
+template<class T, size_t n, size_t m>
+class matrix {
+private:
+    vec<T, m>* vals = nullptr;
+
+public:
+     matrix()                                {   vals =                new vec<T, m>   [n]; }
+     matrix(const matrix&  M)                { memcpy(vals, M.vals, sizeof(vec<T, m>) * n); }
+     matrix(      matrix&& M) : vals(M.vals) { M.vals = nullptr; }
+    ~matrix()                                { if(vals) delete[] vals; }
+
+    matrix& operator=(const matrix&  M)      { memcpy(vals, M.vals, sizeof(vec<T, m>) * n);                                          return *this; }
+    matrix& operator=(      matrix&& M)      { vals = M.vals; M.vals = nullptr;                                                      return *this; }
+
+    matrix  operator* (T val) { matrix ret { *this }; for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++)  ret[i][j] *= val; return   ret; }
+    matrix& operator*=(T val) {                       for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++) vals[i][j] *= val; return *this; }
+
+    template<size_t p>
+    matrix<T, p, m> operator*(matrix<T, p, n> M) {
+        matrix<T, p, m> ret { };
+
+        for(size_t i = 0; i < n; i++)
+            for(size_t j = 0; j < p; j++)
+                for(size_t k = 0; k < m; k++)
+                    ret[j][k] += vals[i][k] * M[j][i];
+
+        return ret;
+    }
+
+    matrix<T, 1, m> operator*(vec<T, m> v) {
+        matrix<T, 1, m> ret { };
+
+        for(size_t i = 0; i < n; i++)
+            for(size_t j = 0; j < m; j++)
+                ret[0][j] += vals[i][j] * v[i];
+
+        return ret;
+    }
+
+    vec<T, m>& operator[](size_t i)    { return vals[min(i, n)]; }
+};
+
+template<class T, size_t size>
+class vec {
+protected:
+    T* vals = nullptr;
+
+public:
+     vec()                             { vals = new T[size]; }
+     vec(const vec&  v)                { vals = new T[size]; memcpy(vals, v.vals, sizeof(T) * size); }
+     vec(      vec&& v) : vals(v.vals) { v.vals = nullptr; }
+    ~vec()                             { if(vals) delete[] vals; }
+
+    vec& operator=(const vec&  v)      { memcpy(vals, v.vals, sizeof(T) * size);                                  return *this; }
+    vec& operator=(      vec&& v)      { vals = v.vals; v.vals = nullptr;                                         return *this; }
+    
+    vec  operator+ (vec rhs)           { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] + rhs[i]; return ret; }
+    vec  operator- (vec rhs)           { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] - rhs[i]; return ret; }
+    vec  operator* (T d)               { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] * d;      return ret; }
+    vec  operator/ (T d)               { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] / d;      return ret; }
+
+    vec& operator+=(vec rhs)           { for(size_t i = 0; i < size; i++) vals[i] += rhs[i];                      return *this; }
+    vec& operator-=(vec rhs)           { for(size_t i = 0; i < size; i++) vals[i] -= rhs[i];                      return *this; }
+    vec& operator*=(T d)               { for(size_t i = 0; i < size; i++) vals[i] *= d;                           return *this; }
+    vec& operator/=(T d)               { for(size_t i = 0; i < size; i++) vals[i] /= d;                           return *this; }
+
+    T    operator* (vec rhs)           { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * rhs[i];   return ret; }
+
+    T    magnitude ()                  { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * vals[i];  return sqrt(ret); }
+    vec  normalize ()                  { return *this / magnitude(); }
+
+    T& operator[](size_t id)           { return vals[min(id, size)]; }
+};
+
+template<class T>
+class vec2: public vec<T, 2> {
+public:
+    T& x = (*this)[0];
+    T& y = (*this)[1];
+
+    vec2()                    : vec<T, 2>()             { }
+    vec2(const vec<T, 2>&  v) : vec<T, 2>(v)            { }
+    vec2(      vec<T, 2>&& v) : vec<T, 2>(v)            { }
+    vec2(const vec2     &  v) : vec<T, 2>(v)            { }
+    vec2(      vec2     && v) : vec<T, 2>(v)            { }
+    vec2(T x, T y)            : vec<T, 2>(), x(x), y(y) { }
+
+    vec2& operator=(const vec<T, 2>&  v)                { vec<T, 2>::operator=(v); return *this; }
+    vec2& operator=(      vec<T, 2>&& v)                { vec<T, 2>::operator=(v); return *this; }
+    vec2& operator=(const vec2     &  v)                { vec<T, 2>::operator=(v); return *this; }
+    vec2& operator=(      vec2     && v)                { vec<T, 2>::operator=(v); return *this; }
+};
+
+template<class T>
+class vec3: public vec<T, 3> {
+public:
+    T& x = (*this)[0];
+    T& y = (*this)[1];
+    T& z = (*this)[2];
+
+    vec3()                    : vec<T, 3>()                   { }
+    vec3(const vec<T, 3>&  v) : vec<T, 3>(v)                  { }
+    vec3(      vec<T, 3>&& v) : vec<T, 3>(v)                  { }
+    vec3(const vec3     &  v) : vec<T, 3>(v)                  { }
+    vec3(      vec3     && v) : vec<T, 3>(v)                  { }
+    vec3(T x, T y, T z)       : vec<T, 3>(), x(x), y(y), z(z) { }
+
+    vec3& operator=(const vec<T, 3>&  v)                      { vec<T, 3>::operator=(v); return *this; }
+    vec3& operator=(      vec<T, 3>&& v)                      { vec<T, 3>::operator=(v); return *this; }
+    vec3& operator=(const vec3     &  v)                      { vec<T, 3>::operator=(v); return *this; }
+    vec3& operator=(      vec3     && v)                      { vec<T, 3>::operator=(v); return *this; }
+
+    vec3 cross(vec3 rhs) { return { y * rhs.z - z * rhs.y, 
+                                    z * rhs.x - x * rhs.z,
+                                    x * rhs.y - y * rhs.x }; }
+};
+
+template<class T>
+class vec4: public vec<T, 4> {
+public:
+    T& x = (*this)[0];
+    T& y = (*this)[1];
+    T& z = (*this)[2];
+    T& w = (*this)[3];
+
+    vec4()                    : vec<T, 4>()                         { }
+    vec4(const vec<T, 4>&  v) : vec<T, 4>(v)                        { }
+    vec4(      vec<T, 4>&& v) : vec<T, 4>(v)                        { }
+    vec4(const vec4     &  v) : vec<T, 4>(v)                        { }
+    vec4(      vec4     && v) : vec<T, 4>(v)                        { }
+    vec4(T x, T y, T z, T w)  : vec<T, 4>(), x(x), y(y), z(z), w(w) { }
+
+    vec4& operator=(const vec<T, 4>&  v)                            { vec<T, 4>::operator=(v); return *this; }
+    vec4& operator=(      vec<T, 4>&& v)                            { vec<T, 4>::operator=(v); return *this; }
+    vec4& operator=(const vec4     &  v)                            { vec<T, 4>::operator=(v); return *this; }
+    vec4& operator=(      vec4     && v)                            { vec<T, 4>::operator=(v); return *this; }
+};

@@ -1,7 +1,6 @@
 #include "Engine.hpp"
 #include "Server.hpp"
 #include "Map.hpp"
-#include "Network.hpp"
 #include <iostream>
 #include <enet/enet.h>
 #include "../Game/Game.hpp"
@@ -10,6 +9,8 @@ ENetHost* client = nullptr;
 ENetPeer* peer = nullptr;
 
 extern std::string name;
+
+extern void do_connect();
 
 command(connect, [](std::vector<std::string>& args) {
     if(args.size() == 0) { conerr("Usage: connect <ip address> [port]"); return; }
@@ -31,6 +32,7 @@ command(connect, [](std::vector<std::string>& args) {
             packetstream connection_packet;
             connection_packet << N_CONNECT << (uint32_t)name.length() << name;
             send_packet(peer, 0, true, connection_packet);
+            do_connect();
             return;
         }
         enet_peer_reset(peer);
@@ -40,27 +42,7 @@ command(connect, [](std::vector<std::string>& args) {
 });
 command(quit, [](std::vector<std::string>& args) { quit = true; })
 
-extern void game_tick();
 extern void init_game();
-extern void render_map();
-extern void render_sidebar();
-extern void render_menu();
-extern void deinit_game();
-
-void render_frame() {
-    if(current_map) {
-        render_map();
-    } else {
-    //    render_menu();
-    }
-    render_console();
-    render_chat();
-}
-
-void main_loop() {
-    //game_tick();
-    //if(current_map) render_sidebar();
-}
 
 int main(int argc, char* argv[]) {
     if(enet_initialize() != 0) {

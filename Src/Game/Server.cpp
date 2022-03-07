@@ -7,6 +7,8 @@
 #include <future>
 
 extern void conout(std::string);
+extern void conerr(std::string);
+
 std::mt19937_64 rng;
 game_state gs;
 difficulty diff;
@@ -18,6 +20,11 @@ constexpr uint32_t projectile_size = (uint32_t)(sizeof  (projectile)
                                               - offsetof(projectile, id)
                                               - sizeof  (projectile)
                                               + offsetof(projectile, hits));
+
+iconst(DIFF_EASY,       DIFF_EASY);
+iconst(DIFF_MEDIUM,     DIFF_MEDIUM);
+iconst(DIFF_HARD,       DIFF_HARD);
+iconst(DIFF_IMPOSSIBLE, DIFF_IMPOSSIBLE);
 
 void do_disconnect(client_iterator& cn) {
     for(auto ci = clientinfos.begin(); ci != clientinfos.end(); ci++)
@@ -46,6 +53,18 @@ void init() {
     gs.last_spawned_tick   = sc::now();
     gs.towers               .clear();
 }
+
+command(play, [](std::vector<std::string>& args) {
+    if(args.size() < 3) {
+        conerr("Usage: play <map> <difficulty>");
+        return;
+    }
+    current_map = init_map(args[1]);
+    if(current_map) {
+        diff = difficulties[std::stoi(args[2])];
+        init();
+    }
+})
 
 void init_round() {
     gs.last_spawned_tick   = sc::now();
@@ -135,10 +154,10 @@ struct projectile_cycle_data {
     double                                    extra_cash;
 };
 
-double queue_spawns(projectile_cycle_data& data, double excess_damage, enemy_t e, uint16_t flags) {
-    double ret =  e.base_kill_reward
-               * gs.diff.enemy_kill_reward_modifier
-               * gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier;
+void queue_spawns(projectile_cycle_data& data, double excess_damage, enemy_t e, uint16_t flags) {
+    data.extra_cash += e.base_kill_reward
+                    *  gs.diff.enemy_kill_reward_modifier
+                    *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier;
 
     // todo: enemy spawn multiplier
 
@@ -148,7 +167,7 @@ double queue_spawns(projectile_cycle_data& data, double excess_damage, enemy_t e
                       * gs.diff.enemy_health_modifier
                       * gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier;
 
-        if(health <= excess_damage) ret += queue_spawns(data, excess_damage - health, s, flags);
+        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags);
         else {
             uint8_t random_flags = E_FLAG_NONE;
 
@@ -190,8 +209,6 @@ double queue_spawns(projectile_cycle_data& data, double excess_damage, enemy_t e
             });
         }
     }
-
-    return ret;
 }
 
 void do_damage(projectile_cycle_data& data, projectile& p, enemy* e) {
@@ -275,7 +292,7 @@ void detonate (projectile_cycle_data& data, projectile& p) {
 projectile_cycle_data projectile_cycle(double dt, size_t i) {
     projectile_cycle_data ret;
     for(auto& p : iterate(gs.projectiles, serverthreads, i)) {
-        p.travelled += dt;
+        p.travelled += p.speed * dt;
 
         if(p.travelled > p.range) {
             ret.projectiles_to_erase.push_back(std::make_pair(&p, false));
@@ -292,7 +309,13 @@ projectile_cycle_data projectile_cycle(double dt, size_t i) {
             double dy = e.pos.y - pos.y;
             double d  = sqrt(dx * dx + dy * dy);
 
-            if(d < dt) {
+            // todo: neither of these are exactly what i want
+            // The maximum distance between enemy and projectile should be 8.0,
+            // HOWEVER that only applies orthogonally to the projectile's direction vector,
+            // while the distance in the direction of the direction vector should be p.speed * dt + 8.0
+            // to accomodate for latency
+            // if(d < p.speed * dt + 8.0) {
+            if(d < 8.0) {
                 do_damage(ret, p, &e);
 
                 if(!p.remaining_hits) {
@@ -319,8 +342,6 @@ void servertick() {
 
         double dt = std::chrono::duration<double>(sc::now() - gs.last_tick).count();
         gs.last_tick = sc::now();
-
-        if(gs.last_round != gs.cur_round) init_round();
 
         if(!gs.done_spawning) {
             size_t pos = 0;
@@ -469,6 +490,13 @@ void servertick() {
 
                 gs.spawned_enemies++;
             }
+
+            if(data.extra_cash)
+                for(auto& c : clientinfos)
+                    broadcast << N_UPDATE_CASH
+                              << 12_u32
+                              << c.id
+                              << (c.cash += data.extra_cash / (double)maxclients);
         }
 
         for(auto i : iterate(serverthreads)) // add new projectiles after projectile update cycles, to avoid having them move twice the first tick
@@ -481,8 +509,36 @@ void servertick() {
                 broadcast.write((const char*)&p + offsetof(projectile, id), projectile_size);
             }
 
+        size_t total_enemies = 0;
+        for(auto& set : gs.diff.round_set.r[gs.cur_round].enemies)
+            total_enemies += (size_t)(set.amount * gs.diff.enemy_amount_modifier);
+
+        if(gs.created_enemies.size() == 0 && gs.spawned_enemies == total_enemies) {
+            gs.running = false;
+            gs.cur_round++;
+
+            double cash = 100.0 + gs.last_round;
+            for(auto& c : clientinfos)
+                broadcast << N_UPDATE_CASH
+                          << 12_u32
+                          << c.id
+                          << (c.cash += cash / (double)maxclients);
+
+            broadcast << N_ROUNDOVER
+                      << 0_u32;
+
+            gs.spawned_enemies = 0;
+            if(gs.cur_round == gs.diff.rounds_to_win) {
+                // todo: win screen
+            }
+        }
+
         send_packet(nullptr, 0, true, broadcast);
     }
+}
+
+std::string update_entities() {
+
 }
 
 result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
@@ -506,6 +562,7 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
             clientinfo ci;
             ci.cn = &clients[clients.size() - 1].cn;
             ci.id = (uint32_t)clientinfos.size();
+            ci.cash = 750.0 * gs.diff.start_cash_modifier / maxclients;
 
             clientinfos.push_back(ci);
             clients[clients.size() - 1].data = (void*)&clientinfos[clientinfos.size() - 1];
@@ -513,7 +570,30 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
             conout(c.name + " connected");
             peer->data = &clients[clients.size() - 1];
 
-            // SEND INFO BACK TO PLAYER
+            packetstream reply { };
+            reply << N_SENDMAP
+                  << current_map->data.size()
+                  << current_map->data;
+
+            reply << N_GAMEINFO
+                  << 27_u32
+                  << ci.id
+                  << (uint32_t)gs.cur_round
+                  << (uint32_t)gs.last_round
+                  << gs.lives
+                  << gs.double_speed
+                  << gs.paused
+                  << gs.running
+                  << gs.diff.id;
+
+            for(auto& c : clientinfos)
+                reply << N_PLAYERINFO
+                      << (12_u32 + (*(client_iterator*)(c.cn))->name.size())
+                      << c.id
+                      << (*(client_iterator*)(c.cn))->name
+                      << c.cash;
+
+            reply << update_entities();
             return true;
         }
 
@@ -575,11 +655,9 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
                           << ci.cash;
 
                 reply << N_UPDATE_LIVES
-                      << 12_u32
+                      << 8_u32
                       << gs.lives
-                      << N_UPDATE_ENTITIES;
-
-                // todo: entities_packet
+                      << update_entities();
                 break;
             }
 
@@ -592,8 +670,7 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             case N_STARTROUND: {
                 if(!gs.running && gs.last_round != gs.cur_round) {
-                    gs.running = true;
-                    gs.last_round = gs.cur_round;
+                    init_round();
                     broadcast << N_STARTROUND << 0_u32 << N_ROUNDINFO << 4_u32 << gs.cur_round;
                 }
                 break;
@@ -614,7 +691,10 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
             case N_PROJECTILE:
             case N_DETONATE:
             case N_ENEMY_SURVIVED:
-            case N_KILL_ENEMY:      return DISC_MSGERR;
+            case N_KILL_ENEMY:
+            case N_SENDMAP:
+            case N_GAMEINFO:
+            case N_PLAYERINFO:      return DISC_MSGERR;
 
             // Forward unrecognized packets to all, will help with moddability
             default: {

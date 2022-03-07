@@ -1,3 +1,12 @@
+# r25 Server ready to test
+## Server
+
+- Server can now load maps
+- Server sends map to clients as they join
+- Kill reward is spread amongst all players
+- Server sends game and player infos when a client joins
+- Server now detects when rounds are over and sends roundover packet to clients
+
 # r24 Multiplayer WIP
 ## Server
 

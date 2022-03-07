@@ -1,23 +1,8 @@
 #pragma once
 #include "Texture.hpp"
+#include "Tools.hpp"
 
-struct vertex_2d {
-    double          x           = 0;
-    double          y           = 0;
-
-    vertex_2d       operator+(vertex_2d rhs);
-    vertex_2d       operator-(vertex_2d rhs);
-    vertex_2d       operator*(double d);
-
-    vertex_2d&      operator+=(vertex_2d rhs);
-    vertex_2d&      operator-=(vertex_2d rhs);
-    vertex_2d&      operator*=(double d);
-
-    double          magnitude();
-    vertex_2d       normalize();
-
-    double&         operator[](uint8_t id);                                     // 0 = x, 1 = y, 2 ... 255 = y
-};
+using vertex_2d = vec2<double>;
 
 struct base_triangle_t {
     vertex_2d       vertices[3] = { };

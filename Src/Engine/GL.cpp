@@ -7,20 +7,6 @@
 #endif
 #include <cmath>
 
-vertex_2d  vertex_2d::operator+ (vertex_2d rhs) { return { x + rhs.x, y + rhs.y }; }
-vertex_2d  vertex_2d::operator- (vertex_2d rhs) { return { x - rhs.x, y - rhs.y }; }
-vertex_2d  vertex_2d::operator* (double d)      { return { x *     d, y *     d }; }
-
-vertex_2d& vertex_2d::operator+=(vertex_2d rhs) { x += rhs.x; y += rhs.y; return *this; }
-vertex_2d& vertex_2d::operator-=(vertex_2d rhs) { x -= rhs.x; y -= rhs.y; return *this; }
-vertex_2d& vertex_2d::operator*=(double d)      { x *=     d; y *=     d; return *this; }
-
-double     vertex_2d::magnitude()               { return sqrt(x * x + y * y); }
-
-vertex_2d  vertex_2d::normalize()               { return { x / magnitude(), y / magnitude() }; }
-
-double& vertex_2d::operator[](uint8_t id) { return !(id % 2) ? x : y; }
-
 double base_triangle_t::get_area(vertex_2d& v1, vertex_2d& v2, vertex_2d& v3, double range) {
     double a = sqrt((v1[1] - v2[1]) * (v1[1] - v2[1]) + (v1[0] - v2[0]) * (v1[0] - v2[0])) + range;
     double b = sqrt((v2[1] - v3[1]) * (v2[1] - v3[1]) + (v2[0] - v3[0]) * (v2[0] - v3[0])) + range;

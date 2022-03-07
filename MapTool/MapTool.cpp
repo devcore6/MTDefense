@@ -40,6 +40,15 @@ enum {
 	MODE_ADD_CLIP
 };
 
+enum {
+	MAP_BEGINNER = 0,
+	MAP_INTERMEDIATE,
+	MAP_ADVANCED,
+	MAP_EXPERT,
+	MAP_IMPOSSIBLE
+};
+
+uint8_t difficulty = (uint8_t)MAP_BEGINNER;
 uint8_t current_mode = MODE_NONE;
 std::vector<vertex_2d> cur_vertices;
 
@@ -88,6 +97,15 @@ bool update_function(window_t* w, void* data) {
 }
 
 class contentview: public view {
+private:
+	text* difficulties[5] = {
+		new text("Map difficulty: Beginner"),
+		new text("Map difficulty: Intermediate"),
+		new text("Map difficulty: Advanced"),
+		new text("Map difficulty: Expert"),
+		new text("Map difficulty: Impossible")
+	};
+
 public:
 	contentview(std::string& path) {
 		body = new hstack {
@@ -166,6 +184,7 @@ public:
 						current_mode = MODE_ADD_CLIP;
 						cur_vertices.clear();
 					}),
+				// todo: difficulty selector
 				(new text("Export"))
 					->font(title)
 					->padding(16, 0)
@@ -178,7 +197,9 @@ public:
 							exit(EXIT_FAILURE);
 						}
 
-						const auto loop = []<typename T>(std::vector<T>& vec, std::ofstream& output) {
+						output << difficulty;
+
+						const auto _loop = []<typename T>(std::vector<T>& vec, std::ofstream& output) {
 							uint32_t size = (uint32_t)vec.size();
 							output.write((const char*)&size, sizeof(uint32_t));
 
@@ -192,9 +213,9 @@ public:
 							}
 						};
 
-						loop(routes, output);
-						loop(water, output);
-						loop(clipping_areas, output);
+						_loop(routes, output);
+						_loop(water, output);
+						_loop(clipping_areas, output);
 
 						std::ifstream image;
 						image.open(path, std::ios::in | std::ios::binary);

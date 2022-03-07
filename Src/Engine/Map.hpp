@@ -21,8 +21,11 @@ struct map_t {
     std::vector<line_strip_t>       paths;
 
     uint8_t                         difficulty = (uint8_t)MAP_BEGINNER;
+
+    std::string                     data;
 };
 
 extern std::vector<map_t>           maps;
 extern map_t*                       current_map;
-extern map_t*                       init_map(std::string path, uint8_t difficulty);
+extern map_t*                       init_map(std::string path);
+extern map_t*                       init_map(std::stringstream& in);

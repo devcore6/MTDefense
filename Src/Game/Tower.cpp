@@ -64,6 +64,7 @@ result<projectile, void> tower::fire(enemy* e) {
         /* direction_vector:     */ (vertex_2d { pos_x, pos_y } - e->pos).normalize(),
         /* travelled:            */ 0.0,
         /* range:                */ pt->range * range_mod * gs.diff.tower_range_modifier + extra_damage_linear,
+        /* speed:                */ pt->speed * speed_mod * gs.diff.projectile_speed_modifier,
         /* remaining_lifetime:   */ pt->lifetime,
         /* remaining_hits:       */ pt->damage_maxhits + extra_damage_maxhits_linear,
         /* remaining_range_hits: */ pt->range_maxhits + extra_damage_maxhits_range,

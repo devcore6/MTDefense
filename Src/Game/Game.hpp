@@ -129,39 +129,45 @@ enum {
     N_DELETE_PROJECTILE,
     N_ENEMY_SURVIVED,
     N_KILL_ENEMY,
+    N_SENDMAP,
+    N_GAMEINFO,
+    N_PLAYERINFO,
     NUMMSG
 };
 
 // Message sizes in bytes, -1 for unchecked/variable sizes.
 constexpr uint32_t msgsizes[NUMMSG] = {
-    /* N_CONNECT:                   */   (uint32_t)-1,
-    /* N_TEXT:                      */   (uint32_t)-1,
-    /* N_PLACETOWER:                */             20,
-    /* N_UPGRADETOWER:              */              5,
-    /* N_UPDATETARGETING:           */              5,
-    /* N_SELLTOWER:                 */              4,
-    /* N_UPDATE_CASH:               */              8,
-    /* N_UPDATE_LIVES:              */              8,
-    /* N_REQUEST_UPDATE:            */              0,
-    /* N_UPDATE_ENTITIES:           */   (uint32_t)-1,
-    /* N_PING:                      */              0,
-    /* N_PONG:                      */              0,
-    /* N_ROUNDINFO:                 */              4,
-    /* N_STARTROUND:                */              0,
-    /* N_SET_SPEED:                 */              1,
-    /* N_PAUSE:                     */              0,
-    /* N_RESUME:                    */              0,
-    /* N_ROUNDOVER:                 */              0,
-    /* N_GAMEOVER:                  */              0, // This will probably send some stuff later like what enemy was leaked and some kind of score
-    /* N_RESTART:                   */              0,
-    /* N_CONTINUE:                  */              0,
-    /* N_DISCONNECT:                */              0,
-    /* N_SPAWN_ENEMY:               */              0,
-    /* N_PROJECTILE:                */              0,
-    /* N_DETONATE:                  */              0,
-    /* N_DELETE_PROJECTILE:         */              0,
-    /* N_ENEMY_SURVIVED:            */              0,
-    /* N_KILL_ENEMY:                */              0
+    /* N_CONNECT:                   */ (uint32_t)-1,
+    /* N_TEXT:                      */ (uint32_t)-1,
+    /* N_PLACETOWER:                */           20,
+    /* N_UPGRADETOWER:              */            5,
+    /* N_UPDATETARGETING:           */            5,
+    /* N_SELLTOWER:                 */            4,
+    /* N_UPDATE_CASH:               */            8,
+    /* N_UPDATE_LIVES:              */            8,
+    /* N_REQUEST_UPDATE:            */            0,
+    /* N_UPDATE_ENTITIES:           */ (uint32_t)-1,
+    /* N_PING:                      */            0,
+    /* N_PONG:                      */            0,
+    /* N_ROUNDINFO:                 */            4,
+    /* N_STARTROUND:                */            0,
+    /* N_SET_SPEED:                 */            1,
+    /* N_PAUSE:                     */            0,
+    /* N_RESUME:                    */            0,
+    /* N_ROUNDOVER:                 */            0,
+    /* N_GAMEOVER:                  */            0,
+    /* N_RESTART:                   */            0,
+    /* N_CONTINUE:                  */            0,
+    /* N_DISCONNECT:                */            0,
+    /* N_SPAWN_ENEMY:               */            0,
+    /* N_PROJECTILE:                */            0,
+    /* N_DETONATE:                  */            0,
+    /* N_DELETE_PROJECTILE:         */            0,
+    /* N_ENEMY_SURVIVED:            */            0,
+    /* N_KILL_ENEMY:                */            0,
+    /* N_SENDMAP:                   */           -1,
+    /* N_GAMEINFO:                  */           -1,
+    /* N_PLAYERINFO:                */           -1
 };
 
 static const struct enemy_t {
@@ -1262,6 +1268,7 @@ static const struct difficulty {
     double          projectile_speed_modifier;
     bool            disable_knowledge_and_powers;
     double          reward_modifier;
+    uint32_t        id;
     rounds          round_set;
 } difficulties[] = {
     /* DIFF_EASY: */ {
@@ -1286,6 +1293,7 @@ static const struct difficulty {
         /* projectile_speed_modifier: */    1.20,
         /* disable_knowledge_and_powers: */ false,
         /* reward_modifier: */              1.0,
+        /* id: */                           DIFF_EASY,
         /* round_set: */                    standard_rounds
     },
     /* DIFF_MEDIUM: */ {
@@ -1310,6 +1318,7 @@ static const struct difficulty {
         /* projectile_speed_modifier: */    1.00,
         /* disable_knowledge_and_powers: */ false,
         /* reward_modifier: */              2.0,
+        /* id: */                           DIFF_MEDIUM,
         /* round_set: */                    standard_rounds
     },
     /* DIFF_HARD: */ {
@@ -1334,6 +1343,7 @@ static const struct difficulty {
         /* projectile_speed_modifier: */    0.98,
         /* disable_knowledge_and_powers: */ false,
         /* reward_modifier: */              3.0,
+        /* id: */                           DIFF_HARD,
         /* round_set: */                    standard_rounds
     },
     /* DIFF_IMPOSSIBLE: */ {
@@ -1358,6 +1368,7 @@ static const struct difficulty {
         /* projectile_speed_modifier: */    0.95,
         /* disable_knowledge_and_powers: */ false,
         /* reward_modifier: */              4.0,
+        /* id: */                           DIFF_IMPOSSIBLE,
         /* round_set: */                    standard_rounds
     }
 };
@@ -1387,6 +1398,7 @@ struct projectile {
     vertex_2d   direction_vector;
     double      travelled;
     double      range;
+    double      speed;
     double      remaining_lifetime;
     size_t      remaining_hits;
     size_t      remaining_range_hits;
