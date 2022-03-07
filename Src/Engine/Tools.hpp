@@ -359,9 +359,10 @@ protected:
     void resize(size_t new_size) {
         char_type* buf = new char_type[new_size];
         if(_data) {
-            memcpy((void*)buf, (const void*)_data, char_size * new_size);
+            memcpy((void*)buf, (const void*)_data, char_size * used_size);
             delete[] _data;
         }
+        allocated = new_size;
         _data = buf;
     }
 
@@ -401,7 +402,24 @@ public:
     }
 
     basic_packetstream& read(pointer value, size_t size) {
-        for(size_t i = 0; i < size; i++) get(value[i]);
+        if(value == nullptr) {
+            if(g + size > used_size)
+                state |= std::ios_base::failbit | std::ios_base::eofbit;
+            g = min(g + size, used_size);
+        } else
+            for(size_t i = 0; i < size; i++)
+                get(value[i]);
+
+        return *this;
+    }
+
+    basic_packetstream& read(std::basic_string<char_type>& value, size_t size) {
+        value = "";
+        for(size_t i = 0; i < size; i++) {
+            char_type c { };
+            get(c);
+            value += c;
+        }
         return *this;
     }
 
@@ -411,7 +429,7 @@ public:
     bool bad()                                          { return state &  std::ios_base::badbit; }
 
     bool operator!()                                    { return state &  std::ios_base::failbit; }
-         operator bool()                                { return state & ~std::ios_base::failbit; }
+         operator bool()                                { return state == 0; }
 
     iostate rdstate()                                   { return state; }
     void setstate(iostate s)                            { state = s; }
@@ -919,17 +937,17 @@ public:
     T& x = (*this)[0];
     T& y = (*this)[1];
 
-    vec2()                    : vec<T, 2>()             { }
-    vec2(const vec<T, 2>&  v) : vec<T, 2>(v)            { }
-    vec2(      vec<T, 2>&& v) : vec<T, 2>(v)            { }
-    vec2(const vec2     &  v) : vec<T, 2>(v)            { }
-    vec2(      vec2     && v) : vec<T, 2>(v)            { }
-    vec2(T x, T y)            : vec<T, 2>(), x(x), y(y) { }
+    vec2()                    : vec<T, 2>()  { }
+    vec2(const vec<T, 2>&  v) : vec<T, 2>(v) { }
+    vec2(      vec<T, 2>&& v) : vec<T, 2>(v) { }
+    vec2(const vec2     &  v) : vec<T, 2>(v) { }
+    vec2(      vec2     && v) : vec<T, 2>(v) { }
+    vec2(T _x, T _y)          : vec<T, 2>()  { x = _x; y = _y; }
 
-    vec2& operator=(const vec<T, 2>&  v)                { vec<T, 2>::operator=(v); return *this; }
-    vec2& operator=(      vec<T, 2>&& v)                { vec<T, 2>::operator=(v); return *this; }
-    vec2& operator=(const vec2     &  v)                { vec<T, 2>::operator=(v); return *this; }
-    vec2& operator=(      vec2     && v)                { vec<T, 2>::operator=(v); return *this; }
+    vec2& operator=(const vec<T, 2>&  v)     { vec<T, 2>::operator=(v); return *this; }
+    vec2& operator=(      vec<T, 2>&& v)     { vec<T, 2>::operator=(v); return *this; }
+    vec2& operator=(const vec2     &  v)     { vec<T, 2>::operator=(v); return *this; }
+    vec2& operator=(      vec2     && v)     { vec<T, 2>::operator=(v); return *this; }
 };
 
 template<class T>
@@ -939,17 +957,17 @@ public:
     T& y = (*this)[1];
     T& z = (*this)[2];
 
-    vec3()                    : vec<T, 3>()                   { }
-    vec3(const vec<T, 3>&  v) : vec<T, 3>(v)                  { }
-    vec3(      vec<T, 3>&& v) : vec<T, 3>(v)                  { }
-    vec3(const vec3     &  v) : vec<T, 3>(v)                  { }
-    vec3(      vec3     && v) : vec<T, 3>(v)                  { }
-    vec3(T x, T y, T z)       : vec<T, 3>(), x(x), y(y), z(z) { }
+    vec3()                    : vec<T, 3>()  { }
+    vec3(const vec<T, 3>&  v) : vec<T, 3>(v) { }
+    vec3(      vec<T, 3>&& v) : vec<T, 3>(v) { }
+    vec3(const vec3     &  v) : vec<T, 3>(v) { }
+    vec3(      vec3     && v) : vec<T, 3>(v) { }
+    vec3(T _x, T _y, T _z)    : vec<T, 3>()  { x = _x; y = _y; z = _z; }
 
-    vec3& operator=(const vec<T, 3>&  v)                      { vec<T, 3>::operator=(v); return *this; }
-    vec3& operator=(      vec<T, 3>&& v)                      { vec<T, 3>::operator=(v); return *this; }
-    vec3& operator=(const vec3     &  v)                      { vec<T, 3>::operator=(v); return *this; }
-    vec3& operator=(      vec3     && v)                      { vec<T, 3>::operator=(v); return *this; }
+    vec3& operator=(const vec<T, 3>&  v)     { vec<T, 3>::operator=(v); return *this; }
+    vec3& operator=(      vec<T, 3>&& v)     { vec<T, 3>::operator=(v); return *this; }
+    vec3& operator=(const vec3     &  v)     { vec<T, 3>::operator=(v); return *this; }
+    vec3& operator=(      vec3     && v)     { vec<T, 3>::operator=(v); return *this; }
 
     vec3 cross(vec3 rhs) { return { y * rhs.z - z * rhs.y, 
                                     z * rhs.x - x * rhs.z,
@@ -964,15 +982,15 @@ public:
     T& z = (*this)[2];
     T& w = (*this)[3];
 
-    vec4()                    : vec<T, 4>()                         { }
-    vec4(const vec<T, 4>&  v) : vec<T, 4>(v)                        { }
-    vec4(      vec<T, 4>&& v) : vec<T, 4>(v)                        { }
-    vec4(const vec4     &  v) : vec<T, 4>(v)                        { }
-    vec4(      vec4     && v) : vec<T, 4>(v)                        { }
-    vec4(T x, T y, T z, T w)  : vec<T, 4>(), x(x), y(y), z(z), w(w) { }
+    vec4()                       : vec<T, 4>()  { }
+    vec4(const vec<T, 4>&  v)    : vec<T, 4>(v) { }
+    vec4(      vec<T, 4>&& v)    : vec<T, 4>(v) { }
+    vec4(const vec4     &  v)    : vec<T, 4>(v) { }
+    vec4(      vec4     && v)    : vec<T, 4>(v) { }
+    vec4(T _x, T _y, T _z, T _w) : vec<T, 4>()  { x = _x; y = _y; z = _z; w = _w; }
 
-    vec4& operator=(const vec<T, 4>&  v)                            { vec<T, 4>::operator=(v); return *this; }
-    vec4& operator=(      vec<T, 4>&& v)                            { vec<T, 4>::operator=(v); return *this; }
-    vec4& operator=(const vec4     &  v)                            { vec<T, 4>::operator=(v); return *this; }
-    vec4& operator=(      vec4     && v)                            { vec<T, 4>::operator=(v); return *this; }
+    vec4& operator=(const vec<T, 4>&  v)        { vec<T, 4>::operator=(v); return *this; }
+    vec4& operator=(      vec<T, 4>&& v)        { vec<T, 4>::operator=(v); return *this; }
+    vec4& operator=(const vec4     &  v)        { vec<T, 4>::operator=(v); return *this; }
+    vec4& operator=(      vec4     && v)        { vec<T, 4>::operator=(v); return *this; }
 };

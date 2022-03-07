@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 std::vector<map_t> maps;
 map_t* current_map = nullptr;
@@ -14,7 +15,6 @@ void render_map() {
 #endif
 
 map_t* init_map(std::string path) {
-    map_t map;
     std::ifstream file;
     file.open(path, std::ios::in | std::ios::binary);
     if(!file.is_open()) {
@@ -48,8 +48,9 @@ map_t* init_map(std::stringstream& in) {
         return nullptr;
     }
 
-#ifndef __SERVER__
+
     std::ostringstream img_data_stream;
+#ifndef __SERVER__
     img_data_stream << in.rdbuf();
     std::string data = img_data_stream.str();
 
@@ -69,7 +70,6 @@ map_t* init_map(std::stringstream& in) {
     map.map.vertices[1] = { 1620, 0 };
     map.map.vertices[2] = { 1620, 1080 };
     map.map.vertices[3] = { 0, 1080 };
-    maps.push_back(map);
 #endif
 
     auto buf = in.rdbuf();
@@ -77,6 +77,7 @@ map_t* init_map(std::stringstream& in) {
     img_data_stream.clear();
     img_data_stream << buf;
     map.data = img_data_stream.str();
+    maps.push_back(map);
 
     return &maps[maps.size() - 1];
 }

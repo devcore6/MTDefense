@@ -165,9 +165,9 @@ constexpr uint32_t msgsizes[NUMMSG] = {
     /* N_DELETE_PROJECTILE:         */            0,
     /* N_ENEMY_SURVIVED:            */            0,
     /* N_KILL_ENEMY:                */            0,
-    /* N_SENDMAP:                   */           -1,
-    /* N_GAMEINFO:                  */           -1,
-    /* N_PLAYERINFO:                */           -1
+    /* N_SENDMAP:                   */ (uint32_t)-1,
+    /* N_GAMEINFO:                  */ (uint32_t)-1,
+    /* N_PLAYERINFO:                */ (uint32_t)-1
 };
 
 static const struct enemy_t {
@@ -2015,6 +2015,7 @@ extern game_state gs;
 struct clientinfo {
     uint32_t id = 0;
     void* cn = nullptr;
+    std::string name = "";
     sc::time_point last_message = sc::now();
     double cash = 0.0;
     std::vector<tower*> towers;

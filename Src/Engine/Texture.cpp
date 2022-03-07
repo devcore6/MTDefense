@@ -29,11 +29,12 @@ std::map<std::string, texture_ref> texture_refs { };
 texture_t::texture_t(std::string path) {
 #ifndef __SERVER__
     if(texture_refs.contains(path)) {
-        auto& ref = texture_refs[path];
-        textid    = ref.textid;
-        width     = ref.width;
-        height    = ref.height;
-        ref_count = &ref.ref_count;
+        auto& ref  = texture_refs[path];
+        textid     = ref.textid;
+        width      = ref.width;
+        height     = ref.height;
+        ref_count  = &ref.ref_count;
+        shared_ref = true;
         (*ref_count)++;
         return;
     }
@@ -105,7 +106,7 @@ texture_t::texture_t(SDL_RWops* data) {
 
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-
+    char* p = (char*)surface->pixels;
     glTexImage2D(GL_TEXTURE_2D, 0, surface->format->BytesPerPixel, surface->w, surface->h, 0, mode, GL_UNSIGNED_BYTE, surface->pixels);
 
 # if defined(_WIN32) || defined(_WIN64)
@@ -121,10 +122,66 @@ texture_t::texture_t(SDL_RWops* data) {
     height = surface->h;
 
     SDL_FreeSurface(surface);
+
+    ref_count = new size_t(1);
 }
 
 texture_t::~texture_t() {
-    if(!ref_count || (ref_count && !--(*ref_count))) glDeleteTextures(1, &textid);
+    if(ref_count && !--(*ref_count)) {
+        glDeleteTextures(1, &textid);
+        if(!shared_ref) delete ref_count;
+    }
+}
+
+
+texture_t::texture_t(const texture_t& copy) {
+    textid     = copy.textid;
+    width      = copy.width;
+    height     = copy.height;
+    ref_count  = copy.ref_count;
+    shared_ref = copy.shared_ref;
+    (*ref_count)++;
+}
+
+texture_t::texture_t(texture_t&& move) {
+    textid     = move.textid;
+    width      = move.width;
+    height     = move.height;
+    ref_count  = move.ref_count;
+    shared_ref = move.shared_ref;
+    (*ref_count)++;
+
+    move.textid     = 0;
+    move.width      = 0;
+    move.height     = 0;
+    move.ref_count  = nullptr;
+    move.shared_ref = false;
+}
+
+texture_t& texture_t::operator=(const texture_t& copy) {
+    textid     = copy.textid;
+    width      = copy.width;
+    height     = copy.height;
+    ref_count  = copy.ref_count;
+    shared_ref = copy.shared_ref;
+    (*ref_count)++;
+    return *this;
+}
+
+texture_t& texture_t::operator=(texture_t&& move) {
+    textid     = move.textid;
+    width      = move.width;
+    height     = move.height;
+    ref_count  = move.ref_count;
+    shared_ref = move.shared_ref;
+    (*ref_count)++;
+
+    move.textid     = 0;
+    move.width      = 0;
+    move.height     = 0;
+    move.ref_count  = nullptr;
+    move.shared_ref = false;
+    return *this;
 }
 
 animation_t::animation_t(std::string folder) {

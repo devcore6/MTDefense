@@ -14,7 +14,7 @@ uint32_t ip_to_uint32(std::string ip) {
 
     for(uint8_t i = 0; i < 4; i++)
         if(std::getline(ss, buf, '.'))
-            val |= (std::stoi(buf) & 0xFF) << ((3 - i) * 8);
+            val |= (std::stoi(buf) & 0xFF) << (i * 8);
         else return ENET_HOST_ANY;
     
     return val;
@@ -25,7 +25,7 @@ std::string uint32_to_ip(uint32_t ip) {
 
     for(uint8_t i = 0; i < 4; i++) {
         if(i) val += ".";
-        val += std::to_string((ip >> ((3 - i) * 8)) & 0xFF);
+        val += std::to_string((ip >> (i * 8)) & 0xFF);
     }
 
     return val;

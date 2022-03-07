@@ -44,7 +44,9 @@ void serverslice() {
                 break;
             }
             case ENET_EVENT_TYPE_RECEIVE: {
+#ifdef _DEBUG
                 conout("Received packet - size: "_str + std::to_string(event.packet->dataLength) + " - data: " + (const char*)event.packet->data);
+#endif
                 auto ret = handle_packets({ (const char*)event.packet->data, event.packet->dataLength }, event.peer);
                 enet_packet_destroy(event.packet);
                 if(!ret) {
@@ -132,6 +134,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     atexit(enet_deinitialize);
+
+    enet_time_set((uint32_t)time(nullptr));
 
     server_main(quit_server.get_future());
 }

@@ -1,3 +1,14 @@
+# r26 Client multiplayer preparation
+## Client
+
+- Client can now parse server welcome info
+- Fixed texture reference bug
+- Client now downloads map from server upon joining
+
+## Server
+
+- Fixed server not actually sending welcome packet
+
 # r25 Server ready to test
 ## Server
 

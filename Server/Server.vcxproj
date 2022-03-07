@@ -179,6 +179,7 @@
     <ClInclude Include="..\Src\Engine\Network.hpp" />
     <ClInclude Include="..\Src\Engine\Server.hpp" />
     <ClInclude Include="..\Src\Engine\Texture.hpp" />
+    <ClInclude Include="..\Src\Game\Game.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

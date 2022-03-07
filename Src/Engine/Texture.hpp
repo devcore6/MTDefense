@@ -17,6 +17,7 @@ class texture_t {
 #ifndef __SERVER__
 private:
     size_t*     ref_count   = nullptr;
+    bool        shared_ref  = false;
 #endif
 
 public:
@@ -30,6 +31,11 @@ public:
     texture_t(std::string path);
 #ifndef __SERVER__
     texture_t(SDL_RWops*  data);
+    texture_t(const texture_t&  copy);
+    texture_t(      texture_t&& move);
+
+    texture_t& operator=(const texture_t& copy);
+    texture_t& operator=(texture_t&& move);
     ~texture_t();
 #endif
 };

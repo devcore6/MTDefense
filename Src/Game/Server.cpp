@@ -63,8 +63,15 @@ command(play, [](std::vector<std::string>& args) {
     if(current_map) {
         diff = difficulties[std::stoi(args[2])];
         init();
-    }
+    } else conerr("Couldn't load map");
 })
+
+#ifdef __SERVER__
+command(echo, [](std::vector<std::string>& args) {
+    if(args.size() == 1) conout("Usage: echo \"message\";");
+    else conout(args[1]);
+})
+#endif
 
 void init_round() {
     gs.last_spawned_tick   = sc::now();
@@ -538,7 +545,7 @@ void servertick() {
 }
 
 std::string update_entities() {
-
+    return "";
 }
 
 result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
@@ -555,7 +562,7 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             client_t c;
             c.peer = peer;
-            packet >> c.name;
+            packet.read(c.name, size);
             clients.push_back(c);
             for(auto cn = clients.begin(); cn != clients.end(); cn++) { cn->cn = cn; }
 
@@ -572,7 +579,7 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             packetstream reply { };
             reply << N_SENDMAP
-                  << current_map->data.size()
+                  << (uint32_t)current_map->data.length()
                   << current_map->data;
 
             reply << N_GAMEINFO
@@ -588,12 +595,13 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             for(auto& c : clientinfos)
                 reply << N_PLAYERINFO
-                      << (12_u32 + (*(client_iterator*)(c.cn))->name.size())
+                      << (12_u32 + (*(client_iterator*)(c.cn))->name.length())
                       << c.id
-                      << (*(client_iterator*)(c.cn))->name
-                      << c.cash;
+                      << c.cash
+                      << (*(client_iterator*)(c.cn))->name;
 
             reply << update_entities();
+            send_packet(peer, 0, true, reply);
             return true;
         }
 

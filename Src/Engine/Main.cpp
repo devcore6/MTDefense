@@ -4,6 +4,7 @@
 #include <iostream>
 #include <enet/enet.h>
 #include "../Game/Game.hpp"
+#include <ctime>
 
 ENetHost* client = nullptr;
 ENetPeer* peer = nullptr;
@@ -29,9 +30,6 @@ command(connect, [](std::vector<std::string>& args) {
         if(!peer) continue;
         if(enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
             conout("Connected!");
-            packetstream connection_packet;
-            connection_packet << N_CONNECT << (uint32_t)name.length() << name;
-            send_packet(peer, 0, true, connection_packet);
             do_connect();
             return;
         }
@@ -42,7 +40,7 @@ command(connect, [](std::vector<std::string>& args) {
 });
 command(quit, [](std::vector<std::string>& args) { quit = true; })
 
-extern void init_game();
+//extern void init_game();
 
 int main(int argc, char* argv[]) {
     if(enet_initialize() != 0) {
@@ -50,6 +48,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     atexit(enet_deinitialize);
+
+    enet_time_set((uint32_t)time(nullptr));
 
     client = enet_host_create(nullptr, 1, 1, 0, 0);
     if(client == nullptr) {
@@ -59,17 +59,21 @@ int main(int argc, char* argv[]) {
 
     TTF_Init();
 
+    if(!init_gl()) {
+        std::cerr << "Could not initialize SDL2/openGL.\n";
+        return EXIT_FAILURE;
+    }
+
     execfile("Data/Config/Config.conf");
     execfile("Data/Config/Autoexec.conf");
 
     // this is just for testing
-    if(peer) {
+    /*if(peer) {
         for(;;) {
             ENetEvent e { };
             if(enet_host_service(client, &e, 5000) > 0) {
                 switch(e.type) {
                     case ENET_EVENT_TYPE_RECEIVE: {
-                        conout("pong");
                         break;
                     }
                     case ENET_EVENT_TYPE_DISCONNECT: exit(1);
@@ -80,14 +84,9 @@ int main(int argc, char* argv[]) {
             p << N_PING << 0_u32;
             send_packet(peer, 0, true, p);
         }
-    }
+    }*/
 
-    if(!init_gl()) {
-        std::cerr << "Could not initialize SDL2/openGL.\n";
-        return EXIT_FAILURE;
-    }
-
-    init_game();
+    //init_game();
     //init_match(init_map("Data/Maps/Test.bin"_str, MAP_BEGINNER), medium);
 
     while(!quit) {
