@@ -477,6 +477,18 @@ public:
         return *this;
     }
 
+    basic_packetstream& operator<<(basic_packetstream& value) {
+        write((const_pointer)(value._data + value.g), value.used_size - value.g);
+        value.g = value.used_size;
+        return *this;
+    }
+
+    basic_packetstream& operator>>(basic_packetstream& value) {
+        value.write((const_pointer)(_data + g), used_size - g);
+        g = used_size;
+        return *this;
+    }
+
     pointer data()                                      { return _data; }
     size_t size()                                       { return used_size; }
 };

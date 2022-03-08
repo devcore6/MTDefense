@@ -8,11 +8,11 @@ std::vector<tower> towers;
 
 extern std::mt19937_64 rng;
 
-tower::tower(tower_t* t, double c, double x, double y) : base_type(t->tower_type), cost(c), pos_x(x), pos_y(y), projectiles(t->projectiles) {
-    rect.vertices[0] = { -t->hitbox_radius, -t->hitbox_radius };
-    rect.vertices[1] = {  t->hitbox_radius, -t->hitbox_radius };
-    rect.vertices[2] = {  t->hitbox_radius,  t->hitbox_radius };
-    rect.vertices[3] = { -t->hitbox_radius,  t->hitbox_radius };
+tower::tower(tower_t& t, double c, double x, double y) : base_type(t.tower_type), cost(c), pos_x(x), pos_y(y), projectiles(t.projectiles) {
+    rect.vertices[0] = { -t.hitbox_radius, -t.hitbox_radius };
+    rect.vertices[1] = {  t.hitbox_radius, -t.hitbox_radius };
+    rect.vertices[2] = {  t.hitbox_radius,  t.hitbox_radius };
+    rect.vertices[3] = { -t.hitbox_radius,  t.hitbox_radius };
 }
 
 void tower::tick(double time) {
@@ -89,17 +89,17 @@ void tower::render() {
 void tower::try_upgrade(uint8_t path, double price) {
     if(path > 2 || upgrade_paths[path] == 5) return;
     cost += price;
-    const upgrade* u = &tower_types[base_type].upgrade_paths[path][upgrade_paths[path]];
-    range_mod                   *= u->range_mod;
-    fire_rate_mod               *= u->fire_rate_mod;
-    speed_mod                   *= u->speed_mod;
-    armor_mod                   *= u->armor_mod;
-    damage_mod                  *= u->damage_mod;
-    flags                       |= u->flags;
-    extra_damage_maxhits_linear += u->extra_damage_maxhits_linear;
-    extra_damage_maxhits_range  += u->extra_damage_maxhits_range;
-    extra_damage_linear         += u->extra_damage_linear;
-    extra_damage_range          += u->extra_damage_range;
-    extra_damage_types          += u->extra_damage_types;
+    const upgrade& u = tower_types[base_type].upgrade_paths[path][upgrade_paths[path]];
+    range_mod                   *= u.range_mod;
+    fire_rate_mod               *= u.fire_rate_mod;
+    speed_mod                   *= u.speed_mod;
+    armor_mod                   *= u.armor_mod;
+    damage_mod                  *= u.damage_mod;
+    flags                       |= u.flags;
+    extra_damage_maxhits_linear += u.extra_damage_maxhits_linear;
+    extra_damage_maxhits_range  += u.extra_damage_maxhits_range;
+    extra_damage_linear         += u.extra_damage_linear;
+    extra_damage_range          += u.extra_damage_range;
+    extra_damage_types          += u.extra_damage_types;
     upgrade_paths[path]++;
 }

@@ -1,3 +1,13 @@
+# r27 Server-side tower & upgrade purchasing
+## Client
+
+- Client now stays connected
+- Began packet processing
+
+## Server
+
+- Server-side tower & upgrade purchasing
+
 # r26 Client multiplayer preparation
 ## Client
 

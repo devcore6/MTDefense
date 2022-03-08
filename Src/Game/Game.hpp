@@ -139,7 +139,7 @@ enum {
 constexpr uint32_t msgsizes[NUMMSG] = {
     /* N_CONNECT:                   */ (uint32_t)-1,
     /* N_TEXT:                      */ (uint32_t)-1,
-    /* N_PLACETOWER:                */           20,
+    /* N_PLACETOWER:                */           17,
     /* N_UPGRADETOWER:              */            5,
     /* N_UPDATETARGETING:           */            5,
     /* N_SELLTOWER:                 */            4,
@@ -1978,8 +1978,10 @@ public:
     uint8_t         upgrade_paths[3]            = { 0, 0, 0 };
     uint8_t         targeting_mode              = TARGETING_FIRST;
     std::string     custom_name                 = "";
+    uint32_t        id                          = -1;
+    uint32_t        cid                         = -1;
 
-                             tower(tower_t* t, double c, double x, double y);
+                             tower(tower_t& t, double c, double x, double y);
     void                     tick(double time);
     bool                     can_fire();
     result<projectile, void> fire(enemy* e);
@@ -1998,6 +2000,7 @@ struct game_state {
     difficulty              diff;
     uint32_t                spawned_enemies;
     uint32_t                spawned_projectiles;
+    uint32_t                spawned_towers;
     bool                    done_spawning;
     std::vector<enemy>      created_enemies;
     std::vector<enemy*>     first;

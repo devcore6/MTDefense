@@ -16,6 +16,37 @@ ivarp(timeouttime, 30, 60, 600);
 std::vector<clientinfo> clientinfos;
 extern intmax_t maxclients;
 
+bool can_place(std::vector<tower>& towers, tower_t& base_type, double x, double y) {
+    if(!current_map) return false;
+
+    if(x < base_type.hitbox_radius * 0.8 || x > 1620.0 - base_type.hitbox_radius * 0.8 ||
+       y < base_type.hitbox_radius * 0.8 || y > 1080.0 - base_type.hitbox_radius * 0.8) return false;
+
+    for(auto& p : current_map->paths)
+        if(p.distance({ x, y }) < base_type.hitbox_radius * 0.8 + 20.0)
+            return false;
+
+    for(auto& c : current_map->clips)
+        if(c.contains({ x, y }, base_type.hitbox_radius * 0.8))
+            return false;
+
+    bool in_water = false;
+    for(auto& w : current_map->water)
+        if(w.contains({ x, y }, base_type.hitbox_radius * 0.8)) { in_water = true; break; }
+
+    if(in_water != base_type.place_on_water) return false;
+
+    for(auto& t : gs.towers) {
+        double dx = (double)x - t.pos_x;
+        double dy = (double)y - t.pos_y;
+        double d = sqrt(dx * dx + dy * dy);
+        if(d < (base_type.hitbox_radius + tower_types[t.base_type].hitbox_radius) * 0.8)
+            return false;
+    }
+
+    return true;
+}
+
 constexpr uint32_t projectile_size = (uint32_t)(sizeof  (projectile)
                                               - offsetof(projectile, id)
                                               - sizeof  (projectile)
@@ -42,6 +73,7 @@ void init() {
     gs.diff                = diff;
     gs.spawned_enemies     = 0;
     gs.spawned_projectiles = 0;
+    gs.spawned_towers      = 0;
     gs.done_spawning       = true;
     gs.created_enemies      .clear();
     gs.first                .clear();
@@ -544,8 +576,50 @@ void servertick() {
     }
 }
 
-std::string update_entities() {
-    return "";
+packetstream update_entities() {
+    packetstream p;
+
+    p << N_UPDATE_ENTITIES
+      << 0_u32;
+
+    for(auto& e : gs.created_enemies)
+        p << N_SPAWN_ENEMY
+          << 30_u32
+          << e.base_type
+          << get_route_id(e)
+          << e.max_health
+          << e.speed
+          << e.immunities
+          << e.vulnerabilities
+          << e.flags
+          << e.id;
+
+    for(auto& pj : gs.projectiles) {
+        p << N_PROJECTILE
+          << projectile_size;
+        p.write((const char*)&pj + offsetof(projectile, id), projectile_size);
+    }
+
+    for(auto& t : gs.towers) {
+        p << N_PLACETOWER
+          << 33_u32
+          << t.cid
+          << t.id
+          << t.pos_x
+          << t.pos_y
+          << t.base_type
+          << t.cost
+          << N_UPGRADETOWER
+          << t.id
+          << t.upgrade_paths[0]
+          << t.upgrade_paths[1]
+          << t.upgrade_paths[2]
+          << N_UPDATETARGETING
+          << t.id
+          << t.targeting_mode;
+    }
+
+    return p;
 }
 
 result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
@@ -647,8 +721,77 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
                 break;
             }
 
-            case N_PLACETOWER:      break;                            // todo
-            case N_UPGRADETOWER:    break;                            // todo
+            case N_PLACETOWER: {
+                double x { 0.0 }, y { 0.0 };
+                uint8_t base_type { NUMTOWERS };
+                packet >> x
+                       >> y
+                       >> base_type;
+                
+                // todo: discounts?
+
+                if(base_type >= NUMTOWERS) break;
+                double cost = tower_types[base_type].base_price * gs.diff.tower_cost_modifier;
+                if(cost > client->cash) break;
+                if(!can_place(gs.towers, tower_types[base_type], x, y)) break;
+
+                tower t { tower_types[base_type], cost, x, y };
+                t.id = gs.spawned_towers++;
+                client->cash -= cost;
+
+                broadcast << N_PLACETOWER
+                          << 33_u32
+                          << client->id
+                          << t.id
+                          << t.base_type
+                          << x
+                          << y
+                          << cost
+                          << N_UPDATE_CASH
+                          << 12_u32
+                          << client->id
+                          << client->cash;
+
+                break;
+            }
+
+            case N_UPGRADETOWER: {
+                uint32_t tid { 0 };
+                uint8_t path { 0 };
+                packet >> tid
+                       >> path;
+                tower* t = nullptr;
+
+                if(u > 2) break;
+
+                for(auto& ptr : client->towers)
+                    if(ptr->id == tid) {
+                        t = ptr;
+                        break;
+                    }
+
+                if(!t) break;
+                if(t->upgrade_paths[path] == 6) break;
+
+                upgrade& up = tower_types[t->base_type].upgrade_paths[path][t->upgrade_paths[path] + 1];
+                double cost = up.base_price * gs.diff.tower_cost_modifier;
+
+                if(cost > client->cash) break;
+                t->try_upgrade(path, cost);
+
+                broadcast << N_UPGRADETOWER
+                          << 7_u32
+                          << t->id
+                          << t->upgrade_paths[0]
+                          << t->upgrade_paths[1]
+                          << t->upgrade_paths[2]
+                          << N_UPDATE_CASH
+                          << 12_u32
+                          << client->id
+                          << client->cash;
+
+                break;
+            }
             case N_UPDATETARGETING: break;                            // todo
             case N_SELLTOWER:       break;                            // todo
 
