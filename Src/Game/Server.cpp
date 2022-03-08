@@ -534,6 +534,9 @@ void servertick() {
                 gs.spawned_enemies++;
             }
 
+            if(data.enemies_to_add.size())
+                update_targeting_priorities();
+
             if(data.extra_cash)
                 for(auto& c : clientinfos)
                     broadcast << N_UPDATE_CASH

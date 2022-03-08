@@ -40,7 +40,9 @@ command(connect, [](std::vector<std::string>& args) {
 });
 command(quit, [](std::vector<std::string>& args) { quit = true; })
 
-//extern void init_game();
+extern void deinit_game();
+
+SDL_Cursor* cursor = nullptr;
 
 int main(int argc, char* argv[]) {
     if(enet_initialize() != 0) {
@@ -63,6 +65,14 @@ int main(int argc, char* argv[]) {
         std::cerr << "Could not initialize SDL2/openGL.\n";
         return EXIT_FAILURE;
     }
+
+    SDL_Surface* surface = IMG_Load("Data/UI/Cursor.png");
+    if(!surface) { conerr("Could not load cursor");   return -1; }
+    cursor = SDL_CreateColorCursor(surface, 1, 1);
+    if(!cursor)  { conerr("Could not create cursor"); return -1; }
+    SDL_SetCursor(cursor);
+    SDL_ShowCursor(SDL_TRUE);
+    SDL_FreeSurface(surface);
 
     execfile("Data/Config/Config.conf");
     execfile("Data/Config/Autoexec.conf");
@@ -95,7 +105,9 @@ int main(int argc, char* argv[]) {
 
     savevars();
 
-    //deinit_game();
+    deinit_game();
+
+    SDL_FreeCursor(cursor);
 
     if(peer) enet_peer_reset(peer);
     enet_host_destroy(client);

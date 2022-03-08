@@ -106,12 +106,14 @@ void server_main(std::future<void> quit) {
         sc::time_point last_tick = sc::now();
         serverslice();
 
-        //servertick();
-
-        std::chrono::milliseconds sleep_time = 1000_ms / tickrate - std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - last_tick);
-        if(sleep_time.count() > 0)
-            if(quit.wait_for(sleep_time) != std::future_status::timeout)
-                break;
+        servertick();
+        
+        if(tickrate != 0) {
+            std::chrono::milliseconds sleep_time = 1000_ms / tickrate - std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - last_tick);
+            if(sleep_time.count() > 0)
+                if(quit.wait_for(sleep_time) != std::future_status::timeout)
+                    break;
+        }
     }
 
     enet_host_destroy(server);

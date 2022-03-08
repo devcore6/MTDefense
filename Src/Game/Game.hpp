@@ -8,15 +8,8 @@
 #include "../Engine/Tools.hpp"
 #include "../Engine/GL.hpp"
 
-using dictionary_entry = std::map<const char*, const char*>;
+using dictionary_entry = std::map<std::string, const char*>;
 using sc = std::chrono::system_clock;
-
-inline const char* get_entry(dictionary_entry t, const char* lang) {
-    for(auto& val : t)
-        if(!strcmp(val.first, lang)) 
-            return val.second;
-    return nullptr;
-}
 
 enum {
     DAMAGE_NONE             = 0,

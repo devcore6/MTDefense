@@ -1,3 +1,8 @@
+# r29 Client multiplayer prep
+## Client
+
+- Client nearly ready for first multiplayer tests
+
 # r28 Client packet handling
 ## Client
 
