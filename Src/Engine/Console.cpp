@@ -38,8 +38,10 @@ command(echo, [](std::vector<std::string>& args) {
     else conout(args[1]);
 })
 
-// Todo: internet features when that gets added
+extern void send_message(std::string msg);
+
 void say(std::string msg) {
+    send_message(msg);
     chat_messages.push_back(std::make_pair(sc::now(), name + ": " + msg));
 }
 

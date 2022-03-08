@@ -1,3 +1,12 @@
+# r28 Client packet handling
+## Client
+
+- Packet handling
+
+## Server
+
+- Forward information on new clients to other players
+
 # r27 Server-side tower & upgrade purchasing
 ## Client
 

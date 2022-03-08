@@ -1375,6 +1375,7 @@ static const struct difficulty {
 
 struct projectile_t {
     texture_t   texture;
+    std::string path;
     uint32_t    id;
     uint8_t     flags;
     double      base_damage;
@@ -1393,6 +1394,7 @@ struct projectile_t {
 
 struct projectile {
     texture_t   texture;
+    std::string path;
     uint32_t    id;
     vertex_2d   start;
     vertex_2d   direction_vector;
@@ -1459,6 +1461,7 @@ static struct tower_t {
         /* projectiles: */ {
             {
                 /* texture: */                          texture_t("Data/Towers/Sentry/Projectiles/Basic pellet.png"),
+                /* path: */                             "Data/Towers/Sentry/Projectiles/Basic pellet.png",
                 /* id: */                               0,
                 /* flags: */                            P_FLAG_NONE,
                 /* base_damage: */                      1.0,
@@ -1678,6 +1681,7 @@ static struct tower_t {
                     /* projectiles: */ {
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/AP pellet.png"),
+                            /* path: */                 "Data/Towers/Sentry/Projectiles/AP pellet.png",
                             /* id: */                   1,
                             /* flags: */                P_FLAG_ARMORED_TAR,
                             /* base_damage: */          2.0,
@@ -1762,6 +1766,7 @@ static struct tower_t {
                     /* projectiles: */                  {
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Chemical pellet.png"),
+                            /* path: */                 "Data/Towers/Sentry/Projectiles/Chemical pellet.png",
                             /* id: */                   2,
                             /* flags: */                P_FLAG_NONE,
                             /* base_damage: */          2.5,
@@ -1779,6 +1784,7 @@ static struct tower_t {
                         },
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Biological pellet.png"),
+                            /* path: */                 "Data/Towers/Sentry/Projectiles/Biological pellet.png",
                             /* id: */                   3,
                             /* flags: */                P_FLAG_NONE,
                             /* base_damage: */          2.5,
@@ -1796,6 +1802,7 @@ static struct tower_t {
                         },
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Stripping pellet.png"),
+                            /* path: */                 "Data/Towers/Sentry/Projectiles/Stripping pellet.png",
                             /* id: */                   4,
                             /* flags: */                P_FLAG_STEALTH_TAR | P_FLAG_ARMORED_TAR | P_FLAG_STRIP_STEALTH | P_FLAG_STRIP_ARMOR,
                             /* base_damage: */          2.5,

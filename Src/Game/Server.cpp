@@ -469,7 +469,11 @@ void servertick() {
                     if(&gs.created_enemies[i] == ptr) {
                         broadcast << N_ENEMY_SURVIVED
                                   << 4_u32
-                                  << gs.created_enemies[i].id;
+                                  << gs.created_enemies[i].id
+                                  << N_UPDATE_LIVES
+                                  << 8_u32
+                                  << gs.lives;
+
                         gs.created_enemies.erase(gs.created_enemies.begin() + i);
                         i--;
                         break;
@@ -544,8 +548,9 @@ void servertick() {
                 gs.spawned_projectiles++;
                 gs.projectiles.push_back(p);
                 broadcast << N_PROJECTILE
-                          << projectile_size;
-                broadcast.write((const char*)&p + offsetof(projectile, id), projectile_size);
+                          << projectile_size + p.path.length()
+                          << p.path;
+                broadcast.write((const char*)(&p + offsetof(projectile, id)), projectile_size);
             }
 
         size_t total_enemies = 0;
@@ -622,7 +627,7 @@ packetstream update_entities() {
     return p;
 }
 
-result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
+result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
     if(!packet.size()) return false;
     if(!peer->data) {
         uint32_t packet_type = NUMMSG;
@@ -676,7 +681,20 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             reply << update_entities();
             send_packet(peer, 0, true, reply);
-            return true;
+
+            if(ci.id != 0) {
+                packetstream p;
+                p << N_PLAYERINFO
+                  << (12_u32 + (*(client_iterator*)(ci.cn))->name.length())
+                  << ci.id
+                  << ci.cash
+                  << (*(client_iterator*)(ci.cn))->name;
+            
+                for(size_t i = 0; i < clientinfos.size() - 1; i++)
+                    send_packet((*(client_iterator*)(clientinfos[i].cn))->peer, 0, true, p);
+            }
+
+            return { };
         }
 
         return DISC_MSGERR;
@@ -715,7 +733,8 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
                 char* s = new char[size];
                 packet.read(s, size);
                 broadcast << N_TEXT
-                          << size;
+                          << size + 4_u32
+                          << client->id;
                 broadcast.write(s, size);
                 delete[] s;
                 break;
@@ -762,7 +781,7 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
                        >> path;
                 tower* t = nullptr;
 
-                if(u > 2) break;
+                if(path > 2) break;
 
                 for(auto& ptr : client->towers)
                     if(ptr->id == tid) {
@@ -780,11 +799,12 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
                 t->try_upgrade(path, cost);
 
                 broadcast << N_UPGRADETOWER
-                          << 7_u32
+                          << 15_u32
                           << t->id
                           << t->upgrade_paths[0]
                           << t->upgrade_paths[1]
                           << t->upgrade_paths[2]
+                          << cost
                           << N_UPDATE_CASH
                           << 12_u32
                           << client->id
@@ -862,5 +882,5 @@ result<bool, int> handle_packets(packetstream packet, ENetPeer* peer) {
     if(    reply.size()) send_packet(cn->peer, 0, true, reply);
     if(broadcast.size()) send_packet(nullptr,  0, true, broadcast);
 
-    return reply.size() || broadcast.size();
+    return { };
 }

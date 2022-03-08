@@ -59,6 +59,7 @@ result<projectile, void> tower::fire(enemy* e) {
 
     return projectile {
         /* texture:              */ pt->texture,
+        /* path:                 */ pt->path,
         /* id:                   */ pt->id,
         /* start:                */ { pos_x, pos_y },
         /* direction_vector:     */ (vertex_2d { pos_x, pos_y } - e->pos).normalize(),

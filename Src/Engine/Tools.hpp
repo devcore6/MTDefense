@@ -443,8 +443,8 @@ public:
 
     static size_t rel_size(size_t s)                    { return s / char_size + bool(s % char_size); }
 
-    basic_packetstream& operator>>( int08_t      value) { write((const_pointer)&value, rel_size(1                  )); return *this; }
-    basic_packetstream& operator>>(uint08_t      value) { write((const_pointer)&value, rel_size(1                  )); return *this; }
+    basic_packetstream& operator<<( int08_t      value) { write((const_pointer)&value, rel_size(1                  )); return *this; }
+    basic_packetstream& operator<<(uint08_t      value) { write((const_pointer)&value, rel_size(1                  )); return *this; }
     basic_packetstream& operator<<( int16_t      value) { write((const_pointer)&value, rel_size(2                  )); return *this; }
     basic_packetstream& operator<<(uint16_t      value) { write((const_pointer)&value, rel_size(2                  )); return *this; }
     basic_packetstream& operator<<( int32_t      value) { write((const_pointer)&value, rel_size(4                  )); return *this; }

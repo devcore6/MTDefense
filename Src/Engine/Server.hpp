@@ -39,5 +39,5 @@ constexpr const char* disconnect_reason[NUMDISCS - 1] = {
 
 extern std::vector<client_t> clients;
 extern void do_disconnect(client_iterator&);
-extern result<bool, int> handle_packets(packetstream packet, ENetPeer* peer);
+extern result<void, int> handle_packets(packetstream packet, ENetPeer* peer);
 extern void servertick();
