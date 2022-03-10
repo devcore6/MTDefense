@@ -497,7 +497,7 @@ void servertick() {
                 gs.created_enemies.push_back(std::move<enemy>({
                     /* base_type:          */ e.base_type,
                     /* route:              */ s.third,
-                    /* distance_travelled: */ 0.0,
+                    /* distance_travelled: */ s.fourth,
                     /* pos:                */ (*s.third)[0],
                     /* max_health:         */ e.base_health
                                            *  gs.diff.enemy_health_modifier

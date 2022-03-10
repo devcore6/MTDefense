@@ -1,3 +1,8 @@
+# r32 Bug fix
+## Server
+
+- Fixed enemy "children" being spawned at the start of the path
+
 # r31 Bug fixes
 ## Server
 
