@@ -103,7 +103,6 @@ private:
     bool send_click      = false;
     int lastx            = 0;
     int lasty            = 0;
-    tower* last_selected = nullptr;
     double update_at     = DBL_MAX;
 
     void do_update() {
@@ -162,8 +161,8 @@ private:
                 double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * cs.diff.tower_cost_modifier;
                 bool owned = false;
 
-                for(auto& ptr : playerinfo.towers)
-                    if(ptr == selected) {
+                for(auto& id : playerinfo.towers)
+                    if(id == selected->id) {
                         owned = true;
                         break;
                     }
@@ -212,8 +211,8 @@ private:
 
                 bool owned = false;
 
-                for(auto& ptr : playerinfo.towers)
-                    if(ptr == selected) {
+                for(auto& id : playerinfo.towers)
+                    if(id == selected->id) {
                         owned = true;
                         break;
                     }
@@ -271,6 +270,7 @@ private:
     }
 
 public:
+    tower* last_selected = nullptr;
      game_ui() { }
     ~game_ui() { }
 
@@ -761,11 +761,11 @@ void handle_packet(packetstream& p) {
                 cs.towers.push_back(t);
 
                 if(cid == playerinfo.id)
-                    playerinfo.towers.push_back(&cs.towers[cs.towers.size() - 1]);
+                    playerinfo.towers.push_back(tid);
                 else
                     for(auto& pi : playerinfos)
                         if(cid == pi.id) {
-                            pi.towers.push_back(&cs.towers[cs.towers.size() - 1]);
+                            pi.towers.push_back(tid);
                             break; 
                         }
 
@@ -864,6 +864,7 @@ void handle_packet(packetstream& p) {
                 uint16_t immunities      { 0 };
                 uint16_t vulnerabilities { 0 };
                 uint08_t flags           { 0 };
+                double   dist            { 0.0 };
                 uint32_t eid             { 0 };
 
                 p >> base_type
@@ -873,12 +874,13 @@ void handle_packet(packetstream& p) {
                   >> immunities
                   >> vulnerabilities
                   >> flags
+                  >> dist
                   >> eid;
 
                 cs.enemies.push_back(std::move<enemy>({
                     /* base_type:          */ base_type,
                     /* route:              */ &current_map->paths[route],
-                    /* distance_travelled: */ 0.0,
+                    /* distance_travelled: */ dist,
                     /* pos:                */  current_map->paths[route][0],
                     /* max_health:         */ health,
                     /* health:             */ health,
@@ -955,14 +957,12 @@ void handle_packet(packetstream& p) {
                 }
                 break;
             }
+            case N_REFRESHMENU: ui.last_selected = nullptr; break;
             default: {
 #ifdef _DEBUG
                 conout("Unrecognized packet type ("_str + std::to_string(msgtype) + ')');
 #endif
                 p.read(nullptr, (size_t)size);
-                packetstream reply { };
-                reply << N_REQUEST_UPDATE << 0_u32;
-                send_packet(peer, 0, true, reply);
                 break;
             }
         }

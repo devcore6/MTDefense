@@ -1,3 +1,14 @@
+# r31 Bug fixes
+## Server
+
+- Fixed crash on easy mode
+- Fixed clients losing tower ownership when a new tower is bought
+
+## Client
+
+- Fixed clients losing tower ownership when a new tower is bought
+- Fixed `texture_t::~texture_t()` causing soft crash on shut down
+
 # r30 Multiplayer working
 ## Client
 

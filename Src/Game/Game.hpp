@@ -47,9 +47,9 @@ enum {
     NUMTOWERS
 };
 
-enum {
-    ENEMY_NONE              = -1,
-    ENEMY_NANO,
+enum enemy_type : uint8_t {
+    ENEMY_NONE              = 255,
+    ENEMY_NANO              = 0,
     ENEMY_MICRO,
     ENEMY_MILLI,
     ENEMY_CENTI,
@@ -126,6 +126,7 @@ enum {
     N_SENDMAP,
     N_GAMEINFO,
     N_PLAYERINFO,
+    N_REFRESHMENU,
     NUMMSG
 };
 
@@ -161,7 +162,8 @@ constexpr uint32_t msgsizes[NUMMSG] = {
     /* N_KILL_ENEMY:                */            0,
     /* N_SENDMAP:                   */ (uint32_t)-1,
     /* N_GAMEINFO:                  */ (uint32_t)-1,
-    /* N_PLAYERINFO:                */ (uint32_t)-1
+    /* N_PLAYERINFO:                */ (uint32_t)-1,
+    /* N_REFRESHMENU:               */            0
 };
 
 static const struct enemy_t {
@@ -2076,7 +2078,7 @@ struct clientinfo {
     std::string name = "";
     sc::time_point last_message = sc::now();
     double cash = 0.0;
-    std::vector<tower*> towers;
+    std::vector<uint32_t> towers;
 };
 
 #ifndef __SERVER__

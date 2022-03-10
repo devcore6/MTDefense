@@ -186,12 +186,13 @@ struct projectile_cycle_data {
         enemy_t first;
         double second;
         line_strip_t* third;
+        double fourth;
     };
     std::vector<e>                         enemies_to_add;
     double                                 extra_cash { 0.0 };
 };
 
-void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, uint16_t flags, line_strip_t* p) {
+void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, uint16_t flags, line_strip_t* p, double dist) {
     data->extra_cash += e.base_kill_reward
                      *  gs.diff.enemy_kill_reward_modifier
                      *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier;
@@ -204,22 +205,22 @@ void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, 
                       * gs.diff.enemy_health_modifier
                       * gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier;
 
-        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags, p);
+        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags, p, dist);
         else {
             uint8_t random_flags = E_FLAG_NONE;
 
-            if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds
+            if(gs.diff.enemy_random_stealth_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds
             *   gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                 random_flags |= E_FLAG_STEALTH;
-            if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds
+            if(gs.diff.enemy_random_armored_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds
             *   gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                 random_flags |= E_FLAG_ARMORED;
-            if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds
+            if(gs.diff.enemy_random_shield_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds
             *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                 random_flags |= E_FLAG_SHIELD;
             
             s.flags |= (uint8_t)(flags | random_flags);
-            data->enemies_to_add.push_back({ s, excess_damage, p });
+            data->enemies_to_add.push_back({ s, excess_damage, p, dist });
         }
     }
 }
@@ -247,7 +248,7 @@ void do_damage(projectile_cycle_data* data, projectile& p, enemy* e) {
     e->health -= dmg;
     if(e->health <= 0.0) {
         data->enemies_to_erase.push_back(e->id);
-        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route);
+        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, e->distance_travelled);
     }
 }
 
@@ -285,7 +286,7 @@ void detonate (projectile_cycle_data* data, projectile& p) {
 
             if(e.health <= 0.0) {
                 data->enemies_to_erase.push_back(e.id);
-                queue_spawns(data, abs(e.health), enemy_types[e.base_type], e.flags, e.route);
+                queue_spawns(data, abs(e.health), enemy_types[e.base_type], e.flags, e.route, e.distance_travelled);
             }
         }
     }
@@ -368,13 +369,13 @@ void servertick() {
 
                         uint8_t random_flags = E_FLAG_NONE;
 
-                        if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds
+                        if(gs.diff.enemy_random_stealth_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds
                                                  *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                             random_flags |= E_FLAG_STEALTH;
-                        if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds
+                        if(gs.diff.enemy_random_armored_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds
                                                  *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                             random_flags |= E_FLAG_ARMORED;
-                        if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds
+                        if(gs.diff.enemy_random_shield_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds
                                                  *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                             random_flags |= E_FLAG_SHIELD;
 
@@ -404,7 +405,7 @@ void servertick() {
                         }));
 
                         broadcast << N_SPAWN_ENEMY
-                                  << 30_u32
+                                  << 38_u32
                                   << set.base_type
                                   << (uint32_t)gs.last_route
                                   << enemy_types[set.base_type].base_health
@@ -416,10 +417,10 @@ void servertick() {
                                   << (uint16_t)(enemy_types[set.base_type].immunities | gs.diff.enemy_base_immunities)
                                   << enemy_types[set.base_type].vulnerabilities
                                   << (uint08_t)(enemy_types[set.base_type].flags | set.flags | random_flags)
-                                  << gs.all_spawned_enemies;
+                                  << 0.0
+                                  << gs.all_spawned_enemies++;
 
                         gs.spawned_enemies++;
-                        gs.all_spawned_enemies++;
                     }
 
                     update_targeting_priorities();
@@ -520,7 +521,7 @@ void servertick() {
                 }));
 
                 broadcast << N_SPAWN_ENEMY
-                          << 30_u32
+                          << 38_u32
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].base_type
                           << get_route_id(gs.created_enemies[gs.created_enemies.size() - 1])
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].max_health
@@ -528,9 +529,8 @@ void servertick() {
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].immunities
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].vulnerabilities
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].flags
-                          <<              gs.all_spawned_enemies;
-
-                gs.all_spawned_enemies++;
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].distance_travelled
+                          <<              gs.all_spawned_enemies++;
             }
 
             if(data.enemies_to_add.size())
@@ -759,7 +759,7 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
                 t.cid = (uint32_t)cn;
                 t.id = gs.spawned_towers++;
                 gs.towers.push_back(t);
-                client->towers.push_back(&gs.towers[gs.towers.size() - 1]);
+                client->towers.push_back(t.id);
                 client->cash -= cost;
 
                 broadcast << N_PLACETOWER
@@ -787,13 +787,23 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
                 if(path > 2) break;
 
-                for(auto& ptr : client->towers)
-                    if(ptr->id == tid) {
-                        t = ptr;
+                bool owned = false;
+
+                for(auto& id : client->towers)
+                    if(id == tid) {
+                        owned = true;
                         break;
                     }
 
-                if(!t) break;
+                if(!owned) break;
+
+                for(auto& twr : gs.towers)
+                    if(twr.id == tid) {
+                        t = &twr;
+                        break;
+                    }
+
+                if(!t) break; 
                 uint8_t upgrade_count = t->upgrade_paths[0] + t->upgrade_paths[1] + t->upgrade_paths[2];
                 if(t->upgrade_paths[path] == 6 || upgrade_count == 8) break;
 
@@ -815,6 +825,9 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
                           << 12_u32
                           << client->id
                           << client->cash;
+
+                reply << N_REFRESHMENU
+                      << 0_u32;
 
                 break;
             }
@@ -871,7 +884,8 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
             case N_KILL_ENEMY:
             case N_SENDMAP:
             case N_GAMEINFO:
-            case N_PLAYERINFO:      return DISC_MSGERR;
+            case N_PLAYERINFO:
+            case N_REFRESHMENU:     return DISC_MSGERR;
 
             // Forward unrecognized packets to all, will help with moddability
             default: {

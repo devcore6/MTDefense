@@ -4,6 +4,7 @@
 # include <SDL/SDL_image.h>
 #endif
 
+#include "Tools.hpp"
 #include <filesystem>
 #include <map>
 #include <algorithm>
@@ -21,7 +22,7 @@ struct texture_ref {
     uint32_t textid;
     uint32_t width;
     uint32_t height;
-    size_t ref_count;
+    std::shared_ptr<size_t> ref_count;
 };
 
 std::map<std::string, texture_ref> texture_refs { };
@@ -38,7 +39,7 @@ texture_t::texture_t(std::string path) {
         textid     = ref.textid;
         width      = ref.width;
         height     = ref.height;
-        ref_count  = &ref.ref_count;
+        ref_count  = ref.ref_count;
         shared_ref = true;
         (*ref_count)++;
         return;
@@ -82,8 +83,8 @@ texture_t::texture_t(std::string path) {
 
     SDL_FreeSurface(surface);
 
-    texture_refs.insert({ path, texture_ref { textid, width, height, 1 } });
-    ref_count = &texture_refs[path].ref_count;
+    texture_refs.insert({ path, texture_ref { textid, width, height, std::make_shared<size_t>(1_zu) } });
+    ref_count = texture_refs[path].ref_count;
 #endif
 }
 
@@ -128,14 +129,12 @@ texture_t::texture_t(SDL_RWops* data) {
 
     SDL_FreeSurface(surface);
 
-    ref_count = new size_t(1);
+    ref_count = std::make_shared<size_t>(1_zu);
 }
 
 texture_t::~texture_t() {
-    if(ref_count && !--(*ref_count)) {
+    if(ref_count && !--(*ref_count))
         glDeleteTextures(1, &textid);
-        if(!shared_ref) delete ref_count;
-    }
 }
 
 texture_t::texture_t(const texture_t& copy) {

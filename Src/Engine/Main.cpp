@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     SDL_FreeSurface(surface);
 
     execfile("Data/Config/Config.conf");
-    execfile("Data/Config/Autoexec.conf");
+    execfolder("Data/Autoexec/");
 
     // this is just for testing
     /*if(peer) {

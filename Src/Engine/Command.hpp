@@ -43,6 +43,7 @@ extern void savevars();
 extern void parsecmd(std::string cmd);
 extern void  execcmd(std::string cmd);
 extern bool execfile(std::string file, bool silent = true);
+extern void execfolder(std::string folder);
 
 #define __var(T, vecname, name, min, value, max, save, f) T name = value; \
 bool _initf_ ## name () { vecname.push_back(var_t<T> { min, max, &name, #name, save, f}); return true; } \

@@ -16,7 +16,7 @@ using sc = std::chrono::system_clock;
 class texture_t {
 #ifndef __SERVER__
 private:
-    size_t*     ref_count   = nullptr;
+    std::shared_ptr<size_t> ref_count;
     bool        shared_ref  = false;
 #endif
 

@@ -249,7 +249,23 @@ bool execfile(std::string file, bool silent) {
     return true;
 }
 
+void execfolder(std::string folder) {
+#ifdef __APPLE__
+    std::string  path = std::string(GAME_NAME) + ".app/Contents/Resources/" + file;
+#else
+    std::string& path = folder;
+#endif /* __APPLE__ */
+    for(auto&f : std::filesystem::directory_iterator(path))
+        if(!std::filesystem::is_directory(f))
+            execfile(f.path().string());
+}
+
 command(exec, [](std::vector<std::string>& args) {
-    if(args.size() < 2) conerr("Usage: exec <file>");
-    else execfile(args[1], false);
+    if(args.size() < 2) conerr("Usage: exec <file> [file2] [...]");
+    else for(size_t i = 1; i < args.size(); i++) execfile(args[i], false);
+});
+
+command(execfolder, [](std::vector<std::string>& args) {
+    if(args.size() < 2) conerr("Usage: execfolder <folder> [folder2] [...]");
+    else for(size_t i = 1; i < args.size(); i++) execfolder(args[i]);
 });
