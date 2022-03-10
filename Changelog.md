@@ -1,3 +1,15 @@
+# r33 Bug fixes
+## Client
+
+- Fixed issues on non-1080p resolutions
+- Fixed resolution changes not being applied in full screen mode
+- Fixed full screen changes not being applied
+- Temporary fix for a crash that happened when a new tower is placed by an other client while in the upgrade menu
+
+## Server
+
+- Fixed clients having the same client number - not sure if this was actually an issue in the first place
+
 # r32 Bug fix
 ## Server
 

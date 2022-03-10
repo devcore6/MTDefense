@@ -649,7 +649,13 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
             c.peer = peer;
             c.cn = 0;
             packet.read(c.name, size);
-            for(auto& cl : clients) c.cn = max(c.cn, cl.cn + 1);
+
+_loop:
+            for(auto& cl : clients)
+                if(cl.cn == c.cn) {
+                    c.cn++; goto _loop;
+                }
+
             clients.push_back(c);
 
             clientinfo ci;
@@ -660,7 +666,7 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
             clientinfos.push_back(ci);
             clients[clients.size() - 1].data = (void*)&clientinfos[clientinfos.size() - 1];
 
-            conout(c.name + " connected");
+            conout(c.name + " connected (" + std::to_string(ci.cn) + ')');
             peer->data = (void*)(size_t)c.cn;
 
             packetstream reply { };

@@ -276,8 +276,8 @@ public:
 
     void release_handler() {
         SDL_GetMouseState(&lastx, &lasty);
-        lastx = (int)((float)lastx * (float)width  / 1920.0f);
-        lasty = (int)((float)lasty * (float)height / 1080.0f);
+        lastx = (int)((float)lastx / (float)width  * 1920.0f);
+        lasty = (int)((float)lasty / (float)height * 1080.0f);
         send_click  = true;
         clicking    = false;
     }
@@ -291,8 +291,8 @@ public:
     }
 
     void ui() {
-        float width_scale  = (float)width  / 1920.0f;
-        float height_scale = (float)height / 1080.0f;
+        float width_scale  = 1.0 / (float)width  * 1920.0f;
+        float height_scale = 1.0 / (float)height * 1080.0f;
         render_gui(clicking, send_click, lastx, lasty, width_scale, height_scale);
     }
 } ui;
@@ -650,9 +650,12 @@ void render_ui() {
 }
 
 void render_dragging() {
-    int x { 0 }, y { 0 };
-    SDL_GetMouseState(&x, &y);
-    bool valid = can_place(cs.towers, *dragging, (double)x, (double)y);
+    int _x { 0 }, _y { 0 };
+    SDL_GetMouseState(&_x, &_y);
+    double x = ((double)_x / (double)width  * 1920.0);
+    double y = ((double)_y / (double)height * 1080.0);
+
+    bool valid = can_place(cs.towers, *dragging, x, y);
 
     if(valid) glColor4d(1.0, 1.0, 1.0, 0.4);
     else      glColor4d(1.0, 0.0, 0.0, 0.4);
@@ -768,6 +771,9 @@ void handle_packet(packetstream& p) {
                             pi.towers.push_back(tid);
                             break; 
                         }
+
+                // todo: just fix this
+                selected = nullptr;
 
                 break;
             }

@@ -12,6 +12,7 @@ ENetPeer* peer = nullptr;
 extern std::string name;
 
 extern void do_connect();
+extern void reload_graphics();
 
 command(connect, [](std::vector<std::string>& args) {
     if(args.size() == 0) { conerr("Usage: connect <ip address> [port]"); return; }
@@ -76,6 +77,8 @@ int main(int argc, char* argv[]) {
 
     execfile("Data/Config/Config.conf");
     execfolder("Data/Autoexec/");
+
+    reload_graphics();
 
     // this is just for testing
     /*if(peer) {

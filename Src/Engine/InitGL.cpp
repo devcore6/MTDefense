@@ -12,19 +12,30 @@ bool gl_loaded = false;
 
 void reload_graphics() {
     if(!gl_loaded) return;
-    deinit_gl();
-    init_gl();
+    if(fullscreen) {
+        if(fullscreen_windowed) SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        else SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+        SDL_DisplayMode mode { };
+        SDL_GetWindowDisplayMode(window, &mode);
+        mode.w = (int)width;
+        mode.h = (int)height;
+        SDL_SetWindowDisplayMode(window, &mode);
+    } else {
+        SDL_SetWindowFullscreen(window, 0);
+        SDL_SetWindowSize(window, (int)width, (int)height);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    }
 }
 
 command(reload_graphics, [](std::vector<std::string>& args) { reload_graphics(); });
 rcommand(getfps, [](std::vector<std::string>& args) -> std::string { return std::to_string(fps); });
 
-ivarpf(width, 420, 1920, 8192, reload_graphics);
-ivarpf(height, 360, 1080, 4320, reload_graphics);
-ivarpf(antialias_samples, 1, 8, 16, reload_graphics);
-bvarpf(fullscreen, true, reload_graphics);
-bvarpf(fullscreen_windowed, true, [](){ if(fullscreen) reload_graphics(); });
-bvarpf(texture_compression, true, reload_graphics);
+ivarp(width, 420, 1920, 8192);
+ivarp(height, 360, 1080, 4320);
+ivarp(antialias_samples, 1, 8, 16);
+bvarp(fullscreen, true);
+bvarp(fullscreen_windowed, true);
+bvarp(texture_compression, true);
 
 ivarp(maxfps, 0, 0, 1000);
 ivarp(menufps, 0, 60, 1000);
@@ -66,9 +77,19 @@ bool init_gl() {
 
     SDL_SetWindowResizable(window, SDL_TRUE);
     SDL_SetWindowMinimumSize(window, 640, 360);
+
     if(fullscreen) {
         if(fullscreen_windowed) SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
         else SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+        SDL_DisplayMode mode { };
+        SDL_GetWindowDisplayMode(window, &mode);
+        mode.w = (int)width;
+        mode.h = (int)height;
+        SDL_SetWindowDisplayMode(window, &mode);
+    } else {
+        SDL_SetWindowFullscreen(window, 0);
+        SDL_SetWindowSize(window, (int)width, (int)height);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     }
 
     glShadeModel(GL_SMOOTH);
@@ -89,6 +110,7 @@ bool init_gl() {
 }
 
 void deinit_gl() {
+    gl_loaded = false;
     Mix_CloseAudio();
     if(renderer) SDL_DestroyRenderer(renderer);
     renderer = nullptr;
