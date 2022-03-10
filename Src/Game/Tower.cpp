@@ -24,8 +24,9 @@ bool tower::can_fire() { return remaining_cooldown <= 0.0; }
 result<projectile, void> tower::fire(enemy* e) {
     // if(!can_fire()) return { };
 
-    double dx = e->pos.x - pos_x;
-    double dy = e->pos.y - pos_y;
+    vec2 epos = e->route->get_position_at(e->distance_travelled);
+    double dx = epos.x - pos_x;
+    double dy = epos.y - pos_y;
     double d = sqrt(dx * dx + dy * dy);
 
     if(d > tower_types[base_type].range * range_mod) return { };
@@ -42,15 +43,15 @@ result<projectile, void> tower::fire(enemy* e) {
     size_t offset = 0;
     projectile_t* pt = nullptr;
 
-    for(auto i : iterate(projectiles.size())) {
-        if((~e->flags & E_FLAG_STEALTH || (flags | projectiles[i].flags) & T_FLAG_STEALTH_TAR)
-        && (~e->flags & E_FLAG_ARMORED || (flags | projectiles[i].flags) & T_FLAG_ARMORED_TAR)) {
-            offset += projectiles[i].odds;
+    for(auto& p : projectiles) {
+        if((e->flags & E_FLAG_STEALTH && ~(flags | p.flags) & T_FLAG_STEALTH_TAR)
+        || (e->flags & E_FLAG_ARMORED && ~(flags | p.flags) & T_FLAG_ARMORED_TAR)) {
+            offset += p.odds;
             continue;
         }
 
-        if(projectiles[i].odds + offset >= r) { pt = &projectiles[i]; break; }
-        offset += projectiles[i].odds;
+        if(p.odds + offset >= r) { pt = &p; break; }
+        offset += p.odds;
     }
 
     if(!pt) return { }; // Should never happen
@@ -62,7 +63,7 @@ result<projectile, void> tower::fire(enemy* e) {
         /* path:                 */ pt->path,
         /* id:                   */ pt->id,
         /* start:                */ { pos_x, pos_y },
-        /* direction_vector:     */ (vertex_2d { pos_x, pos_y } - e->pos).normalize(),
+        /* direction_vector:     */ (epos - vec2 { pos_x, pos_y }).normalize(),
         /* travelled:            */ 0.0,
         /* range:                */ pt->range * range_mod * gs.diff.tower_range_modifier + extra_damage_linear,
         /* speed:                */ pt->speed * speed_mod * gs.diff.projectile_speed_modifier,

@@ -9,6 +9,7 @@
 #include <atomic>
 #include <ios>
 #include <sstream>
+#include <algorithm>
 
 // GCC 11.2.0 has an issue with constexpr functions that return non-POD types - does GCC treat consteval and constexpr the same?
 #ifdef __GNUC__
@@ -375,6 +376,15 @@ protected:
 
 public:
     basic_packetstream() = default;
+    basic_packetstream(const basic_packetstream&  copy) { (*this) << copy; }
+    basic_packetstream(      basic_packetstream&& move) {
+        std::swap(_data,     move._data);
+        std::swap(used_size, move.used_size);
+        std::swap(allocated, move.allocated);
+        std::swap(g,         move.g);
+        std::swap(p,         move.p);
+    }
+
     basic_packetstream(const_pointer value, size_t size) { write(value, size); }
 
     ~basic_packetstream() { if(_data) delete[] _data; }
@@ -505,8 +515,8 @@ public:
     T ok;
     E err;
 
-    result(T ok)  : ok(ok), err(),    state(true)  { }
-    result(E err) : ok(),   err(err), state(false) { }
+    result(T o) : ok(o), err(),  state(true)  { }
+    result(E e) : ok(),  err(e), state(false) { }
 
     bool operator!    () { return !state; }
          operator bool() { return  state; }
@@ -520,8 +530,8 @@ private:
 public:
     E err;
 
-    result()      : err(),    state(true)  { }
-    result(E err) : err(err), state(false) { }
+    result()    : err(),  state(true)  { }
+    result(E e) : err(e), state(false) { }
 
     bool operator!    () { return !state; }
          operator bool() { return  state; }
@@ -535,8 +545,8 @@ private:
 public:
     T ok;
 
-    result(T ok) : ok(), state(true) { }
-    result() :           state(false) { }
+    result(T o) : ok(o), state(true) { }
+    result()    :        state(false) { }
 
     bool operator!    () { return !state; }
     operator bool()      { return  state; }
@@ -876,12 +886,13 @@ private:
 
 public:
      matrix()                                {   vals =                new vec<T, m>   [n]; }
-     matrix(const matrix&  M)                { memcpy(vals, M.vals, sizeof(vec<T, m>) * n); }
+     matrix(const matrix&  M)                {   vals =                new vec<T, m>   [n]; memcpy(vals, M.vals, sizeof(vec<T, m>) * n); }
      matrix(      matrix&& M) : vals(M.vals) { M.vals = nullptr; }
+     matrix(vec<T, m> v[n])                  {   vals = new vec<T, m>[n]; memcpy(vals, v, sizeof(vec<T, m>) * n); }
     ~matrix()                                { if(vals) delete[] vals; }
 
     matrix& operator=(const matrix&  M)      { memcpy(vals, M.vals, sizeof(vec<T, m>) * n);                                          return *this; }
-    matrix& operator=(      matrix&& M)      { vals = M.vals; M.vals = nullptr;                                                      return *this; }
+    matrix& operator=(      matrix&& M)      { std::swap(vals = M.vals);                                                             return *this; }
 
     matrix  operator* (T val) { matrix ret { *this }; for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++)  ret[i][j] *= val; return   ret; }
     matrix& operator*=(T val) {                       for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++) vals[i][j] *= val; return *this; }
@@ -911,36 +922,103 @@ public:
     vec<T, m>& operator[](size_t i)    { return vals[min(i, n)]; }
 };
 
+template<class T>
+class matrix2x2 : public matrix<T, 2, 2> {
+public:
+    matrix2x2()                           : matrix<T, 2, 2>()  { }
+    matrix2x2(const matrix<T, 2, 2>&  v)  : matrix<T, 2, 2>(v) { }
+    matrix2x2(      matrix<T, 2, 2>&& v)  : matrix<T, 2, 2>(v) { }
+    matrix2x2(const matrix2x2      &  v)  : matrix<T, 2, 2>(v) { }
+    matrix2x2(      matrix2x2      && v)  : matrix<T, 2, 2>(v) { }
+    matrix2x2(T v11, T v21, T v12, T v22) : matrix<T, 2, 2>()  {
+        (*this)[0][0] = v11; (*this)[0][1] = v12;
+        (*this)[1][0] = v21; (*this)[1][1] = v22;
+    }
+
+    matrix2x2& operator=(const matrix<T, 2, 2>&  v)            { matrix<T, 2, 2>::operator=(v); return *this; }
+    matrix2x2& operator=(      matrix<T, 2, 2>&& v)            { matrix<T, 2, 2>::operator=(v); return *this; }
+    matrix2x2& operator=(const matrix2x2      &  v)            { matrix<T, 2, 2>::operator=(v); return *this; }
+    matrix2x2& operator=(      matrix2x2      && v)            { matrix<T, 2, 2>::operator=(v); return *this; }
+};
+
+template<class T>
+class matrix3x3 : public matrix<T, 3, 3> {
+public:
+    matrix3x3()                           : matrix<T, 3, 3>()  { }
+    matrix3x3(const matrix<T, 3, 3>&  v)  : matrix<T, 3, 3>(v) { }
+    matrix3x3(      matrix<T, 3, 3>&& v)  : matrix<T, 3, 3>(v) { }
+    matrix3x3(const matrix3x3      &  v)  : matrix<T, 3, 3>(v) { }
+    matrix3x3(      matrix3x3      && v)  : matrix<T, 3, 3>(v) { }
+    matrix3x3(T v11, T v21, T v31,
+              T v12, T v22, T v32,
+              T v13, T v23, T v33) : matrix<T, 3, 3>() {
+        (*this)[0][0] = v11; (*this)[0][1] = v12; (*this)[0][2] = v13;
+        (*this)[1][0] = v21; (*this)[1][1] = v22; (*this)[1][2] = v23;
+        (*this)[2][0] = v31; (*this)[2][1] = v32; (*this)[2][2] = v33;
+    }
+
+    matrix3x3& operator=(const matrix<T, 3, 3>&  v)            { matrix<T, 3, 3>::operator=(v); return *this; }
+    matrix3x3& operator=(      matrix<T, 3, 3>&& v)            { matrix<T, 3, 3>::operator=(v); return *this; }
+    matrix3x3& operator=(const matrix3x3      &  v)            { matrix<T, 3, 3>::operator=(v); return *this; }
+    matrix3x3& operator=(      matrix3x3      && v)            { matrix<T, 3, 3>::operator=(v); return *this; }
+
+};
+
+template<class T>
+class matrix4x4 : public matrix<T, 4, 4> {
+public:
+    matrix4x4()                           : matrix<T, 4, 4>()  { }
+    matrix4x4(const matrix<T, 4, 4>&  v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(      matrix<T, 4, 4>&& v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(const matrix4x4      &  v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(      matrix4x4      && v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(T v11, T v21, T v31, T v41,
+              T v12, T v22, T v32, T v42,
+              T v13, T v23, T v33, T v43,
+              T v14, T v24, T v34, T v44) : matrix<T, 4, 4>() {
+        (*this)[0][0] = v11; (*this)[0][1] = v12; (*this)[0][2] = v13; (*this)[0][3] = v14;
+        (*this)[1][0] = v21; (*this)[1][1] = v22; (*this)[1][2] = v23; (*this)[1][3] = v24;
+        (*this)[2][0] = v31; (*this)[2][1] = v32; (*this)[2][2] = v33; (*this)[2][3] = v34;
+        (*this)[3][0] = v41; (*this)[3][1] = v42; (*this)[3][2] = v43; (*this)[3][3] = v44;
+    }
+
+    matrix4x4& operator=(const matrix<T, 4, 4>&  v)            { matrix<T, 4, 4>::operator=(v); return *this; }
+    matrix4x4& operator=(      matrix<T, 4, 4>&& v)            { matrix<T, 4, 4>::operator=(v); return *this; }
+    matrix4x4& operator=(const matrix4x4      &  v)            { matrix<T, 4, 4>::operator=(v); return *this; }
+    matrix4x4& operator=(      matrix4x4      && v)            { matrix<T, 4, 4>::operator=(v); return *this; }
+
+};
+
 template<class T, size_t size>
 class vec {
 protected:
-    T* vals = nullptr;
+    T vals[size] = { };
 
 public:
-     vec()                             { vals = new T[size]; }
-     vec(const vec&  v)                { vals = new T[size]; memcpy(vals, v.vals, sizeof(T) * size); }
-     vec(      vec&& v) : vals(v.vals) { v.vals = nullptr; }
-    ~vec()                             { if(vals) delete[] vals; }
+     vec() = default;
+     vec(const vec&  v)           { memcpy( vals, v.vals, sizeof(T) * size); }
+     vec(      vec&& v)           { memmove(vals, v.vals, sizeof(T) * size); memset(v.vals, 0, sizeof(T) * size); }
+     vec(T v[size])               { memcpy( vals, v,      sizeof(T) * size); }
 
-    vec& operator=(const vec&  v)      { memcpy(vals, v.vals, sizeof(T) * size);                                  return *this; }
-    vec& operator=(      vec&& v)      { vals = v.vals; v.vals = nullptr;                                         return *this; }
+    vec& operator=(const vec&  v) { memcpy( vals, v.vals, sizeof(T) * size);                                 return *this; }
+    vec& operator=(      vec&& v) { memswap(vals, v.vals, sizeof(T) * size);                                 return *this; }
     
-    vec  operator+ (vec rhs)           { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] + rhs[i]; return ret; }
-    vec  operator- (vec rhs)           { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] - rhs[i]; return ret; }
-    vec  operator* (T d)               { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] * d;      return ret; }
-    vec  operator/ (T d)               { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] / d;      return ret; }
+    vec  operator+ (vec rhs)      { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] + rhs[i]; return ret; }
+    vec  operator- (vec rhs)      { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] - rhs[i]; return ret; }
+    vec  operator* (T d)          { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] * d;      return ret; }
+    vec  operator/ (T d)          { vec ret { }; for(size_t i = 0; i < size; i++) ret[i] = vals[i] / d;      return ret; }
 
-    vec& operator+=(vec rhs)           { for(size_t i = 0; i < size; i++) vals[i] += rhs[i];                      return *this; }
-    vec& operator-=(vec rhs)           { for(size_t i = 0; i < size; i++) vals[i] -= rhs[i];                      return *this; }
-    vec& operator*=(T d)               { for(size_t i = 0; i < size; i++) vals[i] *= d;                           return *this; }
-    vec& operator/=(T d)               { for(size_t i = 0; i < size; i++) vals[i] /= d;                           return *this; }
+    vec& operator+=(vec rhs)      { for(size_t i = 0; i < size; i++) vals[i] += rhs[i];                      return *this; }
+    vec& operator-=(vec rhs)      { for(size_t i = 0; i < size; i++) vals[i] -= rhs[i];                      return *this; }
+    vec& operator*=(T d)          { for(size_t i = 0; i < size; i++) vals[i] *= d;                           return *this; }
+    vec& operator/=(T d)          { for(size_t i = 0; i < size; i++) vals[i] /= d;                           return *this; }
 
-    T    operator* (vec rhs)           { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * rhs[i];   return ret; }
+    T    operator* (vec rhs)      { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * rhs[i];   return ret; }
 
-    T    magnitude ()                  { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * vals[i];  return sqrt(ret); }
-    vec  normalize ()                  { return *this / magnitude(); }
+    T    magnitude ()             { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * vals[i];  return sqrt(ret); }
+    vec  normalize ()             { return *this / magnitude(); }
 
-    T& operator[](size_t id)           { return vals[min(id, size)]; }
+    T& operator[](size_t id)      { return vals[min(id, size)]; }
 };
 
 template<class T>
@@ -1006,3 +1084,39 @@ public:
     vec4& operator=(const vec4     &  v)        { vec<T, 4>::operator=(v); return *this; }
     vec4& operator=(      vec4     && v)        { vec<T, 4>::operator=(v); return *this; }
 };
+
+template<class T>
+inline matrix2x2<T> rotate2(T rad) {
+    return { cos(rad), -sin(rad),
+             sin(rad),  cos(rad) };
+}
+
+template<class T>
+inline matrix3x3<T> rotate3(T yaw, T pitch, T roll) {
+    return {
+        cos(yaw) * cos(pitch), cos(yaw) * sin(pitch) * sin(roll) - sin(pitch) * cos(roll), cos(yaw) * sin(pitch) * cos(roll) + sin(yaw) * sin(roll),
+        sin(yaw) * cos(pitch), sin(yaw) * sin(pitch) * sin(roll) - cos(pitch) * cos(roll), sin(yaw) * sin(pitch) * cos(roll) + cos(yaw) * sin(roll),
+                  -sin(pitch),            cos(pitch) * sin(roll),                                     cos(pitch) * cos(roll)
+    };
+}
+
+inline void memswap(void* mem1, void* mem2, size_t size) {
+    char* m1 { (char*)mem1 };
+    char* m2 { (char*)mem2 };
+
+    for(size_t i = 0; i < size; i++)
+        std::swap(m1[i], m2[i]);
+}
+
+/*
+inline void memswap(void* mem1, void* mem2, size_t size) {
+    char* m1 { (char*)mem1 };
+    char* m2 { (char*)mem2 };
+
+    for(size_t i = 0; i < size; i++) {
+        buf   = m1[i];
+        m1[i] = m2[i];
+        m2[i] = buf;
+    }
+}
+ */

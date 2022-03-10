@@ -1,3 +1,12 @@
+# r30 Multiplayer working
+## Client
+
+- Client now works in multiplayer
+
+## Server
+
+- Server now works in multiplayer
+
 # r29 Client multiplayer prep
 ## Client
 

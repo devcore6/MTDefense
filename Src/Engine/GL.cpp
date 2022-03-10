@@ -138,6 +138,17 @@ double line_strip_t::distance(vertex_2d v) {
     return min;
 }
 
+double line_strip_t::length() {
+    double d = 0.0;
+
+    for(size_t i = 1; i < vertices.size(); i++) {
+        line_t l = { vertices[i - 1], vertices[i] };
+        d += l.length();
+    }
+
+    return d;
+}
+
 double line_t::distance(vertex_2d v) {
     vertex_2d ab = { v2.x - v1.x, v2.y - v1.y };
     vertex_2d av = { v .x - v1.x, v .y - v1.y };
@@ -159,6 +170,12 @@ double line_t::distance(vertex_2d v) {
     }
 
     return abs(ab.x * av.y - ab.y * av.x) / sqrt(ab.x * ab.x + ab.y * ab.y);
+}
+
+double line_t::length() {
+    double dx = v1.x - v2.x;
+    double dy = v1.y - v2.y;
+    return sqrt(dx * dx + dy * dy);
 }
 
 #ifndef __SERVER__

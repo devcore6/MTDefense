@@ -7,10 +7,8 @@ using sc = std::chrono::system_clock;
 
 struct client_t;
 
-using client_iterator = std::vector<client_t>::iterator;
-
 struct client_t {
-    client_iterator cn { };
+    uint32_t cn;
     ENetPeer* peer = nullptr;
     std::string name = "";
     bool pending_disconnect = false;
@@ -38,6 +36,7 @@ constexpr const char* disconnect_reason[NUMDISCS - 1] = {
 };
 
 extern std::vector<client_t> clients;
-extern void do_disconnect(client_iterator&);
+extern void do_disconnect(uint32_t cn);
 extern result<void, int> handle_packets(packetstream packet, ENetPeer* peer);
 extern void servertick();
+client_t* get_raw_client(uint32_t cn);

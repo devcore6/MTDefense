@@ -42,6 +42,8 @@ ivarp(audio_device_channels, 1, 2, 16);
 ivarp(audio_device_chunksize, 256, 4096, 65536);
 
 bool init_gl() {
+    if(gl_loaded) return true;
+
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) return false;
 
     if(Mix_OpenAudio((int)audio_device_frequency, (uint16_t)audio_device_format, (int)audio_device_channels, (int)audio_device_chunksize) == -1) return false;
@@ -83,9 +85,7 @@ bool init_gl() {
     conout("OpenGL Renderer: "_str + reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     conout("OpenGL Version:  "_str + reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
-    gl_loaded = true;
-
-    return true;
+    return gl_loaded = true;
 }
 
 void deinit_gl() {
@@ -99,6 +99,7 @@ void deinit_gl() {
 
 extern void mouse_press_handler(int x, int y);
 extern void mouse_release_handler(int x, int y);
+extern void space_bar();
 
 void main_loop_stub() {
     sc::time_point start = sc::now();
@@ -122,9 +123,10 @@ void main_loop_stub() {
             case SDL_MOUSEBUTTONDOWN: { mouse_press_handler(e.button.x, e.button.y); break; }
             case SDL_MOUSEBUTTONUP: { mouse_release_handler(e.button.x, e.button.y); break; }
             case SDL_KEYDOWN: {
-                //switch(e.key.keysym.scancode) {
-                //    default: { }
-                //}
+                switch(e.key.keysym.scancode) {
+                    case SDL_SCANCODE_SPACE: space_bar(); break;
+                    default: break;
+                }
                 break;
             }
         }

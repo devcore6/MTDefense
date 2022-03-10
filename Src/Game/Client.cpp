@@ -48,6 +48,55 @@ void deinit_game() {
     glDeleteTextures(1, &range_texture);
 }
 
+struct client_state {
+    size_t                  cur_round;
+    size_t                  last_round;
+    size_t                  last_route;
+    double                  lives;
+    bool                    double_speed;
+    bool                    paused;
+    bool                    running;
+    difficulty              diff;
+    std::vector<enemy>      enemies;
+    std::vector<projectile> projectiles;
+    std::vector<tower>      towers;
+    sc::time_point          last_tick;
+} cs;
+
+void try_upgrade(uint8_t i) {
+    packetstream p { };
+    p << N_UPGRADETOWER
+      << 5_u32
+      << selected->id
+      << i;
+    send_packet(peer, 0, true, p);
+}
+
+void space_bar() {
+    if(!current_map) return;
+    if(!peer) return;
+    packetstream p { };
+
+    if(!cs.running)
+        p << N_STARTROUND
+          << 0_u32;
+    else if(cs.double_speed) 
+        p << N_SET_SPEED
+          << 1_u32
+          << false
+          << N_PAUSE
+          << 0_u32;
+    else if(cs.paused)
+        p << N_RESUME
+          << 0_u32;
+    else
+        p << N_SET_SPEED
+          << 1_u32
+          << true;
+        
+    send_packet(peer, 0, true, p);
+}
+
 class game_ui: public cxxgui::embeddable {
 private:
     bool clicking        = false;
@@ -90,9 +139,9 @@ private:
             )
         };
 
-        body->frame( 500.0f,  500.0f,  500.0f,
-                    1080.0f, 1080.0f, 1080.0f,
-                    alignment_t::center);
+        body->frame(500.0f,  500.0f,  500.0f,
+                   1080.0f, 1080.0f, 1080.0f,
+                   alignment_t::center);
         body->offset(x, 0.0f);
         body->padding(16.0f);
         body->background_color(color::background);
@@ -104,13 +153,13 @@ private:
 
         ((vstack*)body)->add(s);
 
-        for(uint8_t i = 0; i < 3; i++) {
+        for(uint8_t i = 0_u8; i < 3_u8; i++) {
             if(upgrade_count == 8) {
                 // todo
             } else if(selected->upgrade_paths[i] == 6) {
                 // todo
             } else if(selected->upgrade_paths[i] == 0) {
-                double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * gs.diff.tower_cost_modifier;
+                double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * cs.diff.tower_cost_modifier;
                 bool owned = false;
 
                 for(auto& ptr : playerinfo.towers)
@@ -145,25 +194,21 @@ private:
                         ->padding(16.0f)
                         ->background_color(c)
                         ->hover_background_color(color_multiply(c, 0.8))
-                        ->on_click([&](view*, float, float, void*) {
+                        ->on_click([&](view*, float, float, void* data) {
+                            send_click = false;
                             if(!owned) return;
+                            uint8_t val = *(uint8_t*)data;
+                            delete data;
                             if(playerinfo.cash >= cost) {
-                                // todo localhost
-                                if(!peer) return;
-                                packetstream p { };
-                                p << N_UPGRADETOWER
-                                  << 5_u32
-                                  << selected->id
-                                  << (uint8_t)i;
-                                send_packet(peer, 0, true, p);
+                                try_upgrade(val);
                                 last_selected = nullptr;
                             }
-                        })
+                        }, new uint8_t(i))
                 })
                     ->padding(16.0f, 0.0f)
                     ->align(alignment_t::center));
             } else {
-                double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * gs.diff.tower_cost_modifier;
+                double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * cs.diff.tower_cost_modifier;
 
                 bool owned = false;
 
@@ -208,20 +253,16 @@ private:
                         ->padding(16.0f)
                         ->background_color(c)
                         ->hover_background_color(color_multiply(c, 0.8))
-                        ->on_click([&](view*, float, float, void*) {
+                        ->on_click([&](view*, float, float, void* data) {
                             if(!owned) return;
+                            send_click = false;
+                            uint8_t val = *(uint8_t*)data;
+                            delete data;
                             if(playerinfo.cash >= cost) {
-                                // todo localhost
-                                if(!peer) return;
-                                packetstream p { };
-                                p << N_UPGRADETOWER
-                                  << 5_u32
-                                  << selected->id
-                                  << (uint8_t)i;
-                                send_packet(peer, 0, true, p);
+                                try_upgrade(val);
                                 last_selected = nullptr;
                             }
-                        })
+                        }, new uint8_t(i))
                 })
                     ->padding(16.0f, 0.0f)
                     ->align(alignment_t::center));
@@ -234,14 +275,14 @@ public:
     ~game_ui() { }
 
     void release_handler() {
+        SDL_GetMouseState(&lastx, &lasty);
+        lastx = (int)((float)lastx * (float)width  / 1920.0f);
+        lasty = (int)((float)lasty * (float)height / 1080.0f);
         send_click  = true;
         clicking    = false;
     }
 
     void press_handler() {
-        SDL_GetMouseState(&lastx, &lasty);
-        lastx = (int)((float)lastx * (float)width  / 1920.0f);
-        lasty = (int)((float)lasty * (float)height / 1080.0f);
         clicking = true;
     }
 
@@ -256,20 +297,7 @@ public:
     }
 } ui;
 
-struct client_state {
-    size_t                  cur_round;
-    size_t                  last_round;
-    size_t                  last_route;
-    double                  lives;
-    bool                    double_speed;
-    bool                    paused;
-    bool                    running;
-    difficulty              diff;
-    std::vector<enemy>      enemies;
-    std::vector<projectile> projectiles;
-    std::vector<tower>      towers;
-    sc::time_point          last_tick;
-} cs;
+void handle_packet(packetstream&);
 
 void do_connect() {
     bool connected = false;
@@ -293,6 +321,7 @@ void do_connect() {
             }
 
             if(e.type == ENET_EVENT_TYPE_RECEIVE) {
+                if(!e.packet->data) { enet_packet_destroy(e.packet); continue; }
                 packetstream p { (const char*)e.packet->data, e.packet->dataLength };
                 enet_packet_destroy(e.packet);
 
@@ -337,12 +366,12 @@ void do_connect() {
                   >> size;
 
                 while(p && packet_type == N_PLAYERINFO) {
-                    uint32_t id { 0 };
+                    uint32_t id { (uint32_t)-1 };
                     p >> id;
 
                     if(id == playerinfo.id) {
                         p >> playerinfo.cash;
-                        p.read(nullptr, size - 12_u32);
+                        p.read(playerinfo.name, size - 12_u32);
                     } else {
                         clientinfo ci { };
                         p >> ci.id;
@@ -355,9 +384,7 @@ void do_connect() {
                       >> size;
                 }
 
-                packetstream reply { };
-                reply << N_STARTROUND << 0_u32;
-                send_packet(peer, 0, true, reply);
+                if(p) handle_packet(p);
 
                 connected = true;
             }
@@ -380,7 +407,7 @@ void mouse_press_handler(int _x, int _y) {
             double ty =  140.0 + 140.0 * (i / 2);
 
             if(x >= tx && x <= tx + 128.0 && y >= ty && y <= ty + 128.0) {
-                if(playerinfo.cash >= tower_types[i].base_price * gs.diff.tower_cost_modifier) dragging = &tower_types[i];
+                if(playerinfo.cash >= tower_types[i].base_price * cs.diff.tower_cost_modifier) dragging = &tower_types[i];
                 return;
             }
         }
@@ -412,7 +439,7 @@ void mouse_release_handler(int _x, int _y) {
 
         // todo: discounts?
 
-        double cost = dragging->base_price * gs.diff.tower_cost_modifier;
+        double cost = dragging->base_price * cs.diff.tower_cost_modifier;
         if(playerinfo.cash > cost) {
             // todo: localhost
 
@@ -680,6 +707,7 @@ void render_frame() {
 }
 
 extern void add_to_chat(std::string msg);
+
 void send_message(std::string msg) {
     if(!peer) return;
 
@@ -847,9 +875,8 @@ void handle_packet(packetstream& p) {
                   >> flags
                   >> eid;
 
-                cs.enemies.push_back(enemy {
+                cs.enemies.push_back(std::move<enemy>({
                     /* base_type:          */ base_type,
-                    /* lock:               */ nullptr,
                     /* route:              */ &current_map->paths[route],
                     /* distance_travelled: */ 0.0,
                     /* pos:                */  current_map->paths[route][0],
@@ -863,14 +890,14 @@ void handle_packet(packetstream& p) {
                     /* slowed_for:         */ 0.0,
                     /* frozen_for:         */ 0.0,
                     /* id:                 */ eid
-                });
+                }));
 
                 break;
             }
             case N_PROJECTILE: {
                 projectile pj { };
                 p.read(pj.path, size - projectile_size);
-                p.read((char*)(&pj + offsetof(projectile, id)), projectile_size);
+                p.read(((char*)&pj) + offsetof(projectile, id), projectile_size);
                 pj.texture = { pj.path };
                 cs.projectiles.push_back(pj);
                 break;
@@ -891,7 +918,6 @@ void handle_packet(packetstream& p) {
             case N_DELETE_PROJECTILE: {
                 uint32_t pid { (uint32_t)-1 };
                 p >> pid;
-                break;
 
                 for(size_t i = 0; i < cs.projectiles.size(); i++)
                     if(cs.projectiles[i].pid == pid) {
@@ -913,12 +939,30 @@ void handle_packet(packetstream& p) {
             }
             case N_SENDMAP:           break;
             case N_GAMEINFO:          break;
-            case N_PLAYERINFO:        break;
+            case N_PLAYERINFO: {
+                uint32_t id { (uint32_t)-1 };
+                p >> id;
+
+                if(id == playerinfo.id) {
+                    p >> playerinfo.cash;
+                    p.read(playerinfo.name, size - 12_u32);
+                } else {
+                    clientinfo ci { };
+                    p >> ci.id;
+                    p >> ci.cash;
+                    p.read(ci.name, size - 12_u32);
+                    playerinfos.push_back(ci);
+                }
+                break;
+            }
             default: {
 #ifdef _DEBUG
                 conout("Unrecognized packet type ("_str + std::to_string(msgtype) + ')');
 #endif
                 p.read(nullptr, (size_t)size);
+                packetstream reply { };
+                reply << N_REQUEST_UPDATE << 0_u32;
+                send_packet(peer, 0, true, reply);
                 break;
             }
         }
@@ -930,10 +974,15 @@ void handle_packet(packetstream& p) {
 ivarp(clientthreads, 1, std::thread::hardware_concurrency() / 2, INTMAX_MAX);
 
 void update_cycles(size_t i, double dt) {
-    for(auto& e : iterate(gs.created_enemies, clientthreads, i)) {
-        e.distance_travelled += e.speed * (gs.double_speed ? 300.0 : 150.0) * dt;
-        e.pos = e.route->get_position_at(e.distance_travelled);
-    }
+    if(cs.running && !cs.paused)
+        for(auto& e : iterate(cs.enemies, clientthreads, i)) {
+            e.distance_travelled += e.speed * (cs.double_speed ? 300.0 : 150.0) * dt;
+            e.pos = e.route->get_position_at(e.distance_travelled);
+        }
+
+    if(!cs.paused)
+        for(auto& p : iterate(cs.projectiles, clientthreads, i))
+            p.travelled += p.speed * dt;
     // todo: tower idle animations
 }
 
@@ -949,8 +998,9 @@ void main_loop() {
                 send_packet(peer, 0, true, p);
             }
             ENetEvent e;
-            while(enet_host_service(client, &e, maxfps ? 1000_u32 / (uint32_t)maxfps : 1_u32) > 0) {
+            do if(enet_host_service(client, &e, 1)) {
                 if(e.type == ENET_EVENT_TYPE_RECEIVE) {
+                    if(!e.packet->data) { enet_packet_destroy(e.packet); continue; }
                     packetstream stream { (const char*)e.packet->data, e.packet->dataLength };
                     enet_packet_destroy(e.packet);
                     handle_packet(stream);
@@ -960,7 +1010,7 @@ void main_loop() {
                     peer = nullptr;
                     break;
                 }
-            }
+            } while(maxfps ? ((1000_ms / maxfps - std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - cs.last_tick)).count() > 0) : false);
         }
 
         std::vector<std::future<void>> Ts;

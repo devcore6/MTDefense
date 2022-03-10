@@ -50,6 +50,7 @@ struct line_strip_t {
 #endif
 
     double distance(vertex_2d v);
+    double length();
 };
 
 struct line_t {
@@ -57,6 +58,7 @@ struct line_t {
     vertex_2d v2 = { 0.0, 0.0 };
 
     double distance(vertex_2d v);
+    double length();
 };
 
 #ifndef __SERVER__

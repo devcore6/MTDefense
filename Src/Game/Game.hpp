@@ -4,6 +4,7 @@
 #include <string>
 #include <mutex>
 #include <atomic>
+#include <cstring>
 
 #include "../Engine/Tools.hpp"
 #include "../Engine/GL.hpp"
@@ -166,7 +167,7 @@ constexpr uint32_t msgsizes[NUMMSG] = {
 static const struct enemy_t {
     dictionary_entry                name;
     dictionary_entry                description;
-    int                             base_type;
+    uint8_t                         base_type;
     double                          base_health;
     double                          base_speed;
     double                          base_kill_reward;
@@ -175,7 +176,7 @@ static const struct enemy_t {
     uint16_t                        vulnerabilities;
     uint8_t                         flags;
     texture_t                       texture;
-    int                             spawns_when_damaged;
+    uint8_t                         spawns_when_damaged;
     std::initializer_list<int>      spawns;
 } enemy_types[] = {
     {
@@ -449,8 +450,8 @@ static const struct enemy_t {
 };
 
 struct enemy {
-    int             base_type;
-    std::mutex*     lock;
+    std::mutex      lock;
+    uint8_t         base_type;
     line_strip_t*   route;
     double          distance_travelled;
     vertex_2d       pos;
@@ -465,7 +466,60 @@ struct enemy {
     double          frozen_for;
     uint32_t        id;
 
-    ~enemy() { if(lock) delete lock; }
+    enemy() { }
+    enemy(uint8_t         _base_type,
+          line_strip_t*   _route,
+          double          _distance_travelled,
+          vertex_2d       _pos,
+          double          _max_health,
+          double          _health,
+          double          _speed,
+          double          _kill_reward,
+          uint16_t        _immunities,
+          uint16_t        _vulnerabilities,
+          uint8_t         _flags,
+          double          _slowed_for,
+          double          _frozen_for,
+          uint32_t        _id) : base_type(_base_type),
+                                 route(_route),
+                                 distance_travelled(_distance_travelled),
+                                 pos(_pos),
+                                 max_health(_max_health),
+                                 health(_health),
+                                 speed(_speed),
+                                 kill_reward(_kill_reward),
+                                 immunities(_immunities),
+                                 vulnerabilities(_vulnerabilities),
+                                 flags(_flags),
+                                 slowed_for(_slowed_for),
+                                 frozen_for(_frozen_for),
+                                 id(_id) { }
+    enemy           (const enemy&  copy) {
+        std::lock_guard<std::mutex> l { ((enemy&)copy).lock };
+        std::memcpy(     ((char8_t*) this) + sizeof(std::mutex),
+                   ((const char8_t*)&copy) + sizeof(std::mutex),
+                    sizeof(enemy)          - sizeof(std::mutex));
+    }
+    enemy           (      enemy&& move) {
+        std::lock_guard l { move.lock };
+        std::memmove(    ((char8_t*) this) + sizeof(std::mutex),
+                         ((char8_t*)&move) + sizeof(std::mutex),
+                    sizeof(enemy)          - sizeof(std::mutex));
+    }
+    enemy& operator=(const enemy&  copy) {
+        std::lock_guard<std::mutex> l { ((enemy&)copy).lock };
+        std::memcpy(     ((char8_t*) this) + sizeof(std::mutex),
+                   ((const char8_t*)&copy) + sizeof(std::mutex),
+                    sizeof(enemy)          - sizeof(std::mutex));
+        return *this;
+    }
+    enemy& operator=(      enemy&& move) {
+        std::lock_guard l { move.lock };
+            memswap(     ((char8_t*) this) + sizeof(std::mutex),
+                         ((char8_t*)&move) + sizeof(std::mutex),
+                    sizeof(enemy)          - sizeof(std::mutex));
+        return *this;
+    }
 };
 
 struct enemy_set {
@@ -1680,7 +1734,7 @@ static struct tower_t {
                             /* base_damage: */          2.0,
                             /* armor_modifier: */       1.0,
                             /* fire_rate: */            1.0,
-                            /* speed: */                250.00,
+                            /* speed: */                2000.00,
                             /* range: */                175.00,
                             /* odds: */                 2,
                             /* lifetime: */             0.0,
@@ -1765,7 +1819,7 @@ static struct tower_t {
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
                             /* fire_rate: */            1.0,
-                            /* speed: */                250.00,
+                            /* speed: */                2000.00,
                             /* range: */                175.00,
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
@@ -1783,7 +1837,7 @@ static struct tower_t {
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
                             /* fire_rate: */            1.0,
-                            /* speed: */                250.00,
+                            /* speed: */                2000.00,
                             /* range: */                175.00,
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
@@ -1801,7 +1855,7 @@ static struct tower_t {
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
                             /* fire_rate: */            1.0,
-                            /* speed: */                250.00,
+                            /* speed: */                2000.00,
                             /* range: */                175.00,
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
@@ -1999,6 +2053,7 @@ struct game_state {
     bool                    running;
     difficulty              diff;
     uint32_t                spawned_enemies;
+    uint32_t                all_spawned_enemies;
     uint32_t                spawned_projectiles;
     uint32_t                spawned_towers;
     bool                    done_spawning;
@@ -2016,8 +2071,8 @@ struct game_state {
 extern game_state gs;
 
 struct clientinfo {
-    uint32_t id = 0;
-    void* cn = nullptr;
+    uint32_t id = (uint32_t)-1;
+    uint32_t cn = (uint32_t)-1;
     std::string name = "";
     sc::time_point last_message = sc::now();
     double cash = 0.0;

@@ -36,7 +36,7 @@ bool can_place(std::vector<tower>& towers, tower_t& base_type, double x, double 
 
     if(in_water != base_type.place_on_water) return false;
 
-    for(auto& t : gs.towers) {
+    for(auto& t : towers) {
         double dx = (double)x - t.pos_x;
         double dy = (double)y - t.pos_y;
         double d = sqrt(dx * dx + dy * dy);
@@ -57,9 +57,9 @@ iconst(DIFF_MEDIUM,     DIFF_MEDIUM);
 iconst(DIFF_HARD,       DIFF_HARD);
 iconst(DIFF_IMPOSSIBLE, DIFF_IMPOSSIBLE);
 
-void do_disconnect(client_iterator& cn) {
+void do_disconnect(uint32_t cn) {
     for(auto ci = clientinfos.begin(); ci != clientinfos.end(); ci++)
-        if(*(client_iterator*)ci->cn == cn) { clientinfos.erase(ci); return; }
+        if(ci->cn == cn) { clientinfos.erase(ci); return; }
 }
 
 void init() {
@@ -72,6 +72,7 @@ void init() {
     gs.running             = false;
     gs.diff                = diff;
     gs.spawned_enemies     = 0;
+    gs.all_spawned_enemies = 0;
     gs.spawned_projectiles = 0;
     gs.spawned_towers      = 0;
     gs.done_spawning       = true;
@@ -106,6 +107,7 @@ command(echo, [](std::vector<std::string>& args) {
 #endif
 
 void init_round() {
+    gs.running             = true;
     gs.last_spawned_tick   = sc::now();
     gs.last_round          = gs.cur_round;
     gs.done_spawning       = false;
@@ -142,25 +144,18 @@ double count_lives(enemy_t e) {
 
 ivarp(serverthreads, 1, std::thread::hardware_concurrency() - 1, INTMAX_MAX);
 
-std::vector<enemy*> enemy_cycle(double dt, size_t i) {
-    std::vector<enemy*> ret { };
-
+void enemy_cycle(double dt, size_t i, std::vector<enemy*>* vec) {
     for(auto& e : iterate(gs.created_enemies, serverthreads, i)) {
-        e.distance_travelled += e.speed * (gs.double_speed ? 300.0 : 150.0) * dt;
-        e.pos = e.route->get_position_at(e.distance_travelled);
-        if(e.pos.x == e.route->vertices[e.route->vertices.size() - 1].x && e.pos.y == e.route->vertices[e.route->vertices.size() - 1].y) {
+        e.distance_travelled += e.speed * 150.0 * dt;
+        if(e.distance_travelled >= e.route->length()) {
             double lives = count_lives(enemy_types[e.base_type]);
-            ret.push_back(&e);
+            vec->push_back(&e);
             gs.lives -= lives;
         }
     }
-
-    return ret;
 }
 
-std::vector<projectile> tower_cycle(double dt, size_t i) {
-    std::vector<projectile> ret;
-
+void tower_cycle(double dt, size_t i, std::vector<projectile>* vec) {
     for(auto& t : iterate(gs.towers, serverthreads, i)) {
         t.tick(dt);
         if(!t.can_fire()) continue;
@@ -177,36 +172,39 @@ std::vector<projectile> tower_cycle(double dt, size_t i) {
         for(auto& e : *enemies) {
             auto p = t.fire(e);
             if(p) {
-                ret.push_back(p.ok);
+                vec->push_back(p.ok);
                 break;
             }
         }
     }
-
-    return ret;
 }
 
 struct projectile_cycle_data {
-    std::vector<std::pair<projectile*, bool>> projectiles_to_erase;
-    std::vector<enemy*>                       enemies_to_erase;
-    std::vector<enemy>                        enemies_to_add;
-    double                                    extra_cash;
+    std::vector<std::pair<uint32_t, bool>> projectiles_to_erase;
+    std::vector<uint32_t>                  enemies_to_erase;
+    struct e {
+        enemy_t first;
+        double second;
+        line_strip_t* third;
+    };
+    std::vector<e>                         enemies_to_add;
+    double                                 extra_cash { 0.0 };
 };
 
-void queue_spawns(projectile_cycle_data& data, double excess_damage, enemy_t e, uint16_t flags) {
-    data.extra_cash += e.base_kill_reward
-                    *  gs.diff.enemy_kill_reward_modifier
-                    *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier;
+void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, uint16_t flags, line_strip_t* p) {
+    data->extra_cash += e.base_kill_reward
+                     *  gs.diff.enemy_kill_reward_modifier
+                     *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier;
 
     // todo: enemy spawn multiplier
 
     for(auto i : iterate(e.spawns.size())) {
-        auto& s = enemy_types[*(e.spawns.begin() + i)];
+        enemy_t s = enemy_types[*(e.spawns.begin() + i)];
         double health = s.base_health
                       * gs.diff.enemy_health_modifier
                       * gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier;
 
-        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags);
+        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags, p);
         else {
             uint8_t random_flags = E_FLAG_NONE;
 
@@ -219,87 +217,55 @@ void queue_spawns(projectile_cycle_data& data, double excess_damage, enemy_t e, 
             if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds
             *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                 random_flags |= E_FLAG_SHIELD;
-
-            data.enemies_to_add.push_back(enemy {
-                /* base_type:          */ s.base_type,
-                /* lock:               */ new std::mutex(),
-                /* route:              */ &current_map->paths[gs.last_route],
-                /* distance_travelled: */ 0.0,
-                /* pos:                */ current_map->paths[gs.last_route][0],
-                /* max_health:         */ s.base_health
-                                       *  gs.diff.enemy_health_modifier
-                                       *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier,
-                /* health:             */ s.base_health
-                                       *  gs.diff.enemy_health_modifier
-                                       *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier
-                                       -  excess_damage,
-                /* speed:              */ s.base_speed
-                                       *  gs.diff.enemy_speed_modifier
-                                       *  gs.diff.round_set.r[gs.cur_round].enemy_speed_multiplier,
-                /* kill_reward:        */ s.base_kill_reward
-                                       *  gs.diff.enemy_kill_reward_modifier
-                                       *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier,
-                /* immunities:         */ (uint16_t)(s.immunities | gs.diff.enemy_base_immunities),
-                /* vulnerabilities:    */ s.vulnerabilities,
-                /* flags:              */ (uint8_t)(s.flags | flags | random_flags),
-                /* slowed_for:         */ 0.0,
-                /* frozen_for:         */ 0.0,
-                /* id:                 */ gs.spawned_enemies
-            });
+            
+            s.flags |= (uint8_t)(flags | random_flags);
+            data->enemies_to_add.push_back({ s, excess_damage, p });
         }
     }
 }
 
-void do_damage(projectile_cycle_data& data, projectile& p, enemy* e) {
-    e->lock->lock();
+void do_damage(projectile_cycle_data* data, projectile& p, enemy* e) {
+    std::lock_guard l { e->lock };
+    if(e->health <= 0.0)                                                                   return;
 
-    if(e->health <= 0.0) { e->lock->unlock(); return; }
-
-    e->lock->unlock();
-
-    for(auto& hit : p.hits) if(hit == e) return;
+    for(auto& hit : p.hits) if(hit == e)                                                   return;
 
     if(e->flags & E_FLAG_STEALTH && ~p.flags & P_FLAG_STEALTH_TAR)                         return;
     if(e->flags & E_FLAG_ARMORED && ~p.flags & P_FLAG_ARMORED_TAR) { p.remaining_hits = 0; return; }
 
     p.remaining_hits--;
 
-    if(!(p.damage_type & ~e->immunities)) return;
+    if(!(p.damage_type & ~e->immunities))                                                  return;
 
     double dmg = p.damage;
     if(p.damage_type & e->vulnerabilities) dmg *= 2;
 
-    e->lock->lock();
-
     if( p.flags & P_FLAG_STRIP_ARMOR)   e->flags &= ~E_FLAG_ARMORED;
     if( p.flags & P_FLAG_STRIP_STEALTH) e->flags &= ~E_FLAG_STEALTH;
-    if(e->flags & E_FLAG_SHIELD)      { e->flags &= ~E_FLAG_SHIELD; e->lock->unlock(); return; }
+    if(e->flags & E_FLAG_SHIELD)      { e->flags &= ~E_FLAG_SHIELD; return; }
     
     e->health -= dmg;
     if(e->health <= 0.0) {
-        data.enemies_to_erase.push_back(e);
-        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags);
+        data->enemies_to_erase.push_back(e->id);
+        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route);
     }
-
-    e->lock->unlock();
 }
 
-void detonate (projectile_cycle_data& data, projectile& p) {
+void detonate (projectile_cycle_data* data, projectile& p) {
     vertex_2d pos = p.start + p.direction_vector * p.travelled;
 
     for(auto& e : gs.created_enemies) {
         if(!p.remaining_range_hits) return;
 
-        double dx = e.pos.x - pos.x;
-        double dy = e.pos.y - pos.y;
+        vec2 epos = e.route->get_position_at(e.distance_travelled);
+        double dx = epos.x - pos.x;
+        double dy = epos.y - pos.y;
         double d = sqrt(dx * dx + dy * dy);
 
         if(d <= p.damage_range) {
-            e.lock->lock();
+            std::lock_guard l { e.lock };
 
-            if(e.health <= 0.0)                       { e.lock->unlock(); continue; }
-
-            e.lock->unlock();
+            if(e.health <= 0.0)                                           continue;
 
             if(e.flags & E_FLAG_STEALTH && ~p.flags & P_FLAG_STEALTH_TAR) continue;
             if(e.flags & E_FLAG_ARMORED && ~p.flags & P_FLAG_ARMORED_TAR) continue;
@@ -311,30 +277,26 @@ void detonate (projectile_cycle_data& data, projectile& p) {
             double dmg = p.damage;
             if(p.damage_type & e.vulnerabilities) dmg *= 2;
 
-            e.lock->lock();
-
             if(p.flags & P_FLAG_STRIP_ARMOR)   e.flags &= ~E_FLAG_ARMORED;
             if(p.flags & P_FLAG_STRIP_STEALTH) e.flags &= ~E_FLAG_STEALTH;
-            if(e.flags & E_FLAG_SHIELD)      { e.flags &= ~E_FLAG_SHIELD; e.lock->unlock(); return; }
+            if(e.flags & E_FLAG_SHIELD)      { e.flags &= ~E_FLAG_SHIELD; return; }
 
             e.health -= dmg;
-            if(e.health <= 0.0) {
-                data.enemies_to_erase.push_back(&e);
-                queue_spawns(data, abs(e.health), enemy_types[e.base_type], e.flags);
-            }
 
-            e.lock->unlock();
+            if(e.health <= 0.0) {
+                data->enemies_to_erase.push_back(e.id);
+                queue_spawns(data, abs(e.health), enemy_types[e.base_type], e.flags, e.route);
+            }
         }
     }
 }
 
-projectile_cycle_data projectile_cycle(double dt, size_t i) {
-    projectile_cycle_data ret;
+void projectile_cycle(double dt, size_t i, projectile_cycle_data* data) {
     for(auto& p : iterate(gs.projectiles, serverthreads, i)) {
         p.travelled += p.speed * dt;
 
         if(p.travelled > p.range) {
-            ret.projectiles_to_erase.push_back(std::make_pair(&p, false));
+            data->projectiles_to_erase.push_back(std::make_pair(p.id, false));
             continue;
         }
 
@@ -344,8 +306,9 @@ projectile_cycle_data projectile_cycle(double dt, size_t i) {
                 if(ptr == &e)
                     continue(created_enemies);
 
-            double dx = e.pos.x - pos.x;
-            double dy = e.pos.y - pos.y;
+            vec2 epos = e.route->get_position_at(e.distance_travelled);
+            double dx = epos.x - pos.x;
+            double dy = epos.y - pos.y;
             double d  = sqrt(dx * dx + dy * dy);
 
             // todo: neither of these are exactly what i want
@@ -354,18 +317,17 @@ projectile_cycle_data projectile_cycle(double dt, size_t i) {
             // while the distance in the direction of the direction vector should be p.speed * dt + 8.0
             // to accomodate for latency
             // if(d < p.speed * dt + 8.0) {
-            if(d < 8.0) {
-                do_damage(ret, p, &e);
+            if(d < 96.0) {
+                do_damage(data, p, &e);
 
                 if(!p.remaining_hits) {
-                    detonate(ret, p);
-                    ret.projectiles_to_erase.push_back(std::make_pair(&p, true));
+                    detonate(data, p);
+                    data->projectiles_to_erase.push_back(std::make_pair(p.pid, true));
+                    break;
                 }
             }
         });
     }
-
-    return ret;
 }
 
 uint32_t get_route_id(enemy& e) {
@@ -375,12 +337,19 @@ uint32_t get_route_id(enemy& e) {
     return -1;
 }
 
-void servertick() {
-    if(gs.lives > 0 && gs.running) {
-        packetstream broadcast { };
+clientinfo* get_client(uint32_t cn) {
+    for(auto& cl : clientinfos)
+        if(cl.cn == cn)
+            return &cl;
+    return nullptr;
+}
 
-        double dt = std::chrono::duration<double>(sc::now() - gs.last_tick).count();
-        gs.last_tick = sc::now();
+void servertick() {
+    double dt = std::chrono::duration<double>(sc::now() - gs.last_tick).count() * (gs.double_speed ? 2.0 : 1.0);
+    gs.last_tick = sc::now();
+
+    if(gs.lives > 0 && gs.running && !gs.paused) {
+        packetstream broadcast { };
 
         if(!gs.done_spawning) {
             size_t pos = 0;
@@ -409,9 +378,8 @@ void servertick() {
                                                  *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                             random_flags |= E_FLAG_SHIELD;
 
-                        gs.created_enemies.push_back(enemy {
+                        gs.created_enemies.push_back(std::move<enemy>({
                             /* base_type:          */ set.base_type,
-                            /* lock:               */ new std::mutex(),
                             /* route:              */ &current_map->paths[gs.last_route],
                             /* distance_travelled: */ 0.0,
                             /* pos:                */ current_map->paths[gs.last_route][0],
@@ -432,8 +400,8 @@ void servertick() {
                             /* flags:              */ (uint8_t)(enemy_types[set.base_type].flags | set.flags | random_flags),
                             /* slowed_for:         */ 0.0,
                             /* frozen_for:         */ 0.0,
-                            /* id:                 */ gs.spawned_enemies
-                        });
+                            /* id:                 */ gs.all_spawned_enemies
+                        }));
 
                         broadcast << N_SPAWN_ENEMY
                                   << 30_u32
@@ -448,9 +416,10 @@ void servertick() {
                                   << (uint16_t)(enemy_types[set.base_type].immunities | gs.diff.enemy_base_immunities)
                                   << enemy_types[set.base_type].vulnerabilities
                                   << (uint08_t)(enemy_types[set.base_type].flags | set.flags | random_flags)
-                                  << gs.spawned_enemies;
+                                  << gs.all_spawned_enemies;
 
                         gs.spawned_enemies++;
+                        gs.all_spawned_enemies++;
                     }
 
                     update_targeting_priorities();
@@ -459,12 +428,16 @@ void servertick() {
             }
         }
 
-        std::vector<std::future<std::vector<enemy*>>> enemy_cycles;
-        for(auto i : iterate(serverthreads)) enemy_cycles.push_back(std::async(enemy_cycle, dt, i));
-        std::vector<std::vector<enemy*>> evecs;
-        for(auto i : iterate(serverthreads)) evecs.push_back(enemy_cycles[i].get());
-        for(auto i : iterate(serverthreads))
-            for(auto& ptr : enemy_cycles[i].get())
+        std::vector<enemy*>*     evecs { new std::vector<enemy*>[serverthreads] };
+        std::vector<projectile>* tvecs { new std::vector<projectile>[serverthreads] };
+        projectile_cycle_data*   pvecs { new projectile_cycle_data[serverthreads] };
+
+        std::vector<std::thread> cycles;
+        for(auto  i   : iterate(serverthreads)) cycles.push_back(std::thread(enemy_cycle,   dt, i, &evecs[i]));
+        for(auto& T   : cycles) T.join();
+        cycles.clear();
+        for(intmax_t i = 0; i < serverthreads; i++)
+            for(auto& ptr : evecs[i])
                 for(size_t i = 0; i < gs.created_enemies.size(); i++)
                     if(&gs.created_enemies[i] == ptr) {
                         broadcast << N_ENEMY_SURVIVED
@@ -479,17 +452,20 @@ void servertick() {
                         break;
                     }
 
-        std::vector<std::future<std::vector<projectile>>> tower_cycles;
-        for(auto i : iterate(serverthreads)) tower_cycles.push_back(std::async(tower_cycle, dt, i));
 
-        std::vector<std::future<projectile_cycle_data>> projectile_cycles;
-        for(auto i : iterate(serverthreads)) projectile_cycles.push_back(std::async(projectile_cycle, dt, i));
-        for(auto i : iterate(serverthreads)) {
-            auto data = projectile_cycles[i].get();
-            for(auto& ptr : data.projectiles_to_erase)
+        for(auto i : iterate(serverthreads)) cycles.push_back(std::thread(tower_cycle,      dt, i, &tvecs[i]));
+        for(auto& T   : cycles) T.join();
+        cycles.clear();
+
+        for(auto i : iterate(serverthreads)) cycles.push_back(std::thread(projectile_cycle, dt, i, &pvecs[i]));
+        for(auto& T : cycles) T.join();
+        cycles.clear();
+        for(intmax_t i = 0; i < serverthreads; i++) {
+            auto& data = pvecs[i];
+            for(auto& id : data.projectiles_to_erase)
                 for(size_t i = 0; i < gs.projectiles.size(); i++)
-                    if(&gs.projectiles[i] == ptr.first) {
-                        if(ptr.second)
+                    if(gs.projectiles[i].pid == id.first) {
+                        if(id.second)
                             broadcast << N_DETONATE
                                       << 4_u32
                                       << gs.projectiles[i].pid;
@@ -503,35 +479,58 @@ void servertick() {
                         break;
                     }
 
-            for(auto& ptr : data.enemies_to_erase)
+            for(auto& id : data.enemies_to_erase)
                 for(size_t i = 0; i < gs.created_enemies.size(); i++)
-                    if(&gs.created_enemies[i] == ptr) {
-                        gs.created_enemies.erase(gs.created_enemies.begin() + i);
-
+                    if(gs.created_enemies[i].id == id) {
                         broadcast << N_KILL_ENEMY
                                   << 4_u32
                                   << gs.created_enemies[i].id;
 
+                        gs.created_enemies.erase(gs.created_enemies.begin() + i);
                         i--;
                         break;
                     }
 
-            for(auto& e : data.enemies_to_add) {
-                e.id = gs.spawned_enemies;
-                gs.created_enemies.push_back(e);
+            for(auto& s : data.enemies_to_add) {
+                auto& e = s.first;
+                gs.created_enemies.push_back(std::move<enemy>({
+                    /* base_type:          */ e.base_type,
+                    /* route:              */ s.third,
+                    /* distance_travelled: */ 0.0,
+                    /* pos:                */ (*s.third)[0],
+                    /* max_health:         */ e.base_health
+                                           *  gs.diff.enemy_health_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier,
+                    /* health:             */ e.base_health
+                                           *  gs.diff.enemy_health_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier
+                                           -  s.second,
+                    /* speed:              */ e.base_speed
+                                           *  gs.diff.enemy_speed_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].enemy_speed_multiplier,
+                    /* kill_reward:        */ e.base_kill_reward
+                                           *  gs.diff.enemy_kill_reward_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier,
+                    /* immunities:         */ (uint16_t)(e.immunities | gs.diff.enemy_base_immunities),
+                    /* vulnerabilities:    */ e.vulnerabilities,
+                    /* flags:              */ e.flags,
+                    /* slowed_for:         */ 0.0,
+                    /* frozen_for:         */ 0.0,
+                    /* id:                 */ gs.all_spawned_enemies
+                }));
 
                 broadcast << N_SPAWN_ENEMY
                           << 30_u32
-                          << e.base_type
-                          << get_route_id(e)
-                          << e.max_health
-                          << e.speed
-                          << e.immunities
-                          << e.vulnerabilities
-                          << e.flags
-                          << gs.spawned_enemies;
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].base_type
+                          << get_route_id(gs.created_enemies[gs.created_enemies.size() - 1])
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].max_health
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].speed
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].immunities
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].vulnerabilities
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].flags
+                          <<              gs.all_spawned_enemies;
 
-                gs.spawned_enemies++;
+                gs.all_spawned_enemies++;
             }
 
             if(data.enemies_to_add.size())
@@ -545,15 +544,15 @@ void servertick() {
                               << (c.cash += data.extra_cash / (double)maxclients);
         }
 
-        for(auto i : iterate(serverthreads)) // add new projectiles after projectile update cycles, to avoid having them move twice the first tick
-            for(auto& p : tower_cycles[i].get()) {
+        for(intmax_t i = 0; i < serverthreads; i++)
+            for(auto& p : tvecs[i]) {
                 p.pid = gs.spawned_projectiles;
                 gs.spawned_projectiles++;
                 gs.projectiles.push_back(p);
                 broadcast << N_PROJECTILE
-                          << projectile_size + p.path.length()
+                          << (uint32_t)(projectile_size + p.path.length())
                           << p.path;
-                broadcast.write((const char*)(&p + offsetof(projectile, id)), projectile_size);
+                broadcast.write(((const char*)&p) + offsetof(projectile, id), projectile_size);
             }
 
         size_t total_enemies = 0;
@@ -579,6 +578,10 @@ void servertick() {
                 // todo: win screen
             }
         }
+
+        delete[] evecs;
+        delete[] pvecs;
+        delete[] tvecs;
 
         send_packet(nullptr, 0, true, broadcast);
     }
@@ -613,9 +616,9 @@ packetstream update_entities() {
           << 33_u32
           << t.cid
           << t.id
+          << t.base_type
           << t.pos_x
           << t.pos_y
-          << t.base_type
           << t.cost
           << N_UPGRADETOWER
           << t.id
@@ -632,7 +635,7 @@ packetstream update_entities() {
 
 result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
     if(!packet.size()) return false;
-    if(!peer->data) {
+    if((size_t)peer->data == -1) {
         uint32_t packet_type = NUMMSG;
         packet >> packet_type;
         if(packet_type == N_CONNECT) {
@@ -644,12 +647,13 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             client_t c;
             c.peer = peer;
+            c.cn = 0;
             packet.read(c.name, size);
+            for(auto& cl : clients) c.cn = max(c.cn, cl.cn + 1);
             clients.push_back(c);
-            for(auto cn = clients.begin(); cn != clients.end(); cn++) { cn->cn = cn; }
 
             clientinfo ci;
-            ci.cn = &clients[clients.size() - 1].cn;
+            ci.cn = c.cn;
             ci.id = (uint32_t)clientinfos.size();
             ci.cash = 750.0 * gs.diff.start_cash_modifier / maxclients;
 
@@ -657,7 +661,7 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
             clients[clients.size() - 1].data = (void*)&clientinfos[clientinfos.size() - 1];
 
             conout(c.name + " connected");
-            peer->data = &clients[clients.size() - 1];
+            peer->data = (void*)(size_t)c.cn;
 
             packetstream reply { };
             reply << N_SENDMAP
@@ -677,24 +681,26 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
 
             for(auto& c : clientinfos)
                 reply << N_PLAYERINFO
-                      << (12_u32 + (*(client_iterator*)(c.cn))->name.length())
+                      << (uint32_t)(12_u32 + get_raw_client(c.cn)->name.length())
                       << c.id
                       << c.cash
-                      << (*(client_iterator*)(c.cn))->name;
+                      << get_raw_client(c.cn)->name;
 
-            reply << update_entities();
             send_packet(peer, 0, true, reply);
+            
+            packetstream update { update_entities() };
+            send_packet(peer, 0, true, update);
 
-            if(ci.id != 0) {
+            if(clients.size() != 1) {
                 packetstream p;
                 p << N_PLAYERINFO
-                  << (12_u32 + (*(client_iterator*)(ci.cn))->name.length())
+                  << (uint32_t)(12_u32 + get_raw_client(c.cn)->name.length())
                   << ci.id
                   << ci.cash
-                  << (*(client_iterator*)(ci.cn))->name;
+                  << get_raw_client(c.cn)->name;
             
                 for(size_t i = 0; i < clientinfos.size() - 1; i++)
-                    send_packet((*(client_iterator*)(clientinfos[i].cn))->peer, 0, true, p);
+                    send_packet(nullptr, 0, true, p);
             }
 
             return { };
@@ -703,8 +709,9 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
         return DISC_MSGERR;
     }
 
-    auto& cn = ((client_t*)(peer->data))->cn;
-    auto client = (clientinfo*)cn->data;
+    auto cn = (size_t)peer->data;
+    auto client = get_client((uint32_t)cn);
+    if(!client) return { };
     client->last_message = sc::now();
 
     packetstream reply { };
@@ -714,19 +721,10 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
         uint32_t packet_type = NUMMSG;
         packet >> packet_type;
 
-#ifdef _DEBUG
-        conout("packet_type: "_str + std::to_string(packet_type));
-#endif
-
         if(!packet) break;
 
         uint32_t size = 0;
         packet >> size;
-
-#ifdef _DEBUG
-        conout("size: "_str + std::to_string(size));
-        conout("expected size: "_str + std::to_string(msgsizes[packet_type]));
-#endif
 
         if(msgsizes[packet_type] != -1 && msgsizes[packet_type] != size) return DISC_MSGERR;
 
@@ -758,7 +756,10 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
                 if(!can_place(gs.towers, tower_types[base_type], x, y)) break;
 
                 tower t { tower_types[base_type], cost, x, y };
+                t.cid = (uint32_t)cn;
                 t.id = gs.spawned_towers++;
+                gs.towers.push_back(t);
+                client->towers.push_back(&gs.towers[gs.towers.size() - 1]);
                 client->cash -= cost;
 
                 broadcast << N_PLACETOWER
@@ -793,13 +794,15 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
                     }
 
                 if(!t) break;
-                if(t->upgrade_paths[path] == 6) break;
+                uint8_t upgrade_count = t->upgrade_paths[0] + t->upgrade_paths[1] + t->upgrade_paths[2];
+                if(t->upgrade_paths[path] == 6 || upgrade_count == 8) break;
 
-                upgrade& up = tower_types[t->base_type].upgrade_paths[path][t->upgrade_paths[path] + 1];
+                upgrade& up = tower_types[t->base_type].upgrade_paths[path][t->upgrade_paths[path]];
                 double cost = up.base_price * gs.diff.tower_cost_modifier;
 
                 if(cost > client->cash) break;
                 t->try_upgrade(path, cost);
+                client->cash -= cost;
 
                 broadcast << N_UPGRADETOWER
                           << 15_u32
@@ -882,7 +885,7 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
         }
     }
 
-    if(    reply.size()) send_packet(cn->peer, 0, true, reply);
+    if(    reply.size()) send_packet(peer,     0, true, reply);
     if(broadcast.size()) send_packet(nullptr,  0, true, broadcast);
 
     return { };

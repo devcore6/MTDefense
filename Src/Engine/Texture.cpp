@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <map>
+#include <algorithm>
 
 #ifndef __SERVER__
 # if defined(_WIN32) || defined(_WIN64)
@@ -24,10 +25,14 @@ struct texture_ref {
 };
 
 std::map<std::string, texture_ref> texture_refs { };
+
+extern bool gl_loaded;
+extern bool init_gl();
 #endif
 
 texture_t::texture_t(std::string path) {
 #ifndef __SERVER__
+    if(!gl_loaded) init_gl();
     if(texture_refs.contains(path)) {
         auto& ref  = texture_refs[path];
         textid     = ref.textid;
@@ -133,29 +138,21 @@ texture_t::~texture_t() {
     }
 }
 
-
 texture_t::texture_t(const texture_t& copy) {
     textid     = copy.textid;
     width      = copy.width;
     height     = copy.height;
     ref_count  = copy.ref_count;
     shared_ref = copy.shared_ref;
-    (*ref_count)++;
+    if(ref_count) (*ref_count)++;
 }
 
-texture_t::texture_t(texture_t&& move) {
-    textid     = move.textid;
-    width      = move.width;
-    height     = move.height;
-    ref_count  = move.ref_count;
-    shared_ref = move.shared_ref;
-    (*ref_count)++;
-
-    move.textid     = 0;
-    move.width      = 0;
-    move.height     = 0;
-    move.ref_count  = nullptr;
-    move.shared_ref = false;
+texture_t::texture_t(texture_t&& move) noexcept {
+    std::swap(textid,     move.textid);
+    std::swap(width,      move.width);
+    std::swap(height,     move.height);
+    std::swap(ref_count,  move.ref_count);
+    std::swap(shared_ref, move.shared_ref);
 }
 
 texture_t& texture_t::operator=(const texture_t& copy) {
@@ -164,23 +161,16 @@ texture_t& texture_t::operator=(const texture_t& copy) {
     height     = copy.height;
     ref_count  = copy.ref_count;
     shared_ref = copy.shared_ref;
-    (*ref_count)++;
+    if(ref_count) (*ref_count)++;
     return *this;
 }
 
-texture_t& texture_t::operator=(texture_t&& move) {
-    textid     = move.textid;
-    width      = move.width;
-    height     = move.height;
-    ref_count  = move.ref_count;
-    shared_ref = move.shared_ref;
-    (*ref_count)++;
-
-    move.textid     = 0;
-    move.width      = 0;
-    move.height     = 0;
-    move.ref_count  = nullptr;
-    move.shared_ref = false;
+texture_t& texture_t::operator=(texture_t&& move) noexcept {
+    std::swap(textid,     move.textid);
+    std::swap(width,      move.width);
+    std::swap(height,     move.height);
+    std::swap(ref_count,  move.ref_count);
+    std::swap(shared_ref, move.shared_ref);
     return *this;
 }
 

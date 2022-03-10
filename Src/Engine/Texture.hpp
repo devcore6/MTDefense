@@ -32,10 +32,10 @@ public:
 #ifndef __SERVER__
     texture_t(SDL_RWops*  data);
     texture_t(const texture_t&  copy);
-    texture_t(      texture_t&& move);
+    texture_t(      texture_t&& move) noexcept;
 
     texture_t& operator=(const texture_t& copy);
-    texture_t& operator=(texture_t&& move);
+    texture_t& operator=(texture_t&& move) noexcept;
     ~texture_t();
 #endif
 };
