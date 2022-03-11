@@ -27,15 +27,21 @@ SERVER_OBJS= \
 
 all: client server
 
-install: all
-	mkdir ../bin/
-	mv client server ../bin/
+install: install-client install-server
 
 client: $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) $(CLIENTFLAGS) $(CLIENT_OBJS) -o client
 
 server: $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) $(SERVERFLAGS) $(SERVER_OBJS) -o server
+
+install-client: client
+	mkdir -p ../bin/
+	mv client ../bin/client
+
+install-server: server
+	mkdir -p ../bin/
+	mv server ../bin/server
 
 clean:
 	rm -f $(CLIENT_OBJS) $(SERVER_OBJS) client server ../bin/

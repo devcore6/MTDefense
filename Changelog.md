@@ -1,3 +1,5 @@
+# r35 Makefile update
+
 # r34 Bug fixes
 ## Client
 
@@ -9,6 +11,10 @@
 
 - Fixed towers shooting in a random position whenever no enemies are in range
 - Much more accurate hitreg
+
+## Balancing updates
+
+- Tweaked amount of enemies and enemy frequencies in a lot of early rounds
 
 ## Linux
 
