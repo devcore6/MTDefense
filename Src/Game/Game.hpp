@@ -613,7 +613,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MICRO,
                     /* spacing: */          8.0,
-                    /* amount: */           17.0,
+                    /* amount: */           12.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -633,7 +633,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MILLI,
                     /* spacing: */          8.0,
-                    /* amount: */           7.0,
+                    /* amount: */           3.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -653,7 +653,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MICRO,
                     /* spacing: */          4.0,
-                    /* amount: */           22.0,
+                    /* amount: */           16.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -672,7 +672,7 @@ static const struct rounds {
             {
                 {
                     /* base_type: */        ENEMY_NANO,
-                    /* spacing: */          3.0,
+                    /* spacing: */          4.0,
                     /* amount: */           12.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
@@ -680,16 +680,16 @@ static const struct rounds {
                 },
                 {
                     /* base_type: */        ENEMY_MICRO,
-                    /* spacing: */          3.0,
-                    /* amount: */           12.0,
+                    /* spacing: */          4.2,
+                    /* amount: */           10.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 },
                 {
                     /* base_type: */        ENEMY_MILLI,
-                    /* spacing: */          3.0,
-                    /* amount: */           12.0,
+                    /* spacing: */          4.4,
+                    /* amount: */           8.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -700,8 +700,8 @@ static const struct rounds {
             {
                 {
                     /* base_type: */        ENEMY_MILLI,
-                    /* spacing: */          6.0,
-                    /* amount: */           28.0,
+                    /* spacing: */          6.5,
+                    /* amount: */           24.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -712,8 +712,8 @@ static const struct rounds {
             {
                 {
                     /* base_type: */        ENEMY_MICRO,
-                    /* spacing: */          9.0,
-                    /* amount: */           40.0,
+                    /* spacing: */          9.5,
+                    /* amount: */           32.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -721,7 +721,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MICRO,
                     /* spacing: */          4.5,
-                    /* amount: */           20.0,
+                    /* amount: */           16.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -729,7 +729,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MICRO,
                     /* spacing: */          2.3,
-                    /* amount: */           10.0,
+                    /* amount: */           8.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -737,7 +737,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MILLI,
                     /* spacing: */          1.2,
-                    /* amount: */           5.0,
+                    /* amount: */           4.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -749,7 +749,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_NANO,
                     /* spacing: */          10.0,
-                    /* amount: */           8.0,
+                    /* amount: */           9.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -765,7 +765,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MILLI,
                     /* spacing: */          10.0,
-                    /* amount: */           8.0,
+                    /* amount: */           7.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -773,7 +773,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_CENTI,
                     /* spacing: */          10.0,
-                    /* amount: */           8.0,
+                    /* amount: */           6.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -821,7 +821,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_CENTI,
                     /* spacing: */          7.5,
-                    /* amount: */           16.0,
+                    /* amount: */           12.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -836,8 +836,8 @@ static const struct rounds {
                 },
                 {
                     /* base_type: */        ENEMY_DECI,
-                    /* spacing: */          10.0,
-                    /* amount: */           1.0,
+                    /* spacing: */          8.0,
+                    /* amount: */           2.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -849,7 +849,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_MICRO,
                     /* spacing: */          6.0,
-                    /* amount: */           16.0,
+                    /* amount: */           14.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -872,8 +872,8 @@ static const struct rounds {
                 },
                 {
                     /* base_type: */        ENEMY_CENTI,
-                    /* spacing: */          7.0,
-                    /* amount: */           32.0,
+                    /* spacing: */          6.75,
+                    /* amount: */           24.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -893,7 +893,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_CENTI,
                     /* spacing: */          8.0,
-                    /* amount: */           20.0,
+                    /* amount: */           16.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -901,7 +901,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_CENTI,
                     /* spacing: */          6.0,
-                    /* amount: */           10.0,
+                    /* amount: */           6.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -909,7 +909,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_CENTI,
                     /* spacing: */          4.0,
-                    /* amount: */           8.0,
+                    /* amount: */           4.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -928,7 +928,7 @@ static const struct rounds {
             {
                 {
                     /* base_type: */        ENEMY_MICRO,
-                    /* spacing: */          2.0,
+                    /* spacing: */          3.2,
                     /* amount: */           64.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
@@ -936,8 +936,8 @@ static const struct rounds {
                 },
                 {
                     /* base_type: */        ENEMY_DECI,
-                    /* spacing: */          8.0,
-                    /* amount: */           9.0,
+                    /* spacing: */          8.4,
+                    /* amount: */           10.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -961,7 +961,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_DECI,
                     /* spacing: */          7.2,
-                    /* amount: */           16.0,
+                    /* amount: */           12.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1033,7 +1033,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_REGULAR,
                     /* spacing: */          8.0,
-                    /* amount: */           12.0,
+                    /* amount: */           10.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1516,7 +1516,7 @@ static struct tower_t {
                 /* base_damage: */                      1.0,
                 /* armor_modifier: */                   0.33,
                 /* fire_rate: */                        1.0,
-                /* speed: */                            2000.00,
+                /* speed: */                            1000.00,
                 /* range: */                            175.00,
                 /* odds: */                             4,
                 /* lifetime: */                         0.0,
@@ -1736,7 +1736,7 @@ static struct tower_t {
                             /* base_damage: */          2.0,
                             /* armor_modifier: */       1.0,
                             /* fire_rate: */            1.0,
-                            /* speed: */                2000.00,
+                            /* speed: */                1000.00,
                             /* range: */                175.00,
                             /* odds: */                 2,
                             /* lifetime: */             0.0,
@@ -1821,7 +1821,7 @@ static struct tower_t {
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
                             /* fire_rate: */            1.0,
-                            /* speed: */                2000.00,
+                            /* speed: */                1000.00,
                             /* range: */                175.00,
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
@@ -1839,7 +1839,7 @@ static struct tower_t {
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
                             /* fire_rate: */            1.0,
-                            /* speed: */                2000.00,
+                            /* speed: */                1000.00,
                             /* range: */                175.00,
                             /* odds: */                 1,
                             /* lifetime: */             0.0,
@@ -1857,7 +1857,7 @@ static struct tower_t {
                             /* base_damage: */          2.5,
                             /* armor_modifier: */       0.5,
                             /* fire_rate: */            1.0,
-                            /* speed: */                2000.00,
+                            /* speed: */                1000.00,
                             /* range: */                175.00,
                             /* odds: */                 1,
                             /* lifetime: */             0.0,

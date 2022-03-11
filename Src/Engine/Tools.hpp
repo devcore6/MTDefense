@@ -882,17 +882,16 @@ class vec;
 template<class T, size_t n, size_t m>
 class matrix {
 private:
-    vec<T, m>* vals = nullptr;
+    vec<T, m> vals[n] = { };
 
 public:
-     matrix()                                {   vals =                new vec<T, m>   [n]; }
-     matrix(const matrix&  M)                {   vals =                new vec<T, m>   [n]; memcpy(vals, M.vals, sizeof(vec<T, m>) * n); }
-     matrix(      matrix&& M) : vals(M.vals) { M.vals = nullptr; }
-     matrix(vec<T, m> v[n])                  {   vals = new vec<T, m>[n]; memcpy(vals, v, sizeof(vec<T, m>) * n); }
-    ~matrix()                                { if(vals) delete[] vals; }
+     matrix()                                { }
+     matrix(const matrix&  M)                { arrcpy( vals, M.vals, n); }
+     matrix(      matrix&& M)                { arrswap(vals, M.vals, n); }
+     matrix(vec<T, m> v[n])                  { arrcpy( vals, v,      n); }
 
-    matrix& operator=(const matrix&  M)      { memcpy(vals, M.vals, sizeof(vec<T, m>) * n);                                          return *this; }
-    matrix& operator=(      matrix&& M)      { std::swap(vals = M.vals);                                                             return *this; }
+    matrix& operator=(const matrix&  M)      { arrcpy (vals, M.vals, n);                                                             return *this; }
+    matrix& operator=(      matrix&& M)      { arrswap(vals, M.vals, n);                                                             return *this; }
 
     matrix  operator* (T val) { matrix ret { *this }; for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++)  ret[i][j] *= val; return   ret; }
     matrix& operator*=(T val) {                       for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++) vals[i][j] *= val; return *this; }
@@ -907,7 +906,7 @@ public:
                     ret[j][k] += vals[i][k] * M[j][i];
 
         return ret;
-    }
+    };
 
     matrix<T, 1, m> operator*(vec<T, m> v) {
         matrix<T, 1, m> ret { };
@@ -917,10 +916,28 @@ public:
                 ret[0][j] += vals[i][j] * v[i];
 
         return ret;
-    }
+    };
 
     vec<T, m>& operator[](size_t i)    { return vals[min(i, n)]; }
+
+    std::string to_string() {
+        std::string ret { };
+        for(size_t y = 0; y < m; y++) {
+            ret += '|';
+            for(size_t x = 0; x < n; x++)
+                ret += (vals[x][y] < 0.0 ? std::to_string(vals[x][y]) : (" " + std::to_string(vals[x][y]))) + ' ';
+            if(y == m - 1) ret += '|';
+            else ret += "|\n";
+        }
+        return ret;
+    }
 };
+
+template<class T>
+class matrix3x3;
+
+template<class T>
+class matrix4x4;
 
 template<class T>
 class matrix2x2 : public matrix<T, 2, 2> {
@@ -930,15 +947,32 @@ public:
     matrix2x2(      matrix<T, 2, 2>&& v)  : matrix<T, 2, 2>(v) { }
     matrix2x2(const matrix2x2      &  v)  : matrix<T, 2, 2>(v) { }
     matrix2x2(      matrix2x2      && v)  : matrix<T, 2, 2>(v) { }
-    matrix2x2(T v11, T v21, T v12, T v22) : matrix<T, 2, 2>()  {
-        (*this)[0][0] = v11; (*this)[0][1] = v12;
-        (*this)[1][0] = v21; (*this)[1][1] = v22;
+    matrix2x2(T v00, T v10, T v01, T v11) : matrix<T, 2, 2>()  {
+        (*this)[0][0] = v00; (*this)[1][0] = v10;
+        (*this)[0][1] = v01; (*this)[1][1] = v11;
     }
 
     matrix2x2& operator=(const matrix<T, 2, 2>&  v)            { matrix<T, 2, 2>::operator=(v); return *this; }
     matrix2x2& operator=(      matrix<T, 2, 2>&& v)            { matrix<T, 2, 2>::operator=(v); return *this; }
     matrix2x2& operator=(const matrix2x2      &  v)            { matrix<T, 2, 2>::operator=(v); return *this; }
     matrix2x2& operator=(      matrix2x2      && v)            { matrix<T, 2, 2>::operator=(v); return *this; }
+
+    inline operator matrix3x3<T>() {
+        return {
+            (*this)[0][0], (*this)[1][0], (T)0,
+            (*this)[0][1], (*this)[1][1], (T)0,
+            (T)0,          (T)0,          (T)1
+        };
+    }
+
+    inline operator matrix4x4<T>() {
+        return {
+            (*this)[0][0], (*this)[1][0], (T)0, (T)0,
+            (*this)[0][1], (*this)[1][1], (T)0, (T)0,
+            (T)0,          (T)0,          (T)1, (T)0,
+            (T)0,          (T)0,          (T)0, (T)1
+        };
+    }
 };
 
 template<class T>
@@ -949,12 +983,12 @@ public:
     matrix3x3(      matrix<T, 3, 3>&& v)  : matrix<T, 3, 3>(v) { }
     matrix3x3(const matrix3x3      &  v)  : matrix<T, 3, 3>(v) { }
     matrix3x3(      matrix3x3      && v)  : matrix<T, 3, 3>(v) { }
-    matrix3x3(T v11, T v21, T v31,
-              T v12, T v22, T v32,
-              T v13, T v23, T v33) : matrix<T, 3, 3>() {
-        (*this)[0][0] = v11; (*this)[0][1] = v12; (*this)[0][2] = v13;
-        (*this)[1][0] = v21; (*this)[1][1] = v22; (*this)[1][2] = v23;
-        (*this)[2][0] = v31; (*this)[2][1] = v32; (*this)[2][2] = v33;
+    matrix3x3(T v00, T v10, T v20,
+              T v01, T v11, T v21,
+              T v02, T v12, T v22) : matrix<T, 3, 3>() {
+        (*this)[0][0] = v00; (*this)[1][0] = v10; (*this)[2][0] = v20;
+        (*this)[0][1] = v01; (*this)[1][1] = v11; (*this)[2][1] = v21;
+        (*this)[0][2] = v02; (*this)[1][2] = v12; (*this)[2][2] = v22;
     }
 
     matrix3x3& operator=(const matrix<T, 3, 3>&  v)            { matrix<T, 3, 3>::operator=(v); return *this; }
@@ -962,6 +996,21 @@ public:
     matrix3x3& operator=(const matrix3x3      &  v)            { matrix<T, 3, 3>::operator=(v); return *this; }
     matrix3x3& operator=(      matrix3x3      && v)            { matrix<T, 3, 3>::operator=(v); return *this; }
 
+    inline operator matrix2x2<T>() {
+        return {
+            (*this)[0][0], (*this)[1][0],
+            (*this)[0][1], (*this)[1][1]
+        };
+    }
+
+    inline operator matrix4x4<T>() {
+        return {
+            (*this)[0][0], (*this)[1][0], (*this)[2][0], (T)0,
+            (*this)[0][1], (*this)[1][1], (*this)[2][1], (T)0,
+            (*this)[0][2], (*this)[1][2], (*this)[2][2], (T)0,
+            (T)0,          (T)0,          (T)0,          (T)1
+        };
+    }
 };
 
 template<class T>
@@ -972,14 +1021,14 @@ public:
     matrix4x4(      matrix<T, 4, 4>&& v)  : matrix<T, 4, 4>(v) { }
     matrix4x4(const matrix4x4      &  v)  : matrix<T, 4, 4>(v) { }
     matrix4x4(      matrix4x4      && v)  : matrix<T, 4, 4>(v) { }
-    matrix4x4(T v11, T v21, T v31, T v41,
-              T v12, T v22, T v32, T v42,
-              T v13, T v23, T v33, T v43,
-              T v14, T v24, T v34, T v44) : matrix<T, 4, 4>() {
-        (*this)[0][0] = v11; (*this)[0][1] = v12; (*this)[0][2] = v13; (*this)[0][3] = v14;
-        (*this)[1][0] = v21; (*this)[1][1] = v22; (*this)[1][2] = v23; (*this)[1][3] = v24;
-        (*this)[2][0] = v31; (*this)[2][1] = v32; (*this)[2][2] = v33; (*this)[2][3] = v34;
-        (*this)[3][0] = v41; (*this)[3][1] = v42; (*this)[3][2] = v43; (*this)[3][3] = v44;
+    matrix4x4(T v00, T v10, T v20, T v30,
+              T v01, T v11, T v21, T v31,
+              T v02, T v12, T v22, T v32,
+              T v03, T v13, T v23, T v33) : matrix<T, 4, 4>() {
+        (*this)[0][0] = v00; (*this)[1][0] = v10; (*this)[2][0] = v20; (*this)[3][0] = v30;
+        (*this)[0][1] = v01; (*this)[1][1] = v11; (*this)[2][1] = v21; (*this)[3][1] = v31;
+        (*this)[0][2] = v02; (*this)[1][2] = v12; (*this)[2][2] = v22; (*this)[3][2] = v32;
+        (*this)[0][3] = v03; (*this)[1][3] = v13; (*this)[2][3] = v23; (*this)[3][3] = v33;
     }
 
     matrix4x4& operator=(const matrix<T, 4, 4>&  v)            { matrix<T, 4, 4>::operator=(v); return *this; }
@@ -987,6 +1036,20 @@ public:
     matrix4x4& operator=(const matrix4x4      &  v)            { matrix<T, 4, 4>::operator=(v); return *this; }
     matrix4x4& operator=(      matrix4x4      && v)            { matrix<T, 4, 4>::operator=(v); return *this; }
 
+    inline operator matrix2x2<T>() {
+        return {
+            (*this)[0][0], (*this)[1][0],
+            (*this)[0][1], (*this)[1][1]
+        };
+    }
+
+    inline operator matrix3x3<T>() {
+        return {
+            (*this)[0][0], (*this)[1][0], (*this)[2][0],
+            (*this)[0][1], (*this)[1][1], (*this)[2][1],
+            (*this)[0][2], (*this)[1][2], (*this)[2][2]
+        };
+    }
 };
 
 template<class T, size_t size>
@@ -1019,6 +1082,15 @@ public:
     vec  normalize ()             { return *this / magnitude(); }
 
     T& operator[](size_t id)      { return vals[min(id, size)]; }
+
+    operator matrix<T, 1, size>() { return { &vals }; }
+
+    std::string to_string() {
+        std::string ret { };
+        for(size_t i = 0; i < size; i++)
+            ret += '|' + (vals[i] < 0.0 ? std::to_string(vals[i]) : (" " + std::to_string(vals[i]))) + (i == size - 1 ? " |" : " |\n");
+        return ret;
+    }
 };
 
 template<class T>
@@ -1120,3 +1192,21 @@ inline void memswap(void* mem1, void* mem2, size_t size) {
     }
 }
  */
+
+template<class T>
+inline void arrcpy(T* dst, const T* src, size_t n) {
+    for(size_t i = 0; i < n; i++)
+        memcpy((void*)(&dst[i]), (const void*)(&src[i]), sizeof(T));
+}
+
+template<class T>
+inline void arrmove(T* dst, const T* src, size_t n) {
+    for(size_t i = 0; i < n; i++)
+        memmove((void*)(&dst[i]), (const void*)(&src[i]), sizeof(T));
+}
+
+template<class T>
+inline void arrswap(T* arr1, T* arr2, size_t n) {
+    for(size_t i = 0; i < n; i++)
+        memswap((void*)(&arr1[i]), (void*)(&arr2[i]), sizeof(T));
+}

@@ -1,3 +1,19 @@
+# r34 Bug fixes
+## Client
+
+- Client now requests update if last frame took too long to render
+- Proper fix for N_PLACETOWER's former crash, removed temporary solution
+- Made stealthed enemies translucent to be able to tell them apart until a new texture is added
+
+## Server
+
+- Fixed towers shooting in a random position whenever no enemies are in range
+- Much more accurate hitreg
+
+## Linux
+
+- Linux run scripts
+
 # r33 Bug fixes
 ## Client
 

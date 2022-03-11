@@ -291,8 +291,8 @@ public:
     }
 
     void ui() {
-        float width_scale  = 1.0 / (float)width  * 1920.0f;
-        float height_scale = 1.0 / (float)height * 1080.0f;
+        float width_scale  = 1.0f / (float)width  * 1920.0f;
+        float height_scale = 1.0f / (float)height * 1080.0f;
         render_gui(clicking, send_click, lastx, lasty, width_scale, height_scale);
     }
 } ui;
@@ -469,11 +469,12 @@ void render_enemies() {
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     for(auto& e : cs.enemies) {
         const auto& base = enemy_types[e.base_type];
-        double w = base.texture.width  * base.scale * 2.0;
-        double h = base.texture.height * base.scale * 2.0;
+        double w = base.scale * 512.0;
+        double h = base.scale * 512.0;
 
         glPushMatrix();
 
+            glColor4d(1.0, 1.0, 1.0, (e.flags & E_FLAG_STEALTH) ? 0.5 : 1.0);
             glTranslated(e.pos[0], e.pos[1], 0.0);
             glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, base.texture.textid);
@@ -489,6 +490,7 @@ void render_enemies() {
 
             glBindTexture(GL_TEXTURE_2D, 0);
             glDisable(GL_TEXTURE_2D);
+            glColor4d(1.0, 1.0, 1.0, 1.0);
 
         glPopMatrix();
     }
@@ -759,6 +761,10 @@ void handle_packet(packetstream& p) {
 
                 if(base_type >= NUMTOWERS) break;
 
+                uint32_t last_selected = -1;
+                if(selected)
+                    last_selected = selected->id;
+
                 tower t { tower_types[base_type], cost, x, y };
                 t.id = tid;
                 cs.towers.push_back(t);
@@ -772,8 +778,18 @@ void handle_packet(packetstream& p) {
                             break; 
                         }
 
-                // todo: just fix this
-                selected = nullptr;
+                bool found = false;
+
+                if(selected) {
+                    for(auto& t : cs.towers)
+                        if(t.id == last_selected) {
+                            found = true;
+                            selected = &t;
+                            break;
+                        }
+                    if(!found) // should never happen
+                        selected = nullptr;
+                }
 
                 break;
             }
@@ -992,6 +1008,8 @@ void update_cycles(size_t i, double dt) {
     // todo: tower idle animations
 }
 
+ivarp(maxframetime, 0, 250, 30000);
+
 void main_loop() {
     if(current_map) {
         double dt { std::chrono::duration<double>(sc::now() - cs.last_tick).count() };
@@ -1017,6 +1035,12 @@ void main_loop() {
                     break;
                 }
             } while(maxfps ? ((1000_ms / maxfps - std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - cs.last_tick)).count() > 0) : false);
+
+            if(sc::now() - cs.last_tick > std::chrono::milliseconds(maxframetime)) {
+                packetstream p;
+                p << N_REQUEST_UPDATE << 0_u32;
+                send_packet(peer, 0, true, p);
+            }
         }
 
         std::vector<std::future<void>> Ts;

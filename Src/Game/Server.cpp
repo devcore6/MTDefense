@@ -302,23 +302,28 @@ void projectile_cycle(double dt, size_t i, projectile_cycle_data* data) {
         }
 
         vertex_2d pos = p.start + p.direction_vector * p.travelled;
-        loop(created_enemies, (auto& e : gs.created_enemies), {
+        for(auto& e : gs.created_enemies) {
+            bool previously_hit = false;
             for(auto& ptr : p.hits)
-                if(ptr == &e)
-                    continue(created_enemies);
+                if(ptr == &e) {
+                    previously_hit = true;
+                    break;
+                }
+            if(previously_hit) continue;
+
+            const auto& base = enemy_types[e.base_type];
+            double w = base.scale * 512.0;
+            double h = base.scale * 512.0;
 
             vec2 epos = e.route->get_position_at(e.distance_travelled);
-            double dx = epos.x - pos.x;
-            double dy = epos.y - pos.y;
-            double d  = sqrt(dx * dx + dy * dy);
+            base_rect_t bounding_box { {
+                { epos + vec2 { -w * 0.55, -h * 0.375 } },
+                { epos + vec2 {  w * 0.45, -h * 0.375 } },
+                { epos + vec2 {  w * 0.45,  h * 0.625 } },
+                { epos + vec2 { -w * 0.55,  h * 0.625 } }
+            } };
 
-            // todo: neither of these are exactly what i want
-            // The maximum distance between enemy and projectile should be 8.0,
-            // HOWEVER that only applies orthogonally to the projectile's direction vector,
-            // while the distance in the direction of the direction vector should be p.speed * dt + 8.0
-            // to accomodate for latency
-            // if(d < p.speed * dt + 8.0) {
-            if(d < 96.0) {
+            if(bounding_box.contains(pos, 4.0 + p.speed * dt)) {
                 do_damage(data, p, &e);
 
                 if(!p.remaining_hits) {
@@ -327,7 +332,7 @@ void projectile_cycle(double dt, size_t i, projectile_cycle_data* data) {
                     break;
                 }
             }
-        });
+        }
     }
 }
 
@@ -461,6 +466,9 @@ void servertick() {
         for(auto i : iterate(serverthreads)) cycles.push_back(std::thread(projectile_cycle, dt, i, &pvecs[i]));
         for(auto& T : cycles) T.join();
         cycles.clear();
+
+        bool update = false;
+
         for(intmax_t i = 0; i < serverthreads; i++) {
             auto& data = pvecs[i];
             for(auto& id : data.projectiles_to_erase)
@@ -533,8 +541,8 @@ void servertick() {
                           <<              gs.all_spawned_enemies++;
             }
 
-            if(data.enemies_to_add.size())
-                update_targeting_priorities();
+            if(data.enemies_to_add.size() || data.enemies_to_erase.size())
+                update = true;
 
             if(data.extra_cash)
                 for(auto& c : clientinfos)
@@ -543,6 +551,9 @@ void servertick() {
                               << c.id
                               << (c.cash += data.extra_cash / (double)maxclients);
         }
+
+        if(update)
+            update_targeting_priorities();
 
         for(intmax_t i = 0; i < serverthreads; i++)
             for(auto& p : tvecs[i]) {

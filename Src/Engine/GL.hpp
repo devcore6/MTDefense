@@ -26,9 +26,9 @@ struct triangle_strip_t {                                                       
 struct base_rect_t {
     vertex_2d       vertices[4] = { };                                          // top-left, top-right, bottom-right, bottom-left
 
-    double          get_area();
+    double          get_area(double range = 0.0);
 
-    bool            contains(vertex_2d vertex);
+    bool            contains(vertex_2d vertex, double range = 0.0);
 
     vertex_2d&      operator[](uint8_t id);
 };

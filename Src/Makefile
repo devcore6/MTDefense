@@ -27,6 +27,10 @@ SERVER_OBJS= \
 
 all: client server
 
+install: all
+	mkdir ../bin/
+	mv client server ../bin/
+
 client: $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) $(CLIENTFLAGS) $(CLIENT_OBJS) -o client
 
@@ -34,7 +38,7 @@ server: $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) $(SERVERFLAGS) $(SERVER_OBJS) -o server
 
 clean:
-	rm -f $(CLIENT_OBJS) $(SERVER_OBJS) client server
+	rm -f $(CLIENT_OBJS) $(SERVER_OBJS) client server ../bin/
 
 %-server.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(SERVERFLAGS) -c -o $@ $<

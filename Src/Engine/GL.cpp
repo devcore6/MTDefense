@@ -41,18 +41,18 @@ bool triangle_strip_t::contains(vertex_2d vertex, double range) {
     return false;
 }
 
-double base_rect_t::get_area() {
-    return base_triangle_t::get_area(vertices[0], vertices[1], vertices[2])
-         + base_triangle_t::get_area(vertices[2], vertices[3], vertices[0]);
+double base_rect_t::get_area(double range) {
+    return base_triangle_t::get_area(vertices[0], vertices[1], vertices[2], range)
+         + base_triangle_t::get_area(vertices[2], vertices[3], vertices[0], range);
 }
 
-bool base_rect_t::contains(vertex_2d vertex) {
+bool base_rect_t::contains(vertex_2d vertex, double range) {
     return (
         base_triangle_t::get_area(vertices[0], vertices[1], vertex) +
         base_triangle_t::get_area(vertices[1], vertices[2], vertex) +
         base_triangle_t::get_area(vertices[2], vertices[3], vertex) +
         base_triangle_t::get_area(vertices[3], vertices[0], vertex)
-    ) == get_area();
+    ) <= get_area(range);
 }
 
 vertex_2d& base_rect_t::operator[](uint8_t id) { return vertices[limit(0_u8, id, 3_u8)]; }
