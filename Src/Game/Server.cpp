@@ -129,8 +129,8 @@ void update_targeting_priorities() {
         gs.weak  .push_back(&e);
     }
 
-    std::sort(gs.first .begin(), gs.first .end(), [](enemy* e1, enemy* e2) -> bool { return e1->distance_travelled > e2->distance_travelled; });
-    std::sort(gs.last  .begin(), gs.last  .end(), [](enemy* e1, enemy* e2) -> bool { return e1->distance_travelled < e2->distance_travelled; });
+    std::sort(gs.first .begin(), gs.first .end(), [](enemy* e1, enemy* e2) -> bool { return e1->distance_traveled > e2->distance_traveled; });
+    std::sort(gs.last  .begin(), gs.last  .end(), [](enemy* e1, enemy* e2) -> bool { return e1->distance_traveled < e2->distance_traveled; });
     std::sort(gs.strong.begin(), gs.strong.end(), [](enemy* e1, enemy* e2) -> bool { return e1->max_health         > e2->max_health;         });
     std::sort(gs.strong.begin(), gs.strong.end(), [](enemy* e1, enemy* e2) -> bool { return e1->max_health         < e2->max_health;         });
 }
@@ -146,8 +146,8 @@ ivarp(serverthreads, 1, std::thread::hardware_concurrency() - 1, INTMAX_MAX);
 
 void enemy_cycle(double dt, size_t i, std::vector<enemy*>* vec) {
     for(auto& e : iterate(gs.created_enemies, serverthreads, i)) {
-        e.distance_travelled += e.speed * 150.0 * dt;
-        if(e.distance_travelled >= e.route->length()) {
+        e.distance_traveled += e.speed * 150.0 * dt;
+        if(e.distance_traveled >= e.route->length()) {
             double lives = count_lives(enemy_types[e.base_type]);
             vec->push_back(&e);
             gs.lives -= lives;
@@ -248,7 +248,7 @@ void do_damage(projectile_cycle_data* data, projectile& p, enemy* e) {
     e->health -= dmg;
     if(e->health <= 0.0) {
         data->enemies_to_erase.push_back(e->id);
-        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, e->distance_travelled);
+        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, e->distance_traveled);
     }
 }
 
@@ -258,7 +258,7 @@ void detonate (projectile_cycle_data* data, projectile& p) {
     for(auto& e : gs.created_enemies) {
         if(!p.remaining_range_hits) return;
 
-        vec2 epos = e.route->get_position_at(e.distance_travelled);
+        vec2 epos = e.route->get_position_at(e.distance_traveled);
         double dx = epos.x - pos.x;
         double dy = epos.y - pos.y;
         double d = sqrt(dx * dx + dy * dy);
@@ -286,7 +286,7 @@ void detonate (projectile_cycle_data* data, projectile& p) {
 
             if(e.health <= 0.0) {
                 data->enemies_to_erase.push_back(e.id);
-                queue_spawns(data, abs(e.health), enemy_types[e.base_type], e.flags, e.route, e.distance_travelled);
+                queue_spawns(data, abs(e.health), enemy_types[e.base_type], e.flags, e.route, e.distance_traveled);
             }
         }
     }
@@ -315,7 +315,7 @@ void projectile_cycle(double dt, size_t i, projectile_cycle_data* data) {
             double w = base.scale * 512.0;
             double h = base.scale * 512.0;
 
-            vec2 epos = e.route->get_position_at(e.distance_travelled);
+            vec2 epos = e.route->get_position_at(e.distance_traveled);
             base_rect_t bounding_box { {
                 { epos + vec2 { -w * 0.55, -h * 0.375 } },
                 { epos + vec2 {  w * 0.45, -h * 0.375 } },
@@ -387,7 +387,7 @@ void servertick() {
                         gs.created_enemies.push_back(std::move<enemy>({
                             /* base_type:          */ set.base_type,
                             /* route:              */ &current_map->paths[gs.last_route],
-                            /* distance_travelled: */ 0.0,
+                            /* distance_traveled: */ 0.0,
                             /* pos:                */ current_map->paths[gs.last_route][0],
                             /* max_health:         */ enemy_types[set.base_type].base_health
                                                    *  gs.diff.enemy_health_modifier
@@ -505,7 +505,7 @@ void servertick() {
                 gs.created_enemies.push_back(std::move<enemy>({
                     /* base_type:          */ e.base_type,
                     /* route:              */ s.third,
-                    /* distance_travelled: */ s.fourth,
+                    /* distance_traveled: */ s.fourth,
                     /* pos:                */ (*s.third)[0],
                     /* max_health:         */ e.base_health
                                            *  gs.diff.enemy_health_modifier
@@ -537,7 +537,7 @@ void servertick() {
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].immunities
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].vulnerabilities
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].flags
-                          <<              gs.created_enemies[gs.created_enemies.size() - 1].distance_travelled
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].distance_traveled
                           <<              gs.all_spawned_enemies++;
             }
 

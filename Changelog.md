@@ -1,3 +1,12 @@
+# r37 Tank tower (WIP)
+## Towers
+
+- Added WIP Tank tower
+
+# r36 Permissions update
+
+- +x mode to Linux scripts
+
 # r35 Makefile update
 
 # r34 Bug fixes

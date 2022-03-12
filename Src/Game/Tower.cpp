@@ -24,7 +24,7 @@ bool tower::can_fire() { return remaining_cooldown <= 0.0; }
 result<projectile, void> tower::fire(enemy* e) {
     // if(!can_fire()) return { };
 
-    vec2 epos = e->route->get_position_at(e->distance_travelled);
+    vec2 epos = e->route->get_position_at(e->distance_traveled);
     double dx = epos.x - pos_x;
     double dy = epos.y - pos_y;
     double d = sqrt(dx * dx + dy * dy);

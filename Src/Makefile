@@ -44,7 +44,7 @@ install-server: server
 	mv server ../bin/server
 
 clean:
-	rm -f $(CLIENT_OBJS) $(SERVER_OBJS) client server ../bin/
+	rm -rf $(CLIENT_OBJS) $(SERVER_OBJS) client server ../bin/
 
 %-server.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(SERVERFLAGS) -c -o $@ $<

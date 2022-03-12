@@ -44,6 +44,7 @@ enum {
 
 enum {
     TOWER_SENTRY            = 0,
+    TOWER_TANK,
     NUMTOWERS
 };
 
@@ -83,7 +84,9 @@ enum {
 enum {
     T_FLAG_NONE             = 0,
     T_FLAG_STEALTH_TAR      = 1 << 0,
-    T_FLAG_ARMORED_TAR      = 1 << 1
+    T_FLAG_ARMORED_TAR      = 1 << 1,
+    T_FLAG_STRIP_STEALTH    = 1 << 2,
+    T_FLAG_STRIP_ARMOR      = 1 << 3
 };
 
 enum {
@@ -451,75 +454,82 @@ static const struct enemy_t {
     }
 };
 
+struct debuff {
+    double      debuff_duration;
+    double      debuff_dps;
+    double      debuff_speed_multiplier;
+};
+
 struct enemy {
-    std::mutex      lock;
-    uint8_t         base_type;
-    line_strip_t*   route;
-    double          distance_travelled;
-    vertex_2d       pos;
-    double          max_health;
-    double          health;
-    double          speed;
-    double          kill_reward;
-    uint16_t        immunities;
-    uint16_t        vulnerabilities;
-    uint8_t         flags;
-    double          slowed_for;
-    double          frozen_for;
-    uint32_t        id;
+    std::mutex          lock;
+    uint8_t             base_type;
+    line_strip_t*       route;
+    double              distance_traveled;
+    vertex_2d           pos;
+    double              max_health;
+    double              health;
+    double              speed;
+    double              kill_reward;
+    uint16_t            immunities;
+    uint16_t            vulnerabilities;
+    uint8_t             flags;
+    double              slowed_for;
+    double              frozen_for;
+    uint32_t            id;
+    std::vector<debuff> debuffs;
 
     enemy() { }
-    enemy(uint8_t         _base_type,
-          line_strip_t*   _route,
-          double          _distance_travelled,
-          vertex_2d       _pos,
-          double          _max_health,
-          double          _health,
-          double          _speed,
-          double          _kill_reward,
-          uint16_t        _immunities,
-          uint16_t        _vulnerabilities,
-          uint8_t         _flags,
-          double          _slowed_for,
-          double          _frozen_for,
-          uint32_t        _id) : base_type(_base_type),
-                                 route(_route),
-                                 distance_travelled(_distance_travelled),
-                                 pos(_pos),
-                                 max_health(_max_health),
-                                 health(_health),
-                                 speed(_speed),
-                                 kill_reward(_kill_reward),
-                                 immunities(_immunities),
-                                 vulnerabilities(_vulnerabilities),
-                                 flags(_flags),
-                                 slowed_for(_slowed_for),
-                                 frozen_for(_frozen_for),
-                                 id(_id) { }
+    enemy(const uint8_t         v_base_type,
+                line_strip_t*   v_route,
+          const double          v_distance_traveled,
+          const vertex_2d       v_pos,
+          const double          v_max_health,
+          const double          v_health,
+          const double          v_speed,
+          const double          v_kill_reward,
+          const uint16_t        v_immunities,
+          const uint16_t        v_vulnerabilities,
+          const uint8_t         v_flags,
+          const double          v_slowed_for,
+          const double          v_frozen_for,
+          const uint32_t        v_id) : base_type       (v_base_type),
+                                       route            (v_route),
+                                       distance_traveled(v_distance_traveled),
+                                       pos              (v_pos),
+                                       max_health       (v_max_health),
+                                       health           (v_health),
+                                       speed            (v_speed),
+                                       kill_reward      (v_kill_reward),
+                                       immunities       (v_immunities),
+                                       vulnerabilities  (v_vulnerabilities),
+                                       flags            (v_flags),
+                                       slowed_for       (v_slowed_for),
+                                       frozen_for       (v_frozen_for),
+                                       id               (v_id) { }
     enemy           (const enemy&  copy) {
         std::lock_guard<std::mutex> l { ((enemy&)copy).lock };
-        std::memcpy(     ((char8_t*) this) + sizeof(std::mutex),
-                   ((const char8_t*)&copy) + sizeof(std::mutex),
-                    sizeof(enemy)          - sizeof(std::mutex));
+        std::memcpy((char8_t*) this + sizeof(std::mutex),
+              (const char8_t*)&copy + sizeof(std::mutex),
+                     sizeof(enemy)  - sizeof(std::mutex));
     }
     enemy           (      enemy&& move) {
         std::lock_guard l { move.lock };
-        std::memmove(    ((char8_t*) this) + sizeof(std::mutex),
-                         ((char8_t*)&move) + sizeof(std::mutex),
-                    sizeof(enemy)          - sizeof(std::mutex));
+        std::memmove((char8_t*) this + sizeof(std::mutex),
+                     (char8_t*)&move + sizeof(std::mutex),
+                      sizeof(enemy)  - sizeof(std::mutex));
     }
     enemy& operator=(const enemy&  copy) {
         std::lock_guard<std::mutex> l { ((enemy&)copy).lock };
-        std::memcpy(     ((char8_t*) this) + sizeof(std::mutex),
-                   ((const char8_t*)&copy) + sizeof(std::mutex),
-                    sizeof(enemy)          - sizeof(std::mutex));
+        std::memcpy((char8_t*) this + sizeof(std::mutex),
+              (const char8_t*)&copy + sizeof(std::mutex),
+                     sizeof(enemy)  - sizeof(std::mutex));
         return *this;
     }
     enemy& operator=(      enemy&& move) {
         std::lock_guard l { move.lock };
-            memswap(     ((char8_t*) this) + sizeof(std::mutex),
-                         ((char8_t*)&move) + sizeof(std::mutex),
-                    sizeof(enemy)          - sizeof(std::mutex));
+            memswap((char8_t*) this + sizeof(std::mutex),
+                    (char8_t*)&move + sizeof(std::mutex),
+                     sizeof(enemy)  - sizeof(std::mutex));
         return *this;
     }
 };
@@ -1053,7 +1063,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_VOLCANIC,
                     /* spacing: */          8.0,
-                    /* amount: */           8.0,
+                    /* amount: */           4.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1065,7 +1075,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_REGULAR,
                     /* spacing: */          7.2,
-                    /* amount: */           16.0,
+                    /* amount: */           8.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1081,7 +1091,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_REGULAR,
                     /* spacing: */          6.4,
-                    /* amount: */           12.0,
+                    /* amount: */           4.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1093,7 +1103,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_SIBERIAN,
                     /* spacing: */          8.0,
-                    /* amount: */           8.0,
+                    /* amount: */           4.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1105,7 +1115,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_VOLCANIC,
                     /* spacing: */          7.0,
-                    /* amount: */           9.0,
+                    /* amount: */           6.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1113,7 +1123,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_SIBERIAN,
                     /* spacing: */          7.0,
-                    /* amount: */           7.0,
+                    /* amount: */           5.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1292,6 +1302,54 @@ static const struct rounds {
                 }
             }
         },
+        /* Round 31: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_VOLCANIC,
+                    /* spacing: */          5.0,
+                    /* amount: */           16.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          5.0,
+                    /* amount: */           16.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_EXPERIMENTAL,
+                    /* spacing: */          5.0,
+                    /* amount: */           16.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            }
+        },
+        /* Round 32: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_IRON,
+                    /* spacing: */          5.0,
+                    /* amount: */           16.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          5.0,
+                    /* amount: */           12.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            }
+        },
     }
 };
 
@@ -1439,6 +1497,9 @@ struct projectile_t {
     double      damage_range;
     uint16_t    damage_type;
     animation_t hit_animation;
+    double      debuff_duration;
+    double      debuff_dps;
+    double      debuff_speed_multiplier;
 };
 
 struct projectile {
@@ -1459,6 +1520,9 @@ struct projectile {
     uint8_t     flags;
     double      armor_mod;
     uint32_t    pid;
+    double      debuff_remaining_duration;
+    double      debuff_dps;
+    double      debuff_speed_multiplier;
     std::vector<enemy*> hits;
 };
 
@@ -1524,7 +1588,10 @@ static struct tower_t {
                 /* range_maxhits: */                    0,
                 /* damage_range: */                     0.0,
                 /* damage_type: */                      DAMAGE_BLUNT,
-                /* hit_animation: */                    { }
+                /* hit_animation: */                    { },
+                /* debuff_duration: */                  0.0,
+                /* debuff_dps: */                       0.0,
+                /* debuff_speed_multiplier: */          1.0
             }
         },
         /* upgrade_paths: */ {
@@ -1744,7 +1811,10 @@ static struct tower_t {
                             /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_SHARP,
-                            /* hit_animation: */        { }
+                            /* hit_animation: */        { },
+                            /* debuff_duration: */      0.0,
+                            /* debuff_dps: */           0.0,
+                            /* debuff_speed_mul: */     1.0
                         }
                     }
                 },
@@ -1829,7 +1899,10 @@ static struct tower_t {
                             /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_BLUNT | DAMAGE_CHEMICAL,
-                            /* hit_animation: */        { }
+                            /* hit_animation: */        { },
+                            /* debuff_duration: */      0.0,
+                            /* debuff_dps: */           0.0,
+                            /* debuff_speed_mul: */     1.0
                         },
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Biological pellet.png"),
@@ -1847,7 +1920,10 @@ static struct tower_t {
                             /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_BLUNT | DAMAGE_BIOLOGICAL,
-                            /* hit_animation: */        { }
+                            /* hit_animation: */        { },
+                            /* debuff_duration: */      0.0,
+                            /* debuff_dps: */           0.0,
+                            /* debuff_speed_mul: */     1.0
                         },
                         {
                             /* texture: */              texture_t("Data/Towers/Sentry/Projectiles/Stripping pellet.png"),
@@ -1865,7 +1941,10 @@ static struct tower_t {
                             /* range_maxhits: */        0,
                             /* damage_range: */         0.0,
                             /* damage_type: */          DAMAGE_BLUNT | DAMAGE_MAGIC,
-                            /* hit_animation: */        { }
+                            /* hit_animation: */        { },
+                            /* debuff_duration: */      0.0,
+                            /* debuff_dps: */           0.0,
+                            /* debuff_speed_mul: */     1.0
                         }
                     }
                 }
@@ -1996,7 +2075,7 @@ static struct tower_t {
                     /* damage_mod: */                   1.75,
                     /* flags: */                        T_FLAG_NONE,
                     /* extra_damage_maxhits_linear: */  0,
-                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_maxhits_range: */   0,  
                     /* extra_damage_linear: */          0.0,
                     /* extra_damage_range: */           0.0,
                     /* extra_damage_types: */           DAMAGE_MAGIC,
@@ -2006,6 +2085,447 @@ static struct tower_t {
             }
         },
         /* animations: */                               map_animations("Data/Towers/Sentry/")
+    }, {
+        /* tower_type: */                               TOWER_TANK,
+        /* name: */ {
+            { "en_US", "Tank" }
+        },
+        /* desc: */ {
+            { "en_US", "A regular tank. Shoots explosive shells." }
+        },
+        /* hitbox_radius: */                            60.0,
+        /* base_price: */                               600.00,
+        /* range: */                                    250.00,
+        /* place_on_water: */                           false,
+        /* tower_family: */                             TOWER_TYPE_PHYSICAL,
+        /* projectiles: */ {
+            {
+                /* texture: */                          texture_t("Data/Towers/Tank/Projectiles/Basic shell.png"),
+                /* path: */                             "Data/Towers/Tank/Projectiles/Basic shell.png",
+                /* id: */                               0,
+                /* flags: */                            P_FLAG_NONE,
+                /* base_damage: */                      1.0,
+                /* armor_modifier: */                   0.50,
+                /* fire_rate: */                        0.6,
+                /* speed: */                            500.00,
+                /* range: */                            250.00,
+                /* odds: */                             2,
+                /* lifetime: */                         0.0,
+                /* damage_maxhits: */                   1,
+                /* range_maxhits: */                    14,
+                /* damage_range: */                     32.0,
+                /* damage_type: */                      DAMAGE_HEAT | DAMAGE_PRESSURE,
+                /* hit_animation: */                    { },
+                /* debuff_duration: */                  0.0,
+                /* debuff_dps: */                       0.0,
+                /* debuff_speed_multiplier: */          1.0
+            }
+        },
+        /* upgrade_paths: */ {
+           {
+                /* 1-x-x: */ {
+                    /* name: */ {
+                        { "en_US", "Bigger Shells" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Larger shells deal larger explosions and can destroy more enemies." }
+                    },
+                    /* base_price: */                   300.00,
+                    /* range_mod: */                    1.05,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   4,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           16.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Heavy Shells" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Heavy shells deal more damage and can destroy more enemies." }
+                    },
+                    /* base_price: */                   700.00,
+                    /* range_mod: */                    1.05,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.50,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   12,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Huge Explosions" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Shells deal huge explosions, with a much larger range and can damage way more enemies." }
+                    },
+                    /* base_price: */                   1200.00,
+                    /* range_mod: */                    1.0,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   20,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           16.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Stun Lock" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Shells hit enemies with so much energy that they temporarily stun the enemies. - TODO -" }
+                     },
+                    /* base_price: */                   4000.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Shell Shock" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Shells leave enemies shell shocked, increasing all damage received for a few seconds. - TODO -" }
+                    },
+                    /* base_price: */                   20000.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "The Biggest One" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Largely increases explosion range and amount of enemies damaged, increases stun lock and shell shock duration, and their effects are applied to all but the largest enemies. - TODO -" }
+                    },
+                    /* base_price: */                   100000.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   2.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   40,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           64.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                }
+            },
+            {
+                {
+                    /* name: */ {
+                        { "en_US", "Experienced Crew" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Experienced crew reloads 25% faster." }
+                    },
+                    /* base_price: */                   160.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.25,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Expert Crew" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Expert crews aims and reloads 33% faster than experienced crews." }
+                    },
+                    /* base_price: */                   300.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.33,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_SHARP,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Projectile Enlargement Pills" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Magical pills enlarge shells for longer range and reload speed. Please consult a doctor if projectile enlargement lasts more than 8 hours." }
+                     },
+                    /* base_price: */                   725.00,
+                    /* range_mod: */                    1.30,
+                    /* fire_rate_mod: */                1.40,
+                    /* speed_mod: */                    1.30,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */ { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Longer Barrel" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Replaces the tank barrel with a longer one, for additional range and projectile velocity." }
+                     },
+                    /* base_price: */                   700.00,
+                    /* range_mod: */                    1.30,
+                    /* fire_rate_mod: */                1.05,
+                    /* speed_mod: */                    1.40,
+                    /* armor_mod: */                    1.10,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Automatic Turret" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Installs an automatic turret on the tank that shoots really fast. - TODO -" }
+                     },
+                    /* base_price: */                   20000.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Pet Tank" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Ability temporarily calls upon 3 Pet Tanks for the assured destruction of any enemy. - TODO -" }
+                     },
+                    /* base_price: */                   75000.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.00,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                }
+            },
+            {
+                {
+                    /* name: */ {
+                        { "en_US", "Extra Range" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Increases projectile range." }
+                    },
+                    /* base_price: */                   200.00,
+                    /* range_mod: */                    1.30,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Modern Armor" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Replaces this old rust bucket with a modern tank that is significantly better in all regards." }
+                    },
+                    /* base_price: */                   3200.00,
+                    /* range_mod: */                    1.20,
+                    /* fire_rate_mod: */                1.30,
+                    /* speed_mod: */                    1.6,
+                    /* armor_mod: */                    1.20,
+                    /* damage_mod: */                   1.40,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_BLUNT,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Advanced Targeting Modes" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Equips the tank with an advanced targeting system that allows the tank to target and strip enemies of all special properties." }
+                     },
+                    /* base_price: */                   1000.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.00,
+                    /* flags: */                        T_FLAG_STEALTH_TAR | T_FLAG_ARMORED_TAR | T_FLAG_STRIP_STEALTH | T_FLAG_STRIP_ARMOR,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Extremely Modern Armor" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Incredible state-of-the-art tank DESTROYS all incoming enemies." }
+                     },
+                    /* base_price: */                   16000.00,
+                    /* range_mod: */                    1.25,
+                    /* fire_rate_mod: */                1.25,
+                    /* speed_mod: */                    1.25,
+                    /* armor_mod: */                    1.10,
+                    /* damage_mod: */                   1.25,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  4,
+                    /* extra_damage_maxhits_range: */   32,
+                    /* extra_damage_linear: */          128.0,
+                    /* extra_damage_range: */           16.0,
+                    /* extra_damage_types: */           DAMAGE_SHARP,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Incendiary Shells" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "Shells set enemies on fire, causing them to get damaged every second for 5 seconds. - TODO -" }
+                    },
+                    /* base_price: */                   8000.00,
+                    /* range_mod: */                    1.00,
+                    /* fire_rate_mod: */                1.00,
+                    /* speed_mod: */                    1.0,
+                    /* armor_mod: */                    1.00,
+                    /* damage_mod: */                   1.25,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  0,
+                    /* extra_damage_maxhits_range: */   0,
+                    /* extra_damage_linear: */          0.0,
+                    /* extra_damage_range: */           0.0,
+                    /* extra_damage_types: */           DAMAGE_NONE,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                },
+                {
+                    /* name: */ {
+                        { "en_US", "Panzerkampfläufer" }
+                    },
+                    /* desc: */ {
+                        { "en_US", "The Germans know what they're doing." }
+                    },
+                    /* base_price: */                   250000.00,
+                    /* range_mod: */                    2.00,
+                    /* fire_rate_mod: */                2.00,
+                    /* speed_mod: */                    1.20,
+                    /* armor_mod: */                    1.50,
+                    /* damage_mod: */                   2.50,
+                    /* flags: */                        T_FLAG_NONE,
+                    /* extra_damage_maxhits_linear: */  8,
+                    /* extra_damage_maxhits_range: */   16,  
+                    /* extra_damage_linear: */          32.0,
+                    /* extra_damage_range: */           32.0,
+                    /* extra_damage_types: */           DAMAGE_MAGIC,
+                    /* hit_animations: */               { },
+                    /* projectiles: */                  { }
+                }
+            }
+        },
+        /* animations: */                               map_animations("Data/Towers/Tank/")
     }
 };
 

@@ -902,7 +902,7 @@ void handle_packet(packetstream& p) {
                 cs.enemies.push_back(std::move<enemy>({
                     /* base_type:          */ base_type,
                     /* route:              */ &current_map->paths[route],
-                    /* distance_travelled: */ dist,
+                    /* distance_traveled: */ dist,
                     /* pos:                */  current_map->paths[route][0],
                     /* max_health:         */ health,
                     /* health:             */ health,
@@ -998,8 +998,8 @@ ivarp(clientthreads, 1, std::thread::hardware_concurrency() / 2, INTMAX_MAX);
 void update_cycles(size_t i, double dt) {
     if(cs.running && !cs.paused)
         for(auto& e : iterate(cs.enemies, clientthreads, i)) {
-            e.distance_travelled += e.speed * (cs.double_speed ? 300.0 : 150.0) * dt;
-            e.pos = e.route->get_position_at(e.distance_travelled);
+            e.distance_traveled += e.speed * (cs.double_speed ? 300.0 : 150.0) * dt;
+            e.pos = e.route->get_position_at(e.distance_traveled);
         }
 
     if(!cs.paused)

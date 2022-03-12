@@ -35,7 +35,7 @@ ivarp(height, 360, 1080, 4320);
 ivarp(antialias_samples, 1, 8, 16);
 bvarp(fullscreen, true);
 bvarp(fullscreen_windowed, true);
-bvarp(texture_compression, true);
+bvarp(texture_compression, false);
 
 ivarp(maxfps, 0, 0, 1000);
 ivarp(menufps, 0, 60, 1000);
