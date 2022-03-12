@@ -1,0 +1,9 @@
+x64
+Release
+Debug
+.vs
+*.user
+Data/Config/
+Data/Autoexec/
+desktop.ini
+.DS_Store
