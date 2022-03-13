@@ -89,11 +89,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>../enet/;../include/;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glu32.lib;winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -107,13 +109,14 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>../enet/;../include/;</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glu32.lib;winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions> /SUBSYSTEM:windows /ENTRY:mainCRTStartup %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -125,11 +128,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>../enet/;../include/;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glu32.lib;winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -143,13 +148,14 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>../enet/;../include/;</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glu32.lib;winmm.lib;ws2_32.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions> /SUBSYSTEM:windows /ENTRY:mainCRTStartup %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -165,6 +171,41 @@
     <ClCompile Include="..\enet\unix.c" />
     <ClCompile Include="..\enet\win32.c" />
     <ClCompile Include="..\engine\main.cpp" />
+    <ClCompile Include="..\engine\renderer.ixx" />
+    <ClCompile Include="..\engine\renderer\base\base_renderer.ixx" />
+    <ClCompile Include="..\engine\renderer\base\base_window.ixx" />
+    <ClCompile Include="..\engine\renderer\base\command_buffer.ixx" />
+    <ClCompile Include="..\engine\renderer\base\viewport.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_formats.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_abgr8.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_argb8.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgr8.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgra8.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgb8.ixx" />
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgba8.ixx" />
+    <ClCompile Include="..\engine\renderer\opengl.ixx" />
+    <ClCompile Include="..\engine\renderer\opengl\ogl_renderer.ixx" />
+    <ClCompile Include="..\engine\renderer\opengl\ogl_window.ixx" />
+    <ClCompile Include="..\engine\renderer\base.ixx" />
+    <ClCompile Include="..\engine\renderer\vertex.ixx" />
+    <ClCompile Include="..\shared\math.ixx" />
+    <ClCompile Include="..\shared\math\matrix.ixx" />
+    <ClCompile Include="..\shared\math\matrix2x2.ixx" />
+    <ClCompile Include="..\shared\math\matrix3x3.ixx" />
+    <ClCompile Include="..\shared\math\matrix4x4.ixx" />
+    <ClCompile Include="..\shared\math\vec.ixx" />
+    <ClCompile Include="..\shared\math\vec2.ixx" />
+    <ClCompile Include="..\shared\math\vec3.ixx" />
+    <ClCompile Include="..\shared\math\vec4.ixx" />
+    <ClCompile Include="..\shared\tools.ixx" />
+    <ClCompile Include="..\shared\tools\arrcpy.ixx" />
+    <ClCompile Include="..\shared\tools\arrmove.ixx" />
+    <ClCompile Include="..\shared\tools\arrswap.ixx" />
+    <ClCompile Include="..\shared\tools\memswap.ixx" />
+    <ClCompile Include="..\shared\tools\result.ixx" />
+    <ClCompile Include="..\shared\tools\types.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

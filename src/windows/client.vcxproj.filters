@@ -7,11 +7,29 @@
     <Filter Include="enet">
       <UniqueIdentifier>{4c72a938-a0bf-4519-9942-11afed9d968f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shared">
+      <UniqueIdentifier>{bf165935-ea84-4d0e-8860-f0a9a85418e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shared\tools">
+      <UniqueIdentifier>{8ccfe0f6-0f8e-481f-bb76-5eabe0a03f40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\renderer">
+      <UniqueIdentifier>{54c8d19f-3a38-4f98-9bfd-853a88d3ddca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\renderer\opengl">
+      <UniqueIdentifier>{f55ead3d-17e9-45d7-af32-b859bbe992d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\renderer\base">
+      <UniqueIdentifier>{ced93b59-e4f8-4882-a95c-250d7012cb69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shared\math">
+      <UniqueIdentifier>{dc4616b4-6427-427d-98c6-b528e1a35d42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\renderer\color_format">
+      <UniqueIdentifier>{62cc60b4-8d8a-43e6-8adc-b4e44e24681b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\engine\main.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
     <ClCompile Include="..\enet\callbacks.c">
       <Filter>enet</Filter>
     </ClCompile>
@@ -38,6 +56,114 @@
     </ClCompile>
     <ClCompile Include="..\enet\win32.c">
       <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools\result.ixx">
+      <Filter>shared\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\base.ixx">
+      <Filter>engine\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools\types.ixx">
+      <Filter>shared\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\opengl\ogl_window.ixx">
+      <Filter>engine\renderer\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\opengl.ixx">
+      <Filter>engine\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\opengl\ogl_renderer.ixx">
+      <Filter>engine\renderer\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\base\base_renderer.ixx">
+      <Filter>engine\renderer\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\base\base_window.ixx">
+      <Filter>engine\renderer\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer.ixx">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\main.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\base\command_buffer.ixx">
+      <Filter>engine\renderer\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\base\viewport.ixx">
+      <Filter>engine\renderer\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math.ixx">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools.ixx">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\vec.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\matrix.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\vec2.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\vec3.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\vec4.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools\memswap.ixx">
+      <Filter>shared\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools\arrcpy.ixx">
+      <Filter>shared\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools\arrmove.ixx">
+      <Filter>shared\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools\arrswap.ixx">
+      <Filter>shared\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\matrix2x2.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\matrix3x3.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\math\matrix4x4.ixx">
+      <Filter>shared\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\vertex.ixx">
+      <Filter>engine\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format.ixx">
+      <Filter>engine\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_formats.ixx">
+      <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits.ixx">
+      <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgr8.ixx">
+      <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgra8.ixx">
+      <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgb8.ixx">
+      <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgba8.ixx">
+      <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_abgr8.ixx">
+      <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_argb8.ixx">
+      <Filter>engine\renderer\color_format</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
