@@ -1,6 +1,6 @@
-export module renderer.base.command_buffer;
+export module renderer.command_buffer;
 
-import renderer.color_format.color_format;
+import renderer.color_format;
 
 import renderer.vertex;
 
@@ -21,7 +21,8 @@ export enum command_mode: unsigned char {
 
 export template<size_t vertex_size,
                 size_t vertex_count,
-                color_format format>
+                color_format format = FORMAT_RGB8>
+    requires(vertex_size == 2 || vertex_size == 3)
 struct command_buffer {
     // todo: textures
 

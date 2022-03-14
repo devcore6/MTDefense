@@ -1,4 +1,4 @@
-export module renderer.base.viewport;
+export module renderer.viewport;
 
 export struct viewport {
     double x, y;

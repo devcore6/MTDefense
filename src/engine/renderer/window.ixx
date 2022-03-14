@@ -13,64 +13,89 @@ module;
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_ttf.h>
 
-export module renderer.opengl.window;
-
-import renderer.base.window;
-import renderer.opengl.renderer;
+export module renderer.window;
 
 import tools.types;
 
-import <string>;
+import <memory>;
 import <stdexcept>;
 import <optional>;
 
-export class opengl_window: public window {
+class sdl_status {
 public:
-    opengl_window(
+    sdl_status() {
+        if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) exit(1);
+        if(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) < 0) exit(1);
+        if(TTF_Init() < 0) exit(1);
+    }
+
+    ~sdl_status() {
+        TTF_Quit();
+        IMG_Quit();
+        SDL_Quit();
+    }
+} static status { };
+
+export template<class T>
+class window {
+public:
+    window(
         cstring title_v,
         int width_v,
         int height_v,
         bool fullscreen_v
-    ) : r(std::make_shared<opengl_renderer>()),
+    ) : r(std::make_shared<T>()),
         fullscreen(fullscreen_v),
         width(width_v),
         height(height_v),
         title(title_v) {
-
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,    1);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,   16);
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL,    1);
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,          1);
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,           24);
-
         wind = SDL_CreateWindow(
             title,
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
             width,
             height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+            T::window_flags | SDL_WINDOW_SHOWN
         );
-        if(!wind)    throw std::runtime_error(std::string("Could not create window: ") + SDL_GetError());
+        if(!wind) throw std::runtime_error(std::string("Could not create window: ") + SDL_GetError());
 
         SDL_SetWindowResizable(wind, SDL_TRUE);
         SDL_SetWindowMinimumSize(wind, 640, 360);
 
         update_settings();
 
-        glShadeModel(GL_SMOOTH);
-        glEnable(GL_MULTISAMPLE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glClearColor(0, 0, 0, 1);
+        r->init(wind);
+        r->set_viewport({ 0.0, 0.0, (double)width, (double)height });
 
         SDL_StopTextInput();
-        SDL_ShowCursor(0);
+        SDL_ShowCursor(1);
     }
 
-    ~opengl_window() noexcept {
+    // Disable copy constructor
+    window(copy_t<window> w) = delete;
+    window& operator=(copy_t<window> w) = delete;
+
+    window(move_t<window> w) {
+        std::swap(fullscreen, w.fullscreen);
+        std::swap(title,      w.title);
+        std::swap(width,      w.width);
+        std::swap(height,     w.height);
+        std::swap(quit,       w.quit);
+        std::swap(r,          w.r);
+        std::swap(wind,       w.wind);
+    }
+
+    window& operator=(move_t<window> w) {
+        std::swap(fullscreen, w.fullscreen);
+        std::swap(title,      w.title);
+        std::swap(width,      w.width);
+        std::swap(height,     w.height);
+        std::swap(quit,       w.quit);
+        std::swap(r,          w.r);
+        std::swap(wind,       w.wind);
+    }
+
+    ~window() noexcept {
         if(wind) SDL_DestroyWindow(wind);
     }
 
@@ -79,10 +104,12 @@ public:
         while(SDL_PollEvent(&e) != 0) {
             switch(e.type) {
                 case SDL_QUIT: { quit = true; break; }
-                case SDL_WINDOWEVENT: {
+                case SDL_WINDOWEVENT:
+                {
                     switch(e.window.event) {
                         case SDL_WINDOWEVENT_RESIZED:
-                        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+                        case SDL_WINDOWEVENT_SIZE_CHANGED:
+                        {
                             width = e.window.data1;
                             height = e.window.data2;
                             return { };
@@ -106,11 +133,12 @@ public:
     window& set_width(int v)       noexcept { width      = v; update_settings(); return *this; }
     window& set_height(int v)      noexcept { height     = v; update_settings(); return *this; }
 
-    void    update() noexcept {
-
+    void update() noexcept {
+        r->update(wind);
     }
 
-    const std::shared_ptr<renderer>get_renderer() noexcept { return r; }
+    const std::shared_ptr<T>get_renderer() noexcept { return r; }
+
 private:
     bool    fullscreen = false;
     cstring title      = nullptr;
@@ -118,7 +146,7 @@ private:
     int     height     = 0;
     bool    quit       = false;
 
-    const std::shared_ptr<renderer> r;
+    const std::shared_ptr<T> r;
 
     SDL_Window* wind;
 

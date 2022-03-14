@@ -16,17 +16,8 @@
     <Filter Include="engine\renderer">
       <UniqueIdentifier>{54c8d19f-3a38-4f98-9bfd-853a88d3ddca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="engine\renderer\opengl">
-      <UniqueIdentifier>{f55ead3d-17e9-45d7-af32-b859bbe992d1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\renderer\base">
-      <UniqueIdentifier>{ced93b59-e4f8-4882-a95c-250d7012cb69}</UniqueIdentifier>
-    </Filter>
     <Filter Include="shared\math">
       <UniqueIdentifier>{dc4616b4-6427-427d-98c6-b528e1a35d42}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="engine\renderer\color_format">
-      <UniqueIdentifier>{62cc60b4-8d8a-43e6-8adc-b4e44e24681b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,38 +51,17 @@
     <ClCompile Include="..\shared\tools\result.ixx">
       <Filter>shared\tools</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\renderer\base.ixx">
-      <Filter>engine\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\tools\types.ixx">
       <Filter>shared\tools</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\renderer\opengl\ogl_window.ixx">
-      <Filter>engine\renderer\opengl</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\renderer\opengl.ixx">
       <Filter>engine\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\opengl\ogl_renderer.ixx">
-      <Filter>engine\renderer\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\base\base_renderer.ixx">
-      <Filter>engine\renderer\base</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\base\base_window.ixx">
-      <Filter>engine\renderer\base</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\renderer.ixx">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\main.cpp">
       <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\base\command_buffer.ixx">
-      <Filter>engine\renderer\base</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\base\viewport.ixx">
-      <Filter>engine\renderer\base</Filter>
     </ClCompile>
     <ClCompile Include="..\shared\math.ixx">
       <Filter>shared</Filter>
@@ -132,17 +102,23 @@
     <ClCompile Include="..\engine\renderer\vertex.ixx">
       <Filter>engine\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\tools\limit.ixx">
+      <Filter>shared\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\renderer\window.ixx">
+      <Filter>engine\renderer</Filter>
+    </ClCompile>
     <ClCompile Include="..\engine\renderer\color_format.ixx">
       <Filter>engine\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_formats.ixx">
-      <Filter>engine\renderer\color_format</Filter>
+    <ClCompile Include="..\engine\renderer\color_format_traits.ixx">
+      <Filter>engine\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits.ixx">
-      <Filter>engine\renderer\color_format</Filter>
+    <ClCompile Include="..\engine\renderer\command_buffer.ixx">
+      <Filter>engine\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\tools\limit.ixx">
-      <Filter>shared\tools</Filter>
+    <ClCompile Include="..\engine\renderer\viewport.ixx">
+      <Filter>engine\renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
