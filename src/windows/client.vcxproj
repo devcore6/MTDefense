@@ -179,12 +179,6 @@
     <ClCompile Include="..\engine\renderer\color_format.ixx" />
     <ClCompile Include="..\engine\renderer\color_format\color_formats.ixx" />
     <ClCompile Include="..\engine\renderer\color_format\color_format_traits.ixx" />
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_abgr8.ixx" />
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_argb8.ixx" />
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgr8.ixx" />
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgra8.ixx" />
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgb8.ixx" />
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgba8.ixx" />
     <ClCompile Include="..\engine\renderer\opengl.ixx" />
     <ClCompile Include="..\engine\renderer\opengl\ogl_renderer.ixx" />
     <ClCompile Include="..\engine\renderer\opengl\ogl_window.ixx" />

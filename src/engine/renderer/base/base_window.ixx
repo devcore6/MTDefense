@@ -29,8 +29,7 @@ public:
     }
 } static status { };
 
-export template<renderer_type T>
-class window {
+export class window {
 public:
     window() = default;
 
@@ -56,5 +55,5 @@ public:
 
     virtual void    update()             noexcept = 0;
 
-    virtual const std::shared_ptr<renderer<T>>get_renderer() = 0;
+    virtual const std::shared_ptr<renderer>get_renderer() = 0;
 };

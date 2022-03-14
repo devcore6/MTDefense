@@ -24,7 +24,7 @@ import <string>;
 import <stdexcept>;
 import <optional>;
 
-export class opengl_window: public window<RENDERER_OPENGL> {
+export class opengl_window: public window {
 public:
     opengl_window(
         cstring title_v,
@@ -34,7 +34,8 @@ public:
     ) : r(std::make_shared<opengl_renderer>()),
         fullscreen(fullscreen_v),
         width(width_v),
-        height(height_v) {
+        height(height_v),
+        title(title_v) {
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,    1);
@@ -109,15 +110,15 @@ public:
 
     }
 
-    const std::shared_ptr<renderer<RENDERER_OPENGL>>get_renderer() noexcept { return r; }
+    const std::shared_ptr<renderer>get_renderer() noexcept { return r; }
 private:
-    bool    fullscreen;
-    cstring title;
-    int     width;
-    int     height;
-    bool    quit;
+    bool    fullscreen = false;
+    cstring title      = nullptr;
+    int     width      = 0;
+    int     height     = 0;
+    bool    quit       = false;
 
-    const std::shared_ptr<renderer<RENDERER_OPENGL>> r;
+    const std::shared_ptr<renderer> r;
 
     SDL_Window* wind;
 

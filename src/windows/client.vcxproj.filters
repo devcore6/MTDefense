@@ -147,23 +147,5 @@
     <ClCompile Include="..\engine\renderer\color_format\color_format_traits.ixx">
       <Filter>engine\renderer\color_format</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgr8.ixx">
-      <Filter>engine\renderer\color_format</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_bgra8.ixx">
-      <Filter>engine\renderer\color_format</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgb8.ixx">
-      <Filter>engine\renderer\color_format</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_rgba8.ixx">
-      <Filter>engine\renderer\color_format</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_abgr8.ixx">
-      <Filter>engine\renderer\color_format</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderer\color_format\color_format_traits_argb8.ixx">
-      <Filter>engine\renderer\color_format</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

@@ -6,5 +6,6 @@ export enum color_format: unsigned char {
     FORMAT_ARGB8,
     FORMAT_BGR8,
     FORMAT_BGRA8,
-    FORMAT_ABGR8
+    FORMAT_ABGR8,
+    FORMAT_MAX
 };

@@ -16,11 +16,7 @@ import renderer.base.command_buffer;
 
 import <stdexcept>;
 
-template<renderer_type T>
-class renderer;
-
-template<>
-class renderer<RENDERER_OPENGL> {
+export class opengl_renderer: public renderer {
 public:
     void clear() noexcept { glClear(GL_COLOR_BUFFER_BIT); }
 
@@ -37,11 +33,8 @@ public:
         vp = v;
     }
 
-    template<size_t vertex_size,
-             size_t vertex_count,
-             color_format format>
-    void send_command(command_buffer<vertex_size, vertex_count, format> buf) {
-        switch(buf.mode) {
+    void send_command(command_buffer_wrapper buffer) {
+        switch(buffer.mode) {
             case RENDER_POINTS:         glBegin(GL_POINTS);         break;
             case RENDER_LINES:          glBegin(GL_LINES);          break;
             case RENDER_LINE_LOOP:      glBegin(GL_LINE_LOOP);      break;
@@ -53,14 +46,23 @@ public:
             case RENDER_QUAD_STRIP:     glBegin(GL_QUAD_STRIP);     break;
             case RENDER_POLYGON:        glBegin(GL_POLYGON);        break;
         }
-        for(auto& vertex : buf.vertices) {
-            // render vertices
+
+        auto& traits = color_format_traits[buffer.format];
+      
+        // todo: textures
+        for(size_t i = 0; i < buffer.v_count; i++) {
+            float r = traits.has_red   ? (float)buffer.colors[i * traits.size + traits.r_index] / 255.0f : 0.0f;
+            float g = traits.has_green ? (float)buffer.colors[i * traits.size + traits.g_index] / 255.0f : 0.0f;
+            float b = traits.has_blue  ? (float)buffer.colors[i * traits.size + traits.b_index] / 255.0f : 0.0f;
+            float a = traits.has_alpha ? (float)buffer.colors[i * traits.size + traits.a_index] / 255.0f : 1.0f;
+            glColor4f(r, g, b, a);
+            if(buffer.v_size == 2) glVertex2d(buffer.positions[i * 2], buffer.positions[i * 2 + 1]);
+            else glVertex3d(buffer.positions[i * 3], buffer.positions[i * 3 + 1], buffer.positions[i * 3 + 2]);
         }
+
         glEnd();
     }
 
 private:
     viewport vp;
 };
-
-export using opengl_renderer = renderer<RENDERER_OPENGL>;

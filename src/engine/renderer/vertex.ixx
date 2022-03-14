@@ -7,8 +7,9 @@ import math.vec;
 
 import <cstdint>;
 
-export template<size_t size, color_format format, class traits = color_format_traits<format>>
+export template<size_t size, color_format format, color_format_traits_t traits = color_format_traits[format]>
+    requires(size == 2 || size == 3)
 struct vertex {
     vec<double, size> pos;
-    traits::base_type color[traits::size];
+    unsigned char color[traits.size];
 };
