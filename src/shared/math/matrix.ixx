@@ -2,6 +2,7 @@ export module math.matrix;
 
 import math.vec;
 
+import tools.types;
 import tools.arrcpy;
 import tools.arrswap;
 
@@ -14,10 +15,10 @@ private:
     vec<T, m> vals[n] = { };
 
 public:
-    matrix()                            { }
-    matrix(const matrix&  M)            { arrcpy( vals, M.vals, n); }
-    matrix(      matrix&& M)            { arrswap(vals, M.vals, n); }
-    matrix(vec<T, m> v[n])              { arrcpy( vals, v,      n); }
+    matrix()                 { }
+    matrix(copy_t<matrix> M) { arrcpy( vals, M.vals, n); }
+    matrix(move_t<matrix> M) { arrswap(vals, M.vals, n); }
+    matrix(vec<T, m> v[n])   { arrcpy( vals, v,      n); }
     
     matrix(const std::initializer_list<T> ivals) noexcept(ivals.size() == n * m) {
         if(ivals.size() != n * m) throw std::invalid_argument(
@@ -39,8 +40,8 @@ public:
         }
     }
 
-    matrix& operator=(const matrix&  M) { arrcpy (vals, M.vals, n);                                                             return *this; }
-    matrix& operator=(      matrix&& M) { arrswap(vals, M.vals, n);                                                             return *this; }
+    matrix& operator=(copy_t<matrix> M) { arrcpy (vals, M.vals, n);                                                                  return *this; }
+    matrix& operator=(move_t<matrix> M) { arrswap(vals, M.vals, n);                                                                  return *this; }
 
     matrix  operator* (T val) { matrix ret { *this }; for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++)  ret[i][j] *= val; return   ret; }
     matrix& operator*=(T val) {                       for(size_t i = 0; i < n; i++) for(size_t j = 0; j < m; j++) vals[i][j] *= val; return *this; }

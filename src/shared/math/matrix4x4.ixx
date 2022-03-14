@@ -12,10 +12,10 @@ export template<class T>
 class matrix4x4 : public matrix<T, 4, 4> {
 public:
     matrix4x4()                           : matrix<T, 4, 4>()  { }
-    matrix4x4(const matrix<T, 4, 4>&  v)  : matrix<T, 4, 4>(v) { }
-    matrix4x4(      matrix<T, 4, 4>&& v)  : matrix<T, 4, 4>(v) { }
-    matrix4x4(const matrix4x4      &  v)  : matrix<T, 4, 4>(v) { }
-    matrix4x4(      matrix4x4      && v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(copy_t<matrix<T, 4, 4>> v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(move_t<matrix<T, 4, 4>> v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(copy_t<matrix4x4>       v)  : matrix<T, 4, 4>(v) { }
+    matrix4x4(move_t<matrix4x4>       v)  : matrix<T, 4, 4>(v) { }
     matrix4x4(T v00, T v10, T v20, T v30,
               T v01, T v11, T v21, T v31,
               T v02, T v12, T v22, T v32,
@@ -26,10 +26,10 @@ public:
         (*this)[0][3] = v03; (*this)[1][3] = v13; (*this)[2][3] = v23; (*this)[3][3] = v33;
     }
 
-    matrix4x4& operator=(const matrix<T, 4, 4>&  v)            { matrix<T, 4, 4>::operator=(v); return *this; }
-    matrix4x4& operator=(      matrix<T, 4, 4>&& v)            { matrix<T, 4, 4>::operator=(v); return *this; }
-    matrix4x4& operator=(const matrix4x4      &  v)            { matrix<T, 4, 4>::operator=(v); return *this; }
-    matrix4x4& operator=(      matrix4x4      && v)            { matrix<T, 4, 4>::operator=(v); return *this; }
+    matrix4x4& operator=(copy_t<matrix<T, 4, 4>> v) { matrix<T, 4, 4>::operator=(v); return *this; }
+    matrix4x4& operator=(move_t<matrix<T, 4, 4>> v) { matrix<T, 4, 4>::operator=(v); return *this; }
+    matrix4x4& operator=(copy_t<matrix4x4>       v) { matrix<T, 4, 4>::operator=(v); return *this; }
+    matrix4x4& operator=(move_t<matrix4x4>       v) { matrix<T, 4, 4>::operator=(v); return *this; }
 
     inline operator matrix2x2<T>() {
         return {
