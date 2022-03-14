@@ -126,13 +126,7 @@
     <ClCompile Include="..\shared\tools\arrswap.ixx">
       <Filter>shared\tools</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\math\matrix2x2.ixx">
-      <Filter>shared\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\math\matrix3x3.ixx">
-      <Filter>shared\math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\math\matrix4x4.ixx">
+    <ClCompile Include="..\shared\math\matrix_specializations.ixx">
       <Filter>shared\math</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\renderer\vertex.ixx">
@@ -146,6 +140,9 @@
     </ClCompile>
     <ClCompile Include="..\engine\renderer\color_format\color_format_traits.ixx">
       <Filter>engine\renderer\color_format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools\limit.ixx">
+      <Filter>shared\tools</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

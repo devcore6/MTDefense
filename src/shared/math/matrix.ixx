@@ -5,6 +5,7 @@ import math.vec;
 import tools.types;
 import tools.arrcpy;
 import tools.arrswap;
+import tools.limit;
 
 import <string>;
 import <stdexcept>;
@@ -20,7 +21,7 @@ public:
     matrix(move_t<matrix> M) { arrswap(vals, M.vals, n); }
     matrix(vec<T, m> v[n])   { arrcpy( vals, v,      n); }
     
-    matrix(const std::initializer_list<T> ivals) noexcept(ivals.size() == n * m) {
+    matrix(const std::initializer_list<T> ivals) {
         if(ivals.size() != n * m) throw std::invalid_argument(
             std::to_string(n)
           + 'x'
@@ -34,7 +35,7 @@ public:
         size_t y = 0;
 
         for(auto& val : ivals) {
-            vals[y][x] = val;
+            vals[x][y] = val;
             x++;
             if(x == n) { y++; x = 0; }
         }
@@ -68,11 +69,9 @@ public:
         return ret;
     };
 
-    vec<T, m>& operator[](size_t i) { return vals[min(i, n)]; }
+    vec<T, m>& operator[](size_t i) { return vals[min(i, n - 1)]; }
 
-    template<>
-        requires(n == 1)
-    operator vec<T, m>() { return vals[0]; }
+    operator vec<T, m>() requires(n == 1) { return vals[0]; }
 
     std::string to_string() {
         std::string ret { };

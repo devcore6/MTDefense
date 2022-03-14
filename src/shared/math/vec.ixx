@@ -2,6 +2,7 @@ export module math.vec;
 
 import tools.types;
 import tools.memswap;
+import tools.limit;
 
 import <string>;
 
@@ -37,7 +38,7 @@ public:
     T    magnitude ()             { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * vals[i];  return sqrt(ret); }
     vec  normalize ()             { return *this / magnitude(); }
 
-    T& operator[](size_t id)      { return vals[min(id, size)]; }
+    T& operator[](size_t id)      { return vals[min(id, size - 1)]; }
 
     operator matrix<T, 1, size>() { return { &vals }; }
 

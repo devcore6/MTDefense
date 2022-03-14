@@ -186,9 +186,7 @@
     <ClCompile Include="..\engine\renderer\vertex.ixx" />
     <ClCompile Include="..\shared\math.ixx" />
     <ClCompile Include="..\shared\math\matrix.ixx" />
-    <ClCompile Include="..\shared\math\matrix2x2.ixx" />
-    <ClCompile Include="..\shared\math\matrix3x3.ixx" />
-    <ClCompile Include="..\shared\math\matrix4x4.ixx" />
+    <ClCompile Include="..\shared\math\matrix_specializations.ixx" />
     <ClCompile Include="..\shared\math\vec.ixx" />
     <ClCompile Include="..\shared\math\vec2.ixx" />
     <ClCompile Include="..\shared\math\vec3.ixx" />
@@ -198,6 +196,7 @@
     <ClCompile Include="..\shared\tools\arrmove.ixx" />
     <ClCompile Include="..\shared\tools\arrswap.ixx" />
     <ClCompile Include="..\shared\tools\memswap.ixx" />
+    <ClCompile Include="..\shared\tools\limit.ixx" />
     <ClCompile Include="..\shared\tools\result.ixx" />
     <ClCompile Include="..\shared\tools\types.ixx" />
   </ItemGroup>
