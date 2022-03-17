@@ -476,7 +476,7 @@ struct enemy {
     double              slowed_for;
     double              frozen_for;
     uint32_t            id;
-    std::vector<debuff> debuffs;
+    //std::vector<debuff> debuffs;
 
     enemy() { }
     enemy(const uint8_t         v_base_type,
@@ -546,10 +546,10 @@ struct enemy_set {
 struct round_t {
     std::initializer_list<enemy_set> enemies;
     double          kill_cash_multiplier                = 1.00;
-    double          special_odds_multiplier             = 1.00;;
-    double          shield_strength_multiplier          = 1.00;;
-    double          enemy_speed_multiplier              = 1.00;;
-    double          enemy_health_multiplier             = 1.00;;
+    double          special_odds_multiplier             = 1.00;
+    double          shield_strength_multiplier          = 1.00;
+    double          enemy_speed_multiplier              = 1.00;
+    double          enemy_health_multiplier             = 1.00;
 };
 
 static const struct rounds {
@@ -1350,6 +1350,340 @@ static const struct rounds {
                 }
             }
         },
+        /* Round 33: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_NANO,
+                    /* spacing: */          8.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_MICRO,
+                    /* spacing: */          8.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_MILLI,
+                    /* spacing: */          8.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_CENTI,
+                    /* spacing: */          8.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_DECI,
+                    /* spacing: */          8.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_REGULAR,
+                    /* spacing: */          8.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_VOLCANIC,
+                    /* spacing: */          8.0,
+                    /* amount: */           1.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          8.0,
+                    /* amount: */           1.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_MILLI,
+                    /* spacing: */          2.0,
+                    /* amount: */           8.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            }
+        },
+        /* Round 34: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          8.0,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          2.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          8.0,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          2.0,
+                    /* amount: */           2.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          1.8,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            }
+        },
+        /* Round 35: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          4.0,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_VOLCANIC,
+                    /* spacing: */          4.0,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          3.8,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_VOLCANIC,
+                    /* spacing: */          3.8,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          3.4,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_VOLCANIC,
+                    /* spacing: */          3.4,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          2.8,
+                    /* amount: */           6.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            },
+            /* kill_cash_multiplier: */     0.8,
+            /* special_odds_multiplier: */  1.05
+        },
+        /* Round 36: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_REGULAR,
+                    /* spacing: */          4.0,
+                    /* amount: */           16.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_DECI,
+                    /* spacing: */          2.0,
+                    /* amount: */           12.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_REGULAR,
+                    /* spacing: */          4.0,
+                    /* amount: */           14.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_DECI,
+                    /* spacing: */          2.0,
+                    /* amount: */           14.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_REGULAR,
+                    /* spacing: */          4.0,
+                    /* amount: */           10.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_REGULAR,
+                    /* spacing: */          3.0,
+                    /* amount: */           10.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            },
+            /* kill_cash_multiplier: */     0.8,
+            /* special_odds_multiplier: */  1.05
+        },
+        /* Round 37: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          8.0,
+                    /* amount: */           8.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_VOLCANIC,
+                    /* spacing: */          8.0,
+                    /* amount: */           8.0,
+                    /* flags: */            E_FLAG_STEALTH,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            },
+            /* kill_cash_multiplier: */     0.8,
+            /* special_odds_multiplier: */  1.05
+        },
+        /* Round 38: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          8.0,
+                    /* amount: */           24.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_HARDENED,
+                    /* spacing: */          8.0,
+                    /* amount: */           1.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                }
+            },
+            /* kill_cash_multiplier: */     0.8,
+            /* special_odds_multiplier: */  1.05
+        },
+        /* Round 39: */ {
+            {
+                {
+                    /* base_type: */        ENEMY_VOLCANIC,
+                    /* spacing: */          8.0,
+                    /* amount: */           5.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_SIBERIAN,
+                    /* spacing: */          7.0,
+                    /* amount: */           5.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_EXPERIMENTAL,
+                    /* spacing: */          6.0,
+                    /* amount: */           5.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_HARDENED,
+                    /* spacing: */          6.0,
+                    /* amount: */           1.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_GIGA,
+                    /* spacing: */          6.0,
+                    /* amount: */           5.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+                {
+                    /* base_type: */        ENEMY_HARDENED,
+                    /* spacing: */          6.0,
+                    /* amount: */           4.0,
+                    /* flags: */            E_FLAG_NONE,
+                    /* immunities: */       DAMAGE_NONE,
+                    /* vulnerabilities: */  DAMAGE_NONE
+                },
+            },
+            /* kill_cash_multiplier: */     0.8,
+            /* special_odds_multiplier: */  1.05
+        },
     }
 };
 
@@ -1524,6 +1858,7 @@ struct projectile {
     double      debuff_dps;
     double      debuff_speed_multiplier;
     std::vector<enemy*> hits;
+    std::vector<enemy*>* enemies;
 };
 
 struct upgrade {
@@ -1554,6 +1889,7 @@ static struct tower_t {
     double                              range;
     bool                                place_on_water;
     uint8_t                             tower_family;
+    uint8_t                             flags;
     std::initializer_list<projectile_t> projectiles;
     upgrade                             upgrade_paths[3][6];
     std::map<std::string, animation_t>  animations;
@@ -1571,6 +1907,7 @@ static struct tower_t {
         /* range: */                                    250.00,
         /* place_on_water: */                           false,
         /* tower_family: */                             TOWER_TYPE_PHYSICAL,
+        /* flags: */                                    T_FLAG_NONE,
         /* projectiles: */ {
             {
                 /* texture: */                          texture_t("Data/Towers/Sentry/Projectiles/Basic pellet.png"),
@@ -1603,7 +1940,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Lighter bolt moves faster to allow for 15% faster firing rate." }
                     },
-                    /* base_price: */                   75.00,
+                    /* base_price: */                   70.00,
                     /* range_mod: */                    1.0,
                     /* fire_rate_mod: */                1.15,
                     /* speed_mod: */                    1.0,
@@ -1625,7 +1962,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Ported receiver allows for better cooling for even faster firing." }
                     },
-                    /* base_price: */                   200.00,
+                    /* base_price: */                   190.00,
                     /* range_mod: */                    1.0,
                     /* fire_rate_mod: */                1.38,
                     /* speed_mod: */                    1.0,
@@ -1647,7 +1984,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Two barrels shoot twice as fast." }
                     },
-                    /* base_price: */                   400.00,
+                    /* base_price: */                   420.00,
                     /* range_mod: */                    1.0,
                     /* fire_rate_mod: */                2.00,
                     /* speed_mod: */                    1.0,
@@ -1713,7 +2050,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Adds a third barrel, and DOUBLES the firing rate of each barrel for ultimate destruction." }
                     },
-                    /* base_price: */                   12500.00,
+                    /* base_price: */                   15000.00,
                     /* range_mod: */                    1.00,
                     /* fire_rate_mod: */                3.00,
                     /* speed_mod: */                    1.0,
@@ -1737,7 +2074,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Allows this sentry to target and hit stealthed enemies." }
                     },
-                    /* base_price: */                   200.00,
+                    /* base_price: */                   240.00,
                     /* range_mod: */                    1.00,
                     /* fire_rate_mod: */                1.00,
                     /* speed_mod: */                    1.0,
@@ -1759,7 +2096,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "This sentry fires sharpened bullets which can target armored enemies." }
                     },
-                    /* base_price: */                   350.00,
+                    /* base_price: */                   360.00,
                     /* range_mod: */                    1.00,
                     /* fire_rate_mod: */                1.00,
                     /* speed_mod: */                    1.0,
@@ -1957,7 +2294,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Adds a tough copper jacket to the projectiles which doubles the projectile's damage." }
                     },
-                    /* base_price: */                   275.00,
+                    /* base_price: */                   260.00,
                     /* range_mod: */                    1.00,
                     /* fire_rate_mod: */                1.00,
                     /* speed_mod: */                    1.0,
@@ -1979,7 +2316,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Replaces the projectiles with much stronger larger caliber ones, which doubles the damage once more." }
                     },
-                    /* base_price: */                   1200.00,
+                    /* base_price: */                   1300.00,
                     /* range_mod: */                    1.00,
                     /* fire_rate_mod: */                1.00,
                     /* speed_mod: */                    1.0,
@@ -2001,7 +2338,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Replaces the tripod with a studier hardened steel one, which allows for higher accuracy and thus higher damage. Doubles total damage output once more, and slightly increases fire rate." }
                      },
-                    /* base_price: */                   3100.00,
+                    /* base_price: */                   3250.00,
                     /* range_mod: */                    1.00,
                     /* fire_rate_mod: */                1.20,
                     /* speed_mod: */                    1.0,
@@ -2098,6 +2435,7 @@ static struct tower_t {
         /* range: */                                    250.00,
         /* place_on_water: */                           false,
         /* tower_family: */                             TOWER_TYPE_PHYSICAL,
+        /* flags: */                                    T_FLAG_NONE,
         /* projectiles: */ {
             {
                 /* texture: */                          texture_t("Data/Towers/Tank/Projectiles/Basic shell.png"),
@@ -2113,7 +2451,7 @@ static struct tower_t {
                 /* lifetime: */                         0.0,
                 /* damage_maxhits: */                   1,
                 /* range_maxhits: */                    14,
-                /* damage_range: */                     32.0,
+                /* damage_range: */                     64.0,
                 /* damage_type: */                      DAMAGE_HEAT | DAMAGE_PRESSURE,
                 /* hit_animation: */                    { },
                 /* debuff_duration: */                  0.0,
@@ -2130,7 +2468,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Larger shells deal larger explosions and can destroy more enemies." }
                     },
-                    /* base_price: */                   300.00,
+                    /* base_price: */                   350.00,
                     /* range_mod: */                    1.05,
                     /* fire_rate_mod: */                1.00,
                     /* speed_mod: */                    1.0,
@@ -2140,7 +2478,7 @@ static struct tower_t {
                     /* extra_damage_maxhits_linear: */  0,
                     /* extra_damage_maxhits_range: */   4,
                     /* extra_damage_linear: */          0.0,
-                    /* extra_damage_range: */           16.0,
+                    /* extra_damage_range: */           32.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
                     /* projectiles: */                  { }
@@ -2152,7 +2490,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Heavy shells deal more damage and can destroy more enemies." }
                     },
-                    /* base_price: */                   700.00,
+                    /* base_price: */                   725.00,
                     /* range_mod: */                    1.05,
                     /* fire_rate_mod: */                1.00,
                     /* speed_mod: */                    1.0,
@@ -2174,7 +2512,7 @@ static struct tower_t {
                     /* desc: */ {
                         { "en_US", "Shells deal huge explosions, with a much larger range and can damage way more enemies." }
                     },
-                    /* base_price: */                   1200.00,
+                    /* base_price: */                   1400.00,
                     /* range_mod: */                    1.0,
                     /* fire_rate_mod: */                1.00,
                     /* speed_mod: */                    1.0,
@@ -2184,7 +2522,7 @@ static struct tower_t {
                     /* extra_damage_maxhits_linear: */  0,
                     /* extra_damage_maxhits_range: */   20,
                     /* extra_damage_linear: */          0.0,
-                    /* extra_damage_range: */           16.0,
+                    /* extra_damage_range: */           32.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
                     /* projectiles: */                  { }
@@ -2250,7 +2588,7 @@ static struct tower_t {
                     /* extra_damage_maxhits_linear: */  0,
                     /* extra_damage_maxhits_range: */   40,
                     /* extra_damage_linear: */          0.0,
-                    /* extra_damage_range: */           64.0,
+                    /* extra_damage_range: */           96.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
                     /* projectiles: */                  { }
@@ -2474,7 +2812,7 @@ static struct tower_t {
                     /* extra_damage_maxhits_linear: */  4,
                     /* extra_damage_maxhits_range: */   32,
                     /* extra_damage_linear: */          128.0,
-                    /* extra_damage_range: */           16.0,
+                    /* extra_damage_range: */           24.0,
                     /* extra_damage_types: */           DAMAGE_SHARP,
                     /* hit_animations: */               { },
                     /* projectiles: */                  { }
@@ -2518,7 +2856,7 @@ static struct tower_t {
                     /* extra_damage_maxhits_linear: */  8,
                     /* extra_damage_maxhits_range: */   16,  
                     /* extra_damage_linear: */          32.0,
-                    /* extra_damage_range: */           32.0,
+                    /* extra_damage_range: */           40.0,
                     /* extra_damage_types: */           DAMAGE_MAGIC,
                     /* hit_animations: */               { },
                     /* projectiles: */                  { }
@@ -2560,9 +2898,10 @@ public:
                              tower(tower_t& t, double c, double x, double y);
     void                     tick(double time);
     bool                     can_fire();
-    result<projectile, void> fire(enemy* e);
+    result<projectile, void> fire(enemy* e, std::vector<enemy*>* targets);
     void                     render();
-    void                     try_upgrade(uint8_t path, double price);
+    bool                     try_upgrade(uint8_t path, double price);
+    void                     set_upgrades(uint8_t bot, uint8_t mid, uint8_t top, double price);
 };
 
 struct game_state {

@@ -5,8 +5,6 @@
 
 using sc = std::chrono::system_clock;
 
-struct client_t;
-
 struct client_t {
     uint32_t cn;
     ENetPeer* peer = nullptr;

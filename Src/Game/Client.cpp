@@ -801,19 +801,21 @@ void handle_packet(packetstream& p) {
                 double   cost { 0.0 };
 
                 p >> tid
-                  >> top
-                  >> mid
                   >> bot
+                  >> mid
+                  >> top
                   >> cost;
 
                 for(auto& t : cs.towers)
                     if(t.id == tid) {
-                        t.upgrade_paths[0] = top;
-                        t.upgrade_paths[1] = mid;
-                        t.upgrade_paths[2] = bot;
-                        t.cost += cost;
+                        t.set_upgrades(bot, mid, top, cost);
                         break;
                     }
+
+                if(selected->id == tid) {
+                    glDeleteTextures(1, &range_texture);
+                    range_texture = 0;
+                }
 
                 break;
             }

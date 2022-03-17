@@ -1,3 +1,46 @@
+# r38 Bug fixes and balancing updates
+## Server
+
+- Fixed explosion damage not working correctly
+- Fixed projectiles not despawning when going out of range
+- Marginal performance improvements
+
+## Client
+
+- Fixed range texture not updating when purchasing a new tower range upgrade
+
+## Balancing updates
+### Tank tower
+
+- Doubled base explosion range
+- Increased additional explosion range for all explosion range upgrades
+- Increased base cost of bigger shells upgrade to 350.00
+- Increased base cost of heavy shells upgrade to 725.00
+- Increased base cost of huge explosions upgrade to 1400.00
+
+### Sentry tower
+
+- Decreased base cost of faster firing upgrade to 70.00
+- Decreased base cost of ported receiver upgrade to 190.00
+- Decreased base cost of copper jacket upgrade to 260.00
+- Increased base cost of double barrel upgrade to 420.00
+- Increased base cost of the SHREDDER upgrade to 15000.00
+- Increased base cost of stealth detection upgrade to 240.00
+- Increased base cost of sharpened bullets upgrade to 360.00
+- Increased base cost of larger caliber upgrade to 1300.00
+- Increased base cost of hardened steel tripod upgrade to 3250.00
+
+### Other
+
+- Increased base start cash from 750.00 to 950.00
+- Increased start cash for 2 players to  975.00
+- Increased start cash for 3 players to 1000.00
+- Increased start cash for 4 players to 1025.00
+
+## Other
+
+- Added rounds 33...39
+
 # r37 Tank tower (WIP)
 ## Towers
 

@@ -160,17 +160,17 @@ void tower_cycle(double dt, size_t i, std::vector<projectile>* vec) {
         t.tick(dt);
         if(!t.can_fire()) continue;
 
-        std::vector<enemy*>* enemies = nullptr;
+        std::vector<enemy*>* enemies = &gs.first;
         switch(t.targeting_mode) {
-            case TARGETING_FIRST:  { enemies = &gs.first;  break; }
-            case TARGETING_LAST:   { enemies = &gs.last;   break; }
-            case TARGETING_STRONG: { enemies = &gs.strong; break; }
-            case TARGETING_WEAK:   { enemies = &gs.weak;   break; }
-            default:               { enemies = &gs.first;  break; }
+         // case TARGETING_FIRST:  enemies = &gs.first;  break; not needed
+            case TARGETING_LAST:   enemies = &gs.last;   break;
+            case TARGETING_STRONG: enemies = &gs.strong; break;
+            case TARGETING_WEAK:   enemies = &gs.weak;   break;
+         // default:               enemies = &gs.first;  break; not needed
         }
 
         for(auto& e : *enemies) {
-            auto p = t.fire(e);
+            auto p = t.fire(e, enemies);
             if(p) {
                 vec->push_back(p.ok);
                 break;
@@ -255,38 +255,43 @@ void do_damage(projectile_cycle_data* data, projectile& p, enemy* e) {
 void detonate (projectile_cycle_data* data, projectile& p) {
     vertex_2d pos = p.start + p.direction_vector * p.travelled;
 
-    for(auto& e : gs.created_enemies) {
+    for(auto& e : *p.enemies) {
         if(!p.remaining_range_hits) return;
 
-        vec2 epos = e.route->get_position_at(e.distance_traveled);
+        bool c = false;
+        for(auto& id : data->enemies_to_erase)
+            if(e->id == id) { c = true; break; }
+        if(c) continue;
+
+        vec2 epos = e->route->get_position_at(e->distance_traveled);
         double dx = epos.x - pos.x;
         double dy = epos.y - pos.y;
         double d = sqrt(dx * dx + dy * dy);
 
         if(d <= p.damage_range) {
-            std::lock_guard l { e.lock };
+            std::lock_guard l { e->lock };
 
-            if(e.health <= 0.0)                                           continue;
+            if(e->health <= 0.0)                                           continue;
 
-            if(e.flags & E_FLAG_STEALTH && ~p.flags & P_FLAG_STEALTH_TAR) continue;
-            if(e.flags & E_FLAG_ARMORED && ~p.flags & P_FLAG_ARMORED_TAR) continue;
+            if(e->flags & E_FLAG_STEALTH && ~p.flags & P_FLAG_STEALTH_TAR) continue;
+            if(e->flags & E_FLAG_ARMORED && ~p.flags & P_FLAG_ARMORED_TAR) continue;
 
-            if(p.damage_type & ~e.immunities)                             continue;
+            if(!(p.damage_type & ~e->immunities))                             continue;
 
             p.remaining_range_hits--;
 
             double dmg = p.damage;
-            if(p.damage_type & e.vulnerabilities) dmg *= 2;
+            if(p.damage_type & e->vulnerabilities) dmg *= 2;
 
-            if(p.flags & P_FLAG_STRIP_ARMOR)   e.flags &= ~E_FLAG_ARMORED;
-            if(p.flags & P_FLAG_STRIP_STEALTH) e.flags &= ~E_FLAG_STEALTH;
-            if(e.flags & E_FLAG_SHIELD)      { e.flags &= ~E_FLAG_SHIELD; return; }
+            if(p.flags & P_FLAG_STRIP_ARMOR)   e->flags &= ~E_FLAG_ARMORED;
+            if(p.flags & P_FLAG_STRIP_STEALTH) e->flags &= ~E_FLAG_STEALTH;
+            if(e->flags & E_FLAG_SHIELD)      { e->flags &= ~E_FLAG_SHIELD; return; }
 
-            e.health -= dmg;
+            e->health -= dmg;
 
-            if(e.health <= 0.0) {
-                data->enemies_to_erase.push_back(e.id);
-                queue_spawns(data, abs(e.health), enemy_types[e.base_type], e.flags, e.route, e.distance_traveled);
+            if(e->health <= 0.0) {
+                data->enemies_to_erase.push_back(e->id);
+                queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, e->distance_traveled);
             }
         }
     }
@@ -297,7 +302,7 @@ void projectile_cycle(double dt, size_t i, projectile_cycle_data* data) {
         p.travelled += p.speed * dt;
 
         if(p.travelled > p.range) {
-            data->projectiles_to_erase.push_back(std::make_pair(p.id, false));
+            data->projectiles_to_erase.push_back(std::make_pair(p.pid, false));
             continue;
         }
 
@@ -323,7 +328,7 @@ void projectile_cycle(double dt, size_t i, projectile_cycle_data* data) {
                 { epos + vec2 { -w * 0.55,  h * 0.625 } }
             } };
 
-            if(bounding_box.contains(pos, 4.0 + p.speed * dt)) {
+            if(bounding_box.contains(pos, 4.0)) {
                 do_damage(data, p, &e);
 
                 if(!p.remaining_hits) {
@@ -484,7 +489,6 @@ void servertick() {
                                       << gs.projectiles[i].pid;
 
                         gs.projectiles.erase(gs.projectiles.begin() + i);
-                        i--;
                         break;
                     }
 
@@ -496,7 +500,6 @@ void servertick() {
                                   << gs.created_enemies[i].id;
 
                         gs.created_enemies.erase(gs.created_enemies.begin() + i);
-                        i--;
                         break;
                     }
 
@@ -672,7 +675,7 @@ _loop:
             clientinfo ci;
             ci.cn = c.cn;
             ci.id = (uint32_t)clientinfos.size();
-            ci.cash = 750.0 * gs.diff.start_cash_modifier / maxclients;
+            ci.cash = 950.0 * gs.diff.start_cash_modifier / (double)maxclients + 25.0 * (double)(maxclients - 1);
 
             clientinfos.push_back(ci);
             clients[clients.size() - 1].data = (void*)&clientinfos[clientinfos.size() - 1];
