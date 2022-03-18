@@ -83,8 +83,8 @@ void init() {
     gs.weak                 .clear();
     gs.projectiles          .clear();
     gs.last_tick           = sc::now();
-    gs.last_spawned_tick   = sc::now();
     gs.towers               .clear();
+    gs.time_elapsed        = 0.0;
 }
 
 command(play, [](std::vector<std::string>& args) {
@@ -108,11 +108,11 @@ command(echo, [](std::vector<std::string>& args) {
 
 void init_round() {
     gs.running             = true;
-    gs.last_spawned_tick   = sc::now();
     gs.last_round          = gs.cur_round;
     gs.done_spawning       = false;
     gs.spawned_enemies     = 0;
     gs.spawned_projectiles = 0;
+    gs.time_elapsed        = 0;
     gs.projectiles.clear();
 }
 
@@ -364,16 +364,15 @@ void servertick() {
 
         if(!gs.done_spawning) {
             size_t pos = 0;
-            double time_elapsed = (double)std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - gs.last_spawned_tick).count();
+            gs.time_elapsed += dt;
             
             for(auto& set : gs.diff.round_set.r[gs.cur_round].enemies) {
                 size_t n_set = (size_t)(set.amount * gs.diff.enemy_amount_modifier);
                 if(gs.spawned_enemies >= pos + n_set) { pos += n_set; continue; }
                 size_t n_left = pos + n_set - gs.spawned_enemies;
-                size_t n_spawn = (size_t)(time_elapsed * (gs.double_speed ? 0.05 : 0.025) / set.spacing);
+                size_t n_spawn = (size_t)(gs.time_elapsed * 25.0 / set.spacing);
                 if(n_spawn == 0) break;
                 if(n_left > 0) {
-                    gs.last_spawned_tick = sc::now();
                     for(auto i : iterate(min(n_spawn, n_left))) {
                         gs.last_route = limit(0, gs.last_route + 1, current_map->paths.size() - 1);
 
@@ -389,7 +388,7 @@ void servertick() {
                                                  *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                             random_flags |= E_FLAG_SHIELD;
 
-                        gs.created_enemies.push_back(std::move<enemy>({
+                        gs.created_enemies.push_back({
                             /* base_type:          */ set.base_type,
                             /* route:              */ &current_map->paths[gs.last_route],
                             /* distance_traveled: */ 0.0,
@@ -412,7 +411,7 @@ void servertick() {
                             /* slowed_for:         */ 0.0,
                             /* frozen_for:         */ 0.0,
                             /* id:                 */ gs.all_spawned_enemies
-                        }));
+                        });
 
                         broadcast << N_SPAWN_ENEMY
                                   << 38_u32
@@ -434,6 +433,7 @@ void servertick() {
                     }
 
                     update_targeting_priorities();
+                    gs.time_elapsed = 0.0;
                     break;
                 }
             }
@@ -505,7 +505,7 @@ void servertick() {
 
             for(auto& s : data.enemies_to_add) {
                 auto& e = s.first;
-                gs.created_enemies.push_back(std::move<enemy>({
+                gs.created_enemies.push_back({
                     /* base_type:          */ e.base_type,
                     /* route:              */ s.third,
                     /* distance_traveled: */ s.fourth,
@@ -529,7 +529,7 @@ void servertick() {
                     /* slowed_for:         */ 0.0,
                     /* frozen_for:         */ 0.0,
                     /* id:                 */ gs.all_spawned_enemies
-                }));
+                });
 
                 broadcast << N_SPAWN_ENEMY
                           << 38_u32
@@ -635,11 +635,14 @@ packetstream update_entities() {
           << t.pos_y
           << t.cost
           << N_UPGRADETOWER
+          << 15_u32
           << t.id
           << t.upgrade_paths[0]
           << t.upgrade_paths[1]
           << t.upgrade_paths[2]
+          << 0.0
           << N_UPDATETARGETING
+          << 5_u32
           << t.id
           << t.targeting_mode;
     }
@@ -704,12 +707,10 @@ _loop:
                       << (uint32_t)(12_u32 + get_raw_client(c.cn)->name.length())
                       << c.id
                       << c.cash
-                      << get_raw_client(c.cn)->name;
+                      << get_raw_client(c.cn)->name
+                      << update_entities();
 
             send_packet(peer, 0, true, reply);
-            
-            packetstream update { update_entities() };
-            send_packet(peer, 0, true, update);
 
             if(clients.size() != 1) {
                 packetstream p;

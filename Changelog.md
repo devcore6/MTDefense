@@ -1,3 +1,18 @@
+# r39 Bug fixes and autoconf/automake scripts
+## Server
+
+- Fixed desync issue when reconnecting to server
+- Slightly increased projectile despawn range
+- Fixed enemy spawning being out of sync when changing speed / pausing
+
+## Client
+
+- Client now synchronizes with the server at the end of every round
+
+## Linux
+
+- Replaced Makefile with proper autoconf/automake scripts (create `./configure` with `autoreconf --verbose --install --force`)
+
 # r38 Bug fixes and balancing updates
 ## Server
 
@@ -33,9 +48,7 @@
 ### Other
 
 - Increased base start cash from 750.00 to 950.00
-- Increased start cash for 2 players to  975.00
-- Increased start cash for 3 players to 1000.00
-- Increased start cash for 4 players to 1025.00
+- Increased each player's start cash by 25.00 for each player above 1
 
 ## Other
 

@@ -868,12 +868,14 @@ void handle_packet(packetstream& p) {
             case N_ROUNDOVER: {
                 cs.running = false;
                 cs.cur_round++;
+                packetstream p { };
+                p << N_REQUEST_UPDATE
+                  << 0_u32;
                 if(autostart_rounds) {
-                    packetstream p { };
                     p << N_STARTROUND
                       << 0_u32;
-                    send_packet(peer, 0, true, p);
                 }
+                send_packet(peer, 0, true, p);
                 break;
             }
             case N_GAMEOVER:          break; // todo

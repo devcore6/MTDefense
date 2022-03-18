@@ -7,3 +7,4 @@ Data/Config/
 Data/Autoexec/
 desktop.ini
 .DS_Store
+Makefile

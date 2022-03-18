@@ -2925,8 +2925,8 @@ struct game_state {
     std::vector<enemy*>     weak;
     std::vector<projectile> projectiles;
     sc::time_point          last_tick;
-    sc::time_point          last_spawned_tick;
     std::vector<tower>      towers;
+    double                  time_elapsed;
 };
 
 extern game_state gs;
