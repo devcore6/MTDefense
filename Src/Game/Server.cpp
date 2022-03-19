@@ -276,7 +276,7 @@ void detonate (projectile_cycle_data* data, projectile& p) {
             if(e->flags & E_FLAG_STEALTH && ~p.flags & P_FLAG_STEALTH_TAR) continue;
             if(e->flags & E_FLAG_ARMORED && ~p.flags & P_FLAG_ARMORED_TAR) continue;
 
-            if(!(p.damage_type & ~e->immunities))                             continue;
+            if(!(p.damage_type & ~e->immunities))                          continue;
 
             p.remaining_range_hits--;
 
@@ -601,7 +601,7 @@ void servertick() {
     }
 }
 
-packetstream update_entities() {
+std::string update_entities() {
     packetstream p;
 
     p << N_UPDATE_ENTITIES
@@ -647,7 +647,10 @@ packetstream update_entities() {
           << t.targeting_mode;
     }
 
-    return p;
+    std::string data { };
+    p.read(data, p.tellp() - 1);
+
+    return data;
 }
 
 result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
@@ -670,7 +673,8 @@ result<void, int> handle_packets(packetstream packet, ENetPeer* peer) {
 _loop:
             for(auto& cl : clients)
                 if(cl.cn == c.cn) {
-                    c.cn++; goto _loop;
+                    c.cn++;
+                    goto _loop;
                 }
 
             clients.push_back(c);
@@ -707,8 +711,9 @@ _loop:
                       << (uint32_t)(12_u32 + get_raw_client(c.cn)->name.length())
                       << c.id
                       << c.cash
-                      << get_raw_client(c.cn)->name
-                      << update_entities();
+                      << get_raw_client(c.cn)->name;
+
+            reply << update_entities();
 
             send_packet(peer, 0, true, reply);
 

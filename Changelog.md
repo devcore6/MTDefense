@@ -1,3 +1,44 @@
+# r40 Bug Fixes
+## Client
+
+- Fixed a game crash on start of rounds
+
+## Server
+
+- Fixed towers placed before a player joined not being visible for that player
+
+## Balancing
+### Sentry tower
+
+- Increased base price from 185.00 to 200.00
+- Increased base max hits from 1 to 2
+- Increased base cost of double barrel to 500.00
+- Increased base price of hotter gunpowder to 800.00
+- Increased base price of explosive ammunition to 3000.00
+- Increased base price of rifled barrels to 1750.00
+- Increased base price of copper jacket to 420.00
+- Increased base price of larger caliber to 1800.00
+- Increased base price of hardened steel tripod to 4500.00
+- Increased base price of steel penetrator cores to 6000.00
+- Decreased damage modifier of larger caliber to 1.75
+- Decreased fire rate modifier of hardened steel tripod to 1.05
+- Decreased damage modifier of hardened steel tripod to 1.75
+- Decreased damage modifier of steel penetrator cores to 1.00
+
+### Tank tower
+
+- Decreased range modifier of larger shells to 1.02
+- Decreased range modifier of heavy shells to 1.02
+- Decreased range modifier of projectile enlargment pills to 1.15
+- Decreased range modifier of modern armor to 1.15
+- Decreased range modifier of extremely modern armor to 1.20
+- Decreased range modifier of Panzerkampfläufer to 1.40
+
+### Other
+
+- Significantly nerfed most rounds
+- Kill cash multiplier now falls to 0.8 at round 30 instead of 35
+
 # r39 Bug fixes and autoconf/automake scripts
 ## Server
 

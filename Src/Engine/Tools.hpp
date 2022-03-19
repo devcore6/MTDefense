@@ -918,7 +918,8 @@ public:
         return ret;
     };
 
-    vec<T, m>& operator[](size_t i)    { return vals[min(i, n)]; }
+    vec<T, m>& operator[](size_t i) { return vals[min(i, n - 1)]; }
+    operator vec<T, m>() requires(n == 1) { return vals[0]; }
 
     std::string to_string() {
         std::string ret { };
@@ -1081,7 +1082,7 @@ public:
     T    magnitude ()             { T ret { 0 }; for(size_t i = 0; i < size; i++) ret += vals[i] * vals[i];  return sqrt(ret); }
     vec  normalize ()             { return *this / magnitude(); }
 
-    T& operator[](size_t id)      { return vals[min(id, size)]; }
+    T& operator[](size_t id)      { return vals[min(id, size - 1)]; }
 
     operator matrix<T, 1, size>() { return { &vals }; }
 

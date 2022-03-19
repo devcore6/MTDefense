@@ -6,6 +6,12 @@
 #include <future>
 #include <cxxgui/cxxgui.hpp>
 
+#ifdef _DEBUG
+# define DEBUGOUT(message) conout("debug: "_str + message)
+#else
+# define DEBUGOUT(message)
+#endif
+
 using namespace cxxgui;
 svarp(language, "en_US"_str);
 
@@ -374,7 +380,7 @@ void do_connect() {
                         p.read(playerinfo.name, size - 12_u32);
                     } else {
                         clientinfo ci { };
-                        p >> ci.id;
+                        ci.id = id;
                         p >> ci.cash;
                         p.read(ci.name, size - 12_u32);
                         playerinfos.push_back(ci);
@@ -384,7 +390,13 @@ void do_connect() {
                       >> size;
                 }
 
-                if(p) handle_packet(p);
+                if(p) {
+                    packetstream tmp { };
+                    tmp << packet_type;
+                    tmp << size;
+                    tmp << p;
+                    handle_packet(tmp);
+                }
 
                 connected = true;
             }
@@ -759,7 +771,10 @@ void handle_packet(packetstream& p) {
                   >> y
                   >> cost;
 
-                if(base_type >= NUMTOWERS) break;
+                if(base_type >= NUMTOWERS) {
+                    DEBUGOUT("Unrecognized tower type: " + std::to_string(base_type));
+                    break;
+                }
 
                 uint32_t last_selected = -1;
                 if(selected)
@@ -812,7 +827,7 @@ void handle_packet(packetstream& p) {
                         break;
                     }
 
-                if(selected->id == tid) {
+                if(selected && selected->id == tid) {
                     glDeleteTextures(1, &range_texture);
                     range_texture = 0;
                 }
@@ -985,9 +1000,7 @@ void handle_packet(packetstream& p) {
             }
             case N_REFRESHMENU: ui.last_selected = nullptr; break;
             default: {
-#ifdef _DEBUG
-                conout("Unrecognized packet type ("_str + std::to_string(msgtype) + ')');
-#endif
+                DEBUGOUT("Unrecognized packet type ("_str + std::to_string(msgtype) + ')');
                 p.read(nullptr, (size_t)size);
                 break;
             }
