@@ -47,10 +47,7 @@ bool can_place(std::vector<tower>& towers, tower_t& base_type, double x, double 
     return true;
 }
 
-constexpr uint32_t projectile_size = (uint32_t)(sizeof  (projectile)
-                                              - offsetof(projectile, id)
-                                              - sizeof  (projectile)
-                                              + offsetof(projectile, hits));
+constexpr uint32_t projectile_size = (uint32_t)(offsetof(projectile, hits) - offsetof(projectile, id));
 
 iconst(DIFF_EASY,       DIFF_EASY);
 iconst(DIFF_MEDIUM,     DIFF_MEDIUM);
@@ -187,12 +184,13 @@ struct projectile_cycle_data {
         double second;
         line_strip_t* third;
         double fourth;
+        projectile& fifth;
     };
     std::vector<e>                         enemies_to_add;
     double                                 extra_cash { 0.0 };
 };
 
-void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, uint16_t flags, line_strip_t* p, double dist) {
+void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, uint16_t flags, line_strip_t* p, projectile& pj, double dist) {
     data->extra_cash += e.base_kill_reward
                      *  gs.diff.enemy_kill_reward_modifier
                      *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier;
@@ -205,7 +203,7 @@ void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, 
                       * gs.diff.enemy_health_modifier
                       * gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier;
 
-        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags, p, dist);
+        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags, p, pj, dist);
         else {
             uint8_t random_flags = E_FLAG_NONE;
 
@@ -220,7 +218,7 @@ void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, 
                 random_flags |= E_FLAG_SHIELD;
             
             s.flags |= (uint8_t)(flags | random_flags);
-            data->enemies_to_add.push_back({ s, excess_damage, p, dist });
+            data->enemies_to_add.push_back({ s, excess_damage, p, dist, pj });
         }
     }
 }
@@ -248,7 +246,7 @@ void do_damage(projectile_cycle_data* data, projectile& p, enemy* e) {
     e->health -= dmg;
     if(e->health <= 0.0) {
         data->enemies_to_erase.push_back(e->id);
-        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, e->distance_traveled);
+        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, e->distance_traveled);
     }
 }
 
@@ -291,7 +289,7 @@ void detonate (projectile_cycle_data* data, projectile& p) {
 
             if(e->health <= 0.0) {
                 data->enemies_to_erase.push_back(e->id);
-                queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, e->distance_traveled);
+                queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, e->distance_traveled);
             }
         }
     }
@@ -508,7 +506,7 @@ void servertick() {
                 gs.created_enemies.push_back({
                     /* base_type:          */ e.base_type,
                     /* route:              */ s.third,
-                    /* distance_traveled: */ s.fourth,
+                    /* distance_traveled:  */ s.fourth,
                     /* pos:                */ (*s.third)[0],
                     /* max_health:         */ e.base_health
                                            *  gs.diff.enemy_health_modifier
@@ -530,6 +528,8 @@ void servertick() {
                     /* frozen_for:         */ 0.0,
                     /* id:                 */ gs.all_spawned_enemies
                 });
+
+                s.fifth.hits.push_back(&gs.created_enemies[gs.created_enemies.size() - 1]);
 
                 broadcast << N_SPAWN_ENEMY
                           << 38_u32
@@ -648,7 +648,7 @@ std::string update_entities() {
     }
 
     std::string data { };
-    p.read(data, p.tellp() - 1);
+    p.read(data, p.size());
 
     return data;
 }
@@ -857,18 +857,55 @@ _loop:
 
                 break;
             }
-            case N_UPDATETARGETING: break;                            // todo
+            case N_UPDATETARGETING: {
+                uint32_t tid { 0 };
+                uint8_t targeting { 0 };
+                packet >> tid
+                       >> targeting;
+                tower* t = nullptr;
+
+                if(targeting > NUMTARGETINGS) break;
+
+                bool owned = false;
+
+                for(auto& id : client->towers)
+                    if(id == tid) {
+                        owned = true;
+                        break;
+                    }
+
+                if(!owned) break;
+
+                for(auto& twr : gs.towers)
+                    if(twr.id == tid) {
+                        t = &twr;
+                        break;
+                    }
+
+                if(!t) break; 
+                t->targeting_mode = targeting;
+
+                broadcast << N_UPDATETARGETING
+                          << 5_u32
+                          << t->id
+                          << t->targeting_mode;
+
+                reply << N_REFRESHMENU
+                      << 0_u32;
+                break;
+            }
             case N_SELLTOWER:       break;                            // todo
 
             case N_UPDATE_CASH:
             case N_UPDATE_LIVES:    return DISC_MSGERR;
 
             case N_REQUEST_UPDATE: {
-                for(auto& ci : clientinfos)
+                for(auto& ci : clientinfos) {
                     reply << N_UPDATE_CASH
                           << 12_u32
                           << ci.id
                           << ci.cash;
+                    }
 
                 reply << N_UPDATE_LIVES
                       << 8_u32

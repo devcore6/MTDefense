@@ -39,7 +39,8 @@ enum {
     TARGETING_FIRST         = 0,
     TARGETING_LAST,
     TARGETING_WEAK,
-    TARGETING_STRONG
+    TARGETING_STRONG,
+    NUMTARGETINGS
 };
 
 enum {
@@ -2948,3 +2949,10 @@ struct clientinfo {
 #ifndef __SERVER__
 extern clientinfo playerinfo;
 #endif
+
+static dictionary_entry targeting_mode_names[NUMTARGETINGS] = {
+    /* TARGETING_FIRST:  */ { { "en_US", "First"  } },
+    /* TARGETING_LAST:   */ { { "en_US", "Last"   } },
+    /* TARGETING_WEAK:   */ { { "en_US", "Weak"   } },
+    /* TARGETING_STRONG: */ { { "en_US", "Strong" } }
+};

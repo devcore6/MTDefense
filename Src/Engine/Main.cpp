@@ -80,28 +80,6 @@ int main(int argc, char* argv[]) {
 
     reload_graphics();
 
-    // this is just for testing
-    /*if(peer) {
-        for(;;) {
-            ENetEvent e { };
-            if(enet_host_service(client, &e, 5000) > 0) {
-                switch(e.type) {
-                    case ENET_EVENT_TYPE_RECEIVE: {
-                        break;
-                    }
-                    case ENET_EVENT_TYPE_DISCONNECT: exit(1);
-                    default: break;
-                }
-            }
-            packetstream p;
-            p << N_PING << 0_u32;
-            send_packet(peer, 0, true, p);
-        }
-    }*/
-
-    //init_game();
-    //init_match(init_map("Data/Maps/Test.bin"_str, MAP_BEGINNER), medium);
-
     while(!quit) {
         main_loop_stub();
     }

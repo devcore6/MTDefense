@@ -7,9 +7,14 @@
 #include <cxxgui/cxxgui.hpp>
 
 #ifdef _DEBUG
-# define DEBUGOUT(message) conout("debug: "_str + message)
+# define DEBUGOUT(message) conout("debug: "_str + (message))
+# define DUMP(p) std::string __debug_out__ ## __LINE__ = ""; \
+    for(char* __ptr__ = (p).data(); __ptr__ < (p).data() + (p).size(); __ptr__++) \
+    __debug_out__ ## __LINE__ += std::to_string(*__ptr__) + ' '; \
+    conout("debug: "_str + __debug_out__ ## __LINE__)
 #else
 # define DEBUGOUT(message)
+# define DUMP(p)
 #endif
 
 using namespace cxxgui;
@@ -158,11 +163,127 @@ private:
 
         ((vstack*)body)->add(s);
 
+        s->add(new hstack {
+            symbols::backward_circle()
+                ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center)
+                ->offset(-16.0f, 0.0f)
+                ->on_click([&](view*, float, float, void*) {
+                    send_click = false;
+                    uint8_t targeting_mode = selected->targeting_mode - 1;
+                    if(targeting_mode >= NUMTARGETINGS) targeting_mode = NUMTARGETINGS - 1;
+                    packetstream p { };
+                    p << N_UPDATETARGETING
+                      << 5_u32
+                      << selected->id
+                      << targeting_mode;
+                    send_packet(peer, 0, true, p);
+                }),
+            (new text(get_entry(targeting_mode_names[selected->targeting_mode])))
+                ->font(headline),
+             symbols::forward_circle()
+                ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center)
+                ->offset(-16.0f, 0.0f)
+                ->on_click([&](view*, float, float, void*) {
+                    send_click = false;
+                    uint8_t targeting_mode = selected->targeting_mode + 1;
+                    if(targeting_mode >= NUMTARGETINGS) targeting_mode = 0;
+                    packetstream p { };
+                    p << N_UPDATETARGETING
+                      << 5_u32
+                      << selected->id
+                      << targeting_mode;
+                    send_packet(peer, 0, true, p);
+                })
+            }
+        );
+
+        hstack* upgrades_available = new hstack { };
+
+        for(uint8_t i = 0_u8; i < upgrade_count; i++)
+            upgrades_available->add(
+                symbols::stop_fill()
+                    ->frame(32.0f, 32.0f, 32.0f, 32.0f, 32.0f, 32.0f, alignment_t::center)
+            );
+
+        for(uint8_t i = upgrade_count; i < 8_u8; i++)
+            upgrades_available->add(
+                symbols::stop()
+                    ->frame(32.0f, 32.0f, 32.0f, 32.0f, 32.0f, 32.0f, alignment_t::center)
+            );
+
+        s->add(upgrades_available->offset(-20.0f, -0.0f));
+
         for(uint8_t i = 0_u8; i < 3_u8; i++) {
-            if(upgrade_count == 8) {
-                // todo
-            } else if(selected->upgrade_paths[i] == 6) {
-                // todo
+            vstack* upgrades_stack = new vstack { };
+
+            struct data_t {
+                uint8_t val;
+                double cost;
+                bool owned;
+            };
+
+            for(uint8_t j = 0_u8; j < selected->upgrade_paths[i]; j++)
+                upgrades_stack->add(
+                    symbols::stop_fill()
+                        ->frame(24.0f, 24.0f, 24.0f, 24.0f, 24.0f, 24.0f, alignment_t::center)
+                );
+
+            for(uint8_t j = selected->upgrade_paths[i]; j < 6_u8; j++)
+                upgrades_stack->add(
+                    symbols::stop()
+                        ->frame(24.0f, 24.0f, 24.0f, 24.0f, 24.0f, 24.0f, alignment_t::center)
+                );
+
+            if(selected->upgrade_paths[i] == 6) {
+                s->add((new hstack {
+                    upgrades_stack,
+                    (new vstack {
+                        (new vstack {
+                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].name)))
+                                ->font(headline)
+                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
+                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].desc)))
+                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
+                        })
+                            ->offset(-16.0f, -16.0f)
+                    })
+                        ->padding(16.0f),
+                    symbols::forward()
+                        ->offset(-20.0f, 0.0f)
+                        ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
+                    (new vstack { })
+                        ->frame(200.0f, 200.0f, 200.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
+                })
+                    ->padding(16.0f, 0.0f)
+                    ->offset(-24.0f, 0.0f)
+                    ->align(alignment_t::center));
+            } else if(upgrade_count == 8) {
+                s->add((new hstack {
+                    upgrades_stack,
+                    (new vstack {
+                        (new vstack {
+                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].name)))
+                                ->font(headline)
+                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
+                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].desc)))
+                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
+                        })
+                            ->offset(-16.0f, -16.0f)
+                    })
+                        ->padding(16.0f),
+                    symbols::forward()
+                        ->offset(-20.0f, 0.0f)
+                        ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
+                    (new vstack {
+                        (new text("Upgrade unavailable"))
+                            ->font(headline)
+                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
+                    })
+                        ->frame(200.0f, 200.0f, 200.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
+                })
+                    ->padding(16.0f, 0.0f)
+                    ->offset(-24.0f, 0.0f)
+                    ->align(alignment_t::center));
             } else if(selected->upgrade_paths[i] == 0) {
                 double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * cs.diff.tower_cost_modifier;
                 bool owned = false;
@@ -178,6 +299,7 @@ private:
                 if(cost > playerinfo.cash && cost < update_at) update_at = cost;
 
                 s->add((new hstack {
+                    upgrades_stack,
                     (new vstack { })
                         ->frame(200.0f, 200.0f, 200.0f, 0.0f, 0.0f, 0.0f, alignment_t::center),
                     symbols::forward()
@@ -201,16 +323,16 @@ private:
                         ->hover_background_color(color_multiply(c, 0.8))
                         ->on_click([&](view*, float, float, void* data) {
                             send_click = false;
-                            if(!owned) return;
-                            uint8_t val = *(uint8_t*)data;
-                            delete data;
-                            if(playerinfo.cash >= cost) {
-                                try_upgrade(val);
-                                last_selected = nullptr;
-                            }
-                        }, new uint8_t(i))
+                            data_t val = *(data_t*)data;
+                            if(!val.owned) return;
+                            delete (data_t*)data;
+                            if(playerinfo.cash >= val.cost)
+                                try_upgrade(val.val);
+                            last_selected = nullptr;
+                        }, new data_t({i, cost, owned}))
                 })
                     ->padding(16.0f, 0.0f)
+                    ->offset(-24.0f, 0.0f)
                     ->align(alignment_t::center));
             } else {
                 double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * cs.diff.tower_cost_modifier;
@@ -228,6 +350,7 @@ private:
                 if(cost > playerinfo.cash && cost < update_at) update_at = cost;
 
                 s->add((new hstack {
+                    upgrades_stack,
                     (new vstack {
                         (new vstack {
                             (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].name)))
@@ -259,17 +382,17 @@ private:
                         ->background_color(c)
                         ->hover_background_color(color_multiply(c, 0.8))
                         ->on_click([&](view*, float, float, void* data) {
-                            if(!owned) return;
                             send_click = false;
-                            uint8_t val = *(uint8_t*)data;
-                            delete data;
-                            if(playerinfo.cash >= cost) {
-                                try_upgrade(val);
-                                last_selected = nullptr;
-                            }
-                        }, new uint8_t(i))
+                            data_t val = *(data_t*)data;
+                            if(!val.owned) return;
+                            delete (data_t*)data;
+                            if(playerinfo.cash >= val.cost)
+                                try_upgrade(val.val);
+                            last_selected = nullptr;
+                        }, new data_t({i, cost, owned}))
                 })
                     ->padding(16.0f, 0.0f)
+                    ->offset(-24.0f, 0.0f)
                     ->align(alignment_t::center));
             }
         }
@@ -834,7 +957,21 @@ void handle_packet(packetstream& p) {
 
                 break;
             }
-            case N_UPDATETARGETING:   break; // todo
+            case N_UPDATETARGETING: {
+                uint32_t tid  { 0 };
+                uint08_t targeting_mode { 0 };
+
+                p >> tid
+                  >> targeting_mode;
+
+                for(auto& t : cs.towers)
+                    if(t.id == tid) {
+                        t.targeting_mode = targeting_mode;
+                        break;
+                    }
+                
+                break;
+            }
             case N_SELLTOWER:         break; // todo
             case N_UPDATE_CASH: {
                 uint32_t cid { 0 };
@@ -1001,6 +1138,7 @@ void handle_packet(packetstream& p) {
             case N_REFRESHMENU: ui.last_selected = nullptr; break;
             default: {
                 DEBUGOUT("Unrecognized packet type ("_str + std::to_string(msgtype) + ')');
+                DUMP(p);
                 p.read(nullptr, (size_t)size);
                 break;
             }

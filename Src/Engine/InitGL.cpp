@@ -13,7 +13,7 @@ bool gl_loaded = false;
 void reload_graphics() {
     if(!gl_loaded) return;
     if(fullscreen) {
-        if(fullscreen_windowed) SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        if(fullscreen_windowed) SDL_SetWindowFullscreen(window, SDL_WINDOW_BORDERLESS);
         else SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
         SDL_DisplayMode mode { };
         SDL_GetWindowDisplayMode(window, &mode);

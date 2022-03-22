@@ -1,3 +1,15 @@
+# r41 Client updates
+## Client
+
+- Client now shows purchased upgrades even when tower can no longer be upgraded
+- Added a way to set the targeting priority
+- Fixed full screen windowed being glitchy
+
+## Server
+
+- Server now lets clients set targeting priority
+- Fixed an issue with projectiles with penetrating power targeting an enemy's spawns
+
 # r40 Bug Fixes
 ## Client
 
