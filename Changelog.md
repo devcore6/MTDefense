@@ -1,3 +1,16 @@
+# r42 Slight balance updates
+## Server
+
+- Fixed a crash that only occurred on Linux hosts
+- Enemy spawns are now spread out
+
+## Balancing
+### Other
+
+- Reduced amount of enemies in rounds 38 and 39
+- Reduced kill cash multiplier in rounds 35 and up
+- Increased kill cash multiplier in rounds 1 to 8
+
 # r41 Client updates
 ## Client
 

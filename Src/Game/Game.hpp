@@ -569,7 +569,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
-            }
+            },
+            /* kill_cash_multiplier: */     1.5,
         },
         /* Round 2: */ {
             {
@@ -589,7 +590,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
-            }
+            },
+            /* kill_cash_multiplier: */     1.5,
         },
         /* Round 3: */ {
             {
@@ -609,7 +611,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
-            }
+            },
+            /* kill_cash_multiplier: */     1.5,
         },
         /* Round 4: */ {
             {
@@ -629,7 +632,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
-            }
+            },
+            /* kill_cash_multiplier: */     1.5,
         },
         /* Round 5: */ {
             {
@@ -649,7 +653,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
-            }
+            },
+            /* kill_cash_multiplier: */     1.5,
         },
         /* Round 6: */ {
             {
@@ -677,7 +682,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
-            }
+            },
+            /* kill_cash_multiplier: */     1.2,
         },
         /* Round 7: */ {
             {
@@ -705,7 +711,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
-            }
+            },
+            /* kill_cash_multiplier: */     1.2,
         },
         /* Round 8: */ {
             {
@@ -717,7 +724,8 @@ static const struct rounds {
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                     }
-            }
+            },
+            /* kill_cash_multiplier: */     1.2,
         },
         /* Round 9: */ {
             {
@@ -1535,7 +1543,7 @@ static const struct rounds {
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
             },
-            /* kill_cash_multiplier: */     0.8,
+            /* kill_cash_multiplier: */     0.6,
             /* special_odds_multiplier: */  1.05
         },
         /* Round 36: */ {
@@ -1589,7 +1597,7 @@ static const struct rounds {
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
             },
-            /* kill_cash_multiplier: */     0.8,
+            /* kill_cash_multiplier: */     0.6,
             /* special_odds_multiplier: */  1.05
         },
         /* Round 37: */ {
@@ -1611,15 +1619,15 @@ static const struct rounds {
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
             },
-            /* kill_cash_multiplier: */     0.8,
+            /* kill_cash_multiplier: */     0.6,
             /* special_odds_multiplier: */  1.05
         },
         /* Round 38: */ {
             {
                 {
                     /* base_type: */        ENEMY_GIGA,
-                    /* spacing: */          8.0,
-                    /* amount: */           18.0,
+                    /* spacing: */          9.0,
+                    /* amount: */           14.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1633,7 +1641,7 @@ static const struct rounds {
                     /* vulnerabilities: */  DAMAGE_NONE
                 }
             },
-            /* kill_cash_multiplier: */     0.8,
+            /* kill_cash_multiplier: */     0.6,
             /* special_odds_multiplier: */  1.05
         },
         /* Round 39: */ {
@@ -1641,7 +1649,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_VOLCANIC,
                     /* spacing: */          8.0,
-                    /* amount: */           4.0,
+                    /* amount: */           3.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1649,7 +1657,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_SIBERIAN,
                     /* spacing: */          7.0,
-                    /* amount: */           4.0,
+                    /* amount: */           3.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1657,7 +1665,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_EXPERIMENTAL,
                     /* spacing: */          6.0,
-                    /* amount: */           4.0,
+                    /* amount: */           3.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1673,7 +1681,7 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_GIGA,
                     /* spacing: */          6.0,
-                    /* amount: */           4.0,
+                    /* amount: */           3.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
@@ -1681,13 +1689,13 @@ static const struct rounds {
                 {
                     /* base_type: */        ENEMY_HARDENED,
                     /* spacing: */          6.0,
-                    /* amount: */           4.0,
+                    /* amount: */           3.0,
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
                 },
             },
-            /* kill_cash_multiplier: */     0.8,
+            /* kill_cash_multiplier: */     0.6,
             /* special_odds_multiplier: */  1.05
         },
     }
@@ -1863,7 +1871,7 @@ struct projectile {
     double      debuff_remaining_duration;
     double      debuff_dps;
     double      debuff_speed_multiplier;
-    std::vector<enemy*> hits;
+    std::vector<uint32_t> hits;
     std::vector<enemy*>* enemies;
 };
 

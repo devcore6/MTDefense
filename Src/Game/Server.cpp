@@ -190,7 +190,16 @@ struct projectile_cycle_data {
     double                                 extra_cash { 0.0 };
 };
 
-void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, uint16_t flags, line_strip_t* p, projectile& pj, double dist) {
+void queue_spawns(
+    projectile_cycle_data* data,
+    double excess_damage,
+    enemy_t e,
+    uint16_t flags,
+    line_strip_t* p,
+    projectile& pj,
+    uint32_t id,
+    double dist
+) {
     data->extra_cash += e.base_kill_reward
                      *  gs.diff.enemy_kill_reward_modifier
                      *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier;
@@ -203,7 +212,7 @@ void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, 
                       * gs.diff.enemy_health_modifier
                       * gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier;
 
-        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags, p, pj, dist);
+        if(health <= excess_damage) queue_spawns(data, excess_damage - health, s, flags, p, pj, id + 1, dist);
         else {
             uint8_t random_flags = E_FLAG_NONE;
 
@@ -218,7 +227,7 @@ void queue_spawns(projectile_cycle_data* data, double excess_damage, enemy_t e, 
                 random_flags |= E_FLAG_SHIELD;
             
             s.flags |= (uint8_t)(flags | random_flags);
-            data->enemies_to_add.push_back({ s, excess_damage, p, dist, pj });
+            data->enemies_to_add.push_back({ s, excess_damage, p, dist - id * 16, pj });
         }
     }
 }
@@ -227,7 +236,7 @@ void do_damage(projectile_cycle_data* data, projectile& p, enemy* e) {
     std::lock_guard l { e->lock };
     if(e->health <= 0.0)                                                                   return;
 
-    for(auto& hit : p.hits) if(hit == e)                                                   return;
+    for(auto& hit : p.hits) if(hit == e->id)                                               return;
 
     if(e->flags & E_FLAG_STEALTH && ~p.flags & P_FLAG_STEALTH_TAR)                         return;
     if(e->flags & E_FLAG_ARMORED && ~p.flags & P_FLAG_ARMORED_TAR) { p.remaining_hits = 0; return; }
@@ -246,7 +255,7 @@ void do_damage(projectile_cycle_data* data, projectile& p, enemy* e) {
     e->health -= dmg;
     if(e->health <= 0.0) {
         data->enemies_to_erase.push_back(e->id);
-        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, e->distance_traveled);
+        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, 0, e->distance_traveled);
     }
 }
 
@@ -289,7 +298,7 @@ void detonate (projectile_cycle_data* data, projectile& p) {
 
             if(e->health <= 0.0) {
                 data->enemies_to_erase.push_back(e->id);
-                queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, e->distance_traveled);
+                queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, 0, e->distance_traveled);
             }
         }
     }
@@ -308,7 +317,7 @@ void projectile_cycle(double dt, size_t i, projectile_cycle_data* data) {
         for(auto& e : gs.created_enemies) {
             bool previously_hit = false;
             for(auto& ptr : p.hits)
-                if(ptr == &e) {
+                if(ptr == e.id) {
                     previously_hit = true;
                     break;
                 }
@@ -474,21 +483,6 @@ void servertick() {
 
         for(intmax_t i = 0; i < serverthreads; i++) {
             auto& data = pvecs[i];
-            for(auto& id : data.projectiles_to_erase)
-                for(size_t i = 0; i < gs.projectiles.size(); i++)
-                    if(gs.projectiles[i].pid == id.first) {
-                        if(id.second)
-                            broadcast << N_DETONATE
-                                      << 4_u32
-                                      << gs.projectiles[i].pid;
-
-                            broadcast << N_DELETE_PROJECTILE
-                                      << 4_u32
-                                      << gs.projectiles[i].pid;
-
-                        gs.projectiles.erase(gs.projectiles.begin() + i);
-                        break;
-                    }
 
             for(auto& id : data.enemies_to_erase)
                 for(size_t i = 0; i < gs.created_enemies.size(); i++)
@@ -529,7 +523,7 @@ void servertick() {
                     /* id:                 */ gs.all_spawned_enemies
                 });
 
-                s.fifth.hits.push_back(&gs.created_enemies[gs.created_enemies.size() - 1]);
+                s.fifth.hits.push_back(gs.all_spawned_enemies);
 
                 broadcast << N_SPAWN_ENEMY
                           << 38_u32
@@ -543,6 +537,23 @@ void servertick() {
                           <<              gs.created_enemies[gs.created_enemies.size() - 1].distance_traveled
                           <<              gs.all_spawned_enemies++;
             }
+
+            
+            for(auto& id : data.projectiles_to_erase)
+                for(size_t i = 0; i < gs.projectiles.size(); i++)
+                    if(gs.projectiles[i].pid == id.first) {
+                        if(id.second)
+                            broadcast << N_DETONATE
+                                      << 4_u32
+                                      << gs.projectiles[i].pid;
+
+                            broadcast << N_DELETE_PROJECTILE
+                                      << 4_u32
+                                      << gs.projectiles[i].pid;
+
+                        gs.projectiles.erase(gs.projectiles.begin() + i);
+                        break;
+                    }
 
             if(data.enemies_to_add.size() || data.enemies_to_erase.size())
                 update = true;
