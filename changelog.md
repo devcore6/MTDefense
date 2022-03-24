@@ -1,3 +1,8 @@
+# r45 Linux updates
+
+- Permission updates
+- ./configure
+
 # r44 Cleanup
 
 - Cleanup
