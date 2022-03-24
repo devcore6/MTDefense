@@ -3,8 +3,14 @@ Release
 Debug
 .vs
 *.user
+*.filter
 Data/Config/
 Data/Autoexec/
 desktop.ini
 .DS_Store
 Makefile
+Makefile.am
+Makefile.in
+configure.in
+configure.ac
+bin/
