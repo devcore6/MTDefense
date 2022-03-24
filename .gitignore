@@ -4,6 +4,7 @@ Debug
 .vs
 *.user
 *.filter
+*.DotSettings
 Data/Config/
 Data/Autoexec/
 desktop.ini

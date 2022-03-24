@@ -1,3 +1,5 @@
+# r46 Removed useless VisualStudio files
+
 # r45 Linux updates
 
 - Permission updates
