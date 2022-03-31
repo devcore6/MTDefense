@@ -581,165 +581,146 @@ PACKAGE_STRING='cucktd 1.0'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
+ac_unique_file="enet/callbacks.c"
+ac_unique_file="enet/compress.c"
+ac_unique_file="enet/host.c"
+ac_unique_file="enet/list.c"
+ac_unique_file="enet/packet.c"
+ac_unique_file="enet/peer.c"
+ac_unique_file="enet/protocol.c"
+ac_unique_file="enet/unix.c"
+ac_unique_file="enet/enet/callbacks.h"
+ac_unique_file="enet/enet/enet.h"
+ac_unique_file="enet/enet/list.h"
+ac_unique_file="enet/enet/protocol.h"
+ac_unique_file="enet/enet/time.h"
+ac_unique_file="enet/enet/types.h"
+ac_unique_file="enet/enet/unix.h"
+ac_unique_file="enet/enet/utility.h"
+ac_unique_file="engine/audio.cpp"
+ac_unique_file="engine/audio.hpp"
+ac_unique_file="engine/command.cpp"
+ac_unique_file="engine/command.hpp"
+ac_unique_file="engine/console.cpp"
+ac_unique_file="engine/engine.hpp"
+ac_unique_file="engine/gl.cpp"
+ac_unique_file="engine/gl.hpp"
+ac_unique_file="engine/main.cpp"
+ac_unique_file="engine/map.cpp"
+ac_unique_file="engine/map.hpp"
+ac_unique_file="engine/network.cpp"
+ac_unique_file="engine/network.hpp"
+ac_unique_file="engine/server.hpp"
+ac_unique_file="engine/servermain.cpp"
+ac_unique_file="engine/text.cpp"
+ac_unique_file="engine/texture.cpp"
+ac_unique_file="engine/texture.hpp"
+ac_unique_file="engine/tools.hpp"
+ac_unique_file="game/client.cpp"
+ac_unique_file="game/game.hpp"
+ac_unique_file="game/game_ui.hpp"
+ac_unique_file="game/server.cpp"
+ac_unique_file="game/tower.cpp"
+ac_unique_file="include/enet/callbacks.h"
+ac_unique_file="include/enet/enet.h"
+ac_unique_file="include/enet/list.h"
+ac_unique_file="include/enet/protocol.h"
+ac_unique_file="include/enet/time.h"
+ac_unique_file="include/enet/types.h"
+ac_unique_file="include/enet/unix.h"
+ac_unique_file="include/enet/utility.h"
+ac_unique_file="include/SDL/begin_code.h"
+ac_unique_file="include/SDL/close_code.h"
+ac_unique_file="include/SDL/SDL.h"
+ac_unique_file="include/SDL/SDL_assert.h"
+ac_unique_file="include/SDL/SDL_atomic.h"
+ac_unique_file="include/SDL/SDL_audio.h"
+ac_unique_file="include/SDL/SDL_bits.h"
+ac_unique_file="include/SDL/SDL_blendmode.h"
+ac_unique_file="include/SDL/SDL_clipboard.h"
+ac_unique_file="include/SDL/SDL_config.h"
+ac_unique_file="include/SDL/SDL_config.h.cmake"
+ac_unique_file="include/SDL/SDL_config.h.in"
+ac_unique_file="include/SDL/SDL_config_android.h"
+ac_unique_file="include/SDL/SDL_config_iphoneos.h"
+ac_unique_file="include/SDL/SDL_config_macosx.h"
+ac_unique_file="include/SDL/SDL_config_macosx.h.orig"
+ac_unique_file="include/SDL/SDL_config_minimal.h"
+ac_unique_file="include/SDL/SDL_config_pandora.h"
+ac_unique_file="include/SDL/SDL_config_psp.h"
+ac_unique_file="include/SDL/SDL_config_windows.h"
+ac_unique_file="include/SDL/SDL_config_winrt.h"
+ac_unique_file="include/SDL/SDL_config_wiz.h"
+ac_unique_file="include/SDL/SDL_copying.h"
+ac_unique_file="include/SDL/SDL_cpuinfo.h"
+ac_unique_file="include/SDL/SDL_egl.h"
+ac_unique_file="include/SDL/SDL_endian.h"
+ac_unique_file="include/SDL/SDL_error.h"
+ac_unique_file="include/SDL/SDL_events.h"
+ac_unique_file="include/SDL/SDL_filesystem.h"
+ac_unique_file="include/SDL/SDL_gamecontroller.h"
+ac_unique_file="include/SDL/SDL_gesture.h"
+ac_unique_file="include/SDL/SDL_haptic.h"
+ac_unique_file="include/SDL/SDL_hints.h"
+ac_unique_file="include/SDL/SDL_image.h"
+ac_unique_file="include/SDL/SDL_joystick.h"
+ac_unique_file="include/SDL/SDL_keyboard.h"
+ac_unique_file="include/SDL/SDL_keycode.h"
+ac_unique_file="include/SDL/SDL_loadso.h"
+ac_unique_file="include/SDL/SDL_locale.h"
+ac_unique_file="include/SDL/SDL_log.h"
+ac_unique_file="include/SDL/SDL_main.h"
+ac_unique_file="include/SDL/SDL_messagebox.h"
+ac_unique_file="include/SDL/SDL_metal.h"
+ac_unique_file="include/SDL/SDL_misc.h"
+ac_unique_file="include/SDL/SDL_mixer.h"
+ac_unique_file="include/SDL/SDL_mouse.h"
+ac_unique_file="include/SDL/SDL_mutex.h"
+ac_unique_file="include/SDL/SDL_name.h"
+ac_unique_file="include/SDL/SDL_opengl.h"
+ac_unique_file="include/SDL/SDL_opengles.h"
+ac_unique_file="include/SDL/SDL_opengles2.h"
+ac_unique_file="include/SDL/SDL_opengles2_gl2.h"
+ac_unique_file="include/SDL/SDL_opengles2_gl2ext.h"
+ac_unique_file="include/SDL/SDL_opengles2_gl2platform.h"
+ac_unique_file="include/SDL/SDL_opengles2_khrplatform.h"
+ac_unique_file="include/SDL/SDL_opengl_glext.h"
+ac_unique_file="include/SDL/SDL_pixels.h"
+ac_unique_file="include/SDL/SDL_platform.h"
+ac_unique_file="include/SDL/SDL_power.h"
+ac_unique_file="include/SDL/SDL_quit.h"
+ac_unique_file="include/SDL/SDL_rect.h"
+ac_unique_file="include/SDL/SDL_render.h"
+ac_unique_file="include/SDL/SDL_revision.h"
+ac_unique_file="include/SDL/SDL_rwops.h"
+ac_unique_file="include/SDL/SDL_scancode.h"
+ac_unique_file="include/SDL/SDL_sensor.h"
+ac_unique_file="include/SDL/SDL_shape.h"
+ac_unique_file="include/SDL/SDL_stdinc.h"
+ac_unique_file="include/SDL/SDL_surface.h"
+ac_unique_file="include/SDL/SDL_system.h"
+ac_unique_file="include/SDL/SDL_syswm.h"
+ac_unique_file="include/SDL/SDL_test.h"
+ac_unique_file="include/SDL/SDL_test_assert.h"
+ac_unique_file="include/SDL/SDL_test_common.h"
+ac_unique_file="include/SDL/SDL_test_compare.h"
+ac_unique_file="include/SDL/SDL_test_crc32.h"
+ac_unique_file="include/SDL/SDL_test_font.h"
+ac_unique_file="include/SDL/SDL_test_fuzzer.h"
+ac_unique_file="include/SDL/SDL_test_harness.h"
+ac_unique_file="include/SDL/SDL_test_images.h"
+ac_unique_file="include/SDL/SDL_test_log.h"
+ac_unique_file="include/SDL/SDL_test_md5.h"
+ac_unique_file="include/SDL/SDL_test_memory.h"
+ac_unique_file="include/SDL/SDL_test_random.h"
+ac_unique_file="include/SDL/SDL_thread.h"
+ac_unique_file="include/SDL/SDL_timer.h"
+ac_unique_file="include/SDL/SDL_touch.h"
+ac_unique_file="include/SDL/SDL_ttf.h"
+ac_unique_file="include/SDL/SDL_types.h"
+ac_unique_file="include/SDL/SDL_version.h"
+ac_unique_file="include/SDL/SDL_video.h"
+ac_unique_file="include/SDL/SDL_vulkan.h"
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
@@ -2001,169 +1982,149 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-CPPFLAGS="$CPPFLAGS -Iinclude -Icxxgui/src/include"
+CPPFLAGS="$CPPFLAGS -IInclude"
 LIBS="$LIBS -pthread"
 
-enet/callbacks.c
-enet/compress.c
-enet/host.c
-enet/list.c
-enet/packet.c
-enet/peer.c
-enet/protocol.c
-enet/unix.c
-enet/enet/callbacks.h
-enet/enet/enet.h
-enet/enet/list.h
-enet/enet/protocol.h
-enet/enet/time.h
-enet/enet/types.h
-enet/enet/unix.h
-enet/enet/utility.h
-engine/audio.cpp
-engine/audio.hpp
-engine/command.cpp
-engine/command.hpp
-engine/console.cpp
-engine/engine.hpp
-engine/gl.cpp
-engine/gl.hpp
-engine/initgl.cpp
-engine/main.cpp
-engine/map.cpp
-engine/map.hpp
-engine/network.cpp
-engine/network.hpp
-engine/server.hpp
-engine/servermain.cpp
-engine/text.cpp
-engine/texture.cpp
-engine/texture.hpp
-engine/tools.hpp
-game/client.cpp
-game/game.hpp
-game/game_ui.hpp
-game/server.cpp
-game/tower.cpp
-include/enet/callbacks.h
-include/enet/enet.h
-include/enet/list.h
-include/enet/protocol.h
-include/enet/time.h
-include/enet/types.h
-include/enet/unix.h
-include/enet/utility.h
-include/SDL/begin_code.h
-include/SDL/close_code.h
-include/SDL/SDL.h
-include/SDL/SDL_assert.h
-include/SDL/SDL_atomic.h
-include/SDL/SDL_audio.h
-include/SDL/SDL_bits.h
-include/SDL/SDL_blendmode.h
-include/SDL/SDL_clipboard.h
-include/SDL/SDL_config.h
-include/SDL/SDL_config.h.cmake
-include/SDL/SDL_config.h.in
-include/SDL/SDL_config_android.h
-include/SDL/SDL_config_iphoneos.h
-include/SDL/SDL_config_macosx.h
-include/SDL/SDL_config_macosx.h.orig
-include/SDL/SDL_config_minimal.h
-include/SDL/SDL_config_pandora.h
-include/SDL/SDL_config_psp.h
-include/SDL/SDL_config_windows.h
-include/SDL/SDL_config_winrt.h
-include/SDL/SDL_config_wiz.h
-include/SDL/SDL_copying.h
-include/SDL/SDL_cpuinfo.h
-include/SDL/SDL_egl.h
-include/SDL/SDL_endian.h
-include/SDL/SDL_error.h
-include/SDL/SDL_events.h
-include/SDL/SDL_filesystem.h
-include/SDL/SDL_gamecontroller.h
-include/SDL/SDL_gesture.h
-include/SDL/SDL_haptic.h
-include/SDL/SDL_hints.h
-include/SDL/SDL_image.h
-include/SDL/SDL_joystick.h
-include/SDL/SDL_keyboard.h
-include/SDL/SDL_keycode.h
-include/SDL/SDL_loadso.h
-include/SDL/SDL_locale.h
-include/SDL/SDL_log.h
-include/SDL/SDL_main.h
-include/SDL/SDL_messagebox.h
-include/SDL/SDL_metal.h
-include/SDL/SDL_misc.h
-include/SDL/SDL_mixer.h
-include/SDL/SDL_mouse.h
-include/SDL/SDL_mutex.h
-include/SDL/SDL_name.h
-include/SDL/SDL_opengl.h
-include/SDL/SDL_opengles.h
-include/SDL/SDL_opengles2.h
-include/SDL/SDL_opengles2_gl2.h
-include/SDL/SDL_opengles2_gl2ext.h
-include/SDL/SDL_opengles2_gl2platform.h
-include/SDL/SDL_opengles2_khrplatform.h
-include/SDL/SDL_opengl_glext.h
-include/SDL/SDL_pixels.h
-include/SDL/SDL_platform.h
-include/SDL/SDL_power.h
-include/SDL/SDL_quit.h
-include/SDL/SDL_rect.h
-include/SDL/SDL_render.h
-include/SDL/SDL_revision.h
-include/SDL/SDL_rwops.h
-include/SDL/SDL_scancode.h
-include/SDL/SDL_sensor.h
-include/SDL/SDL_shape.h
-include/SDL/SDL_stdinc.h
-include/SDL/SDL_surface.h
-include/SDL/SDL_system.h
-include/SDL/SDL_syswm.h
-include/SDL/SDL_test.h
-include/SDL/SDL_test_assert.h
-include/SDL/SDL_test_common.h
-include/SDL/SDL_test_compare.h
-include/SDL/SDL_test_crc32.h
-include/SDL/SDL_test_font.h
-include/SDL/SDL_test_fuzzer.h
-include/SDL/SDL_test_harness.h
-include/SDL/SDL_test_images.h
-include/SDL/SDL_test_log.h
-include/SDL/SDL_test_md5.h
-include/SDL/SDL_test_memory.h
-include/SDL/SDL_test_random.h
-include/SDL/SDL_thread.h
-include/SDL/SDL_timer.h
-include/SDL/SDL_touch.h
-include/SDL/SDL_ttf.h
-include/SDL/SDL_types.h
-include/SDL/SDL_version.h
-include/SDL/SDL_video.h
-include/SDL/SDL_vulkan.h
-cxxgui/src/include/cxxgui/animation.hpp
-cxxgui/src/include/cxxgui/cxxgui.hpp
-cxxgui/src/include/cxxgui/gl.hpp
-cxxgui/src/include/cxxgui/style.hpp
-cxxgui/src/include/cxxgui/utilities.hpp
-cxxgui/src/include/cxxgui/app.hpp
-cxxgui/src/include/cxxgui/device-defs.hpp
-cxxgui/src/include/cxxgui/image.hpp
-cxxgui/src/include/cxxgui/symbols.hpp
-cxxgui/src/include/cxxgui/view.hpp
-cxxgui/src/include/cxxgui/color.hpp
-cxxgui/src/include/cxxgui/embeddable.hpp
-cxxgui/src/include/cxxgui/input.hpp
-cxxgui/src/include/cxxgui/symbols_list.hpp
-cxxgui/src/include/cxxgui/window.hpp
-cxxgui/src/include/cxxgui/concepts.hpp
-cxxgui/src/include/cxxgui/font.hpp
-cxxgui/src/include/cxxgui/settings.hpp
-cxxgui/src/include/cxxgui/text.hpp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ac_aux_dir=
 for ac_dir in .aux "$srcdir"/.aux; do
@@ -4203,66 +4164,66 @@ fi
 echo -n "checking for c++23 compiler... "
 echo "int main() { return 0; }" > __test.cpp
 if $CXX -std=c++2b __test.cpp -o __test > /dev/null 2>&1; then
-	echo "$CXX"
-	CPPFLAGS="$CPPFLAGS -std=c++2b"
-	rm -f __test.cpp __test
+        echo "$CXX"
+        CPPFLAGS="$CPPFLAGS -std=c++2b"
+        rm -f __test.cpp __test
 else
-	echo "no"
-	rm -f __test.cpp
-	echo "fatal: c++23 compiler not found"
-	exit
+        echo "no"
+        rm -f __test.cpp
+        echo "fatal: c++23 compiler not found"
+        exit
 fi
 
 echo -n "checking for sdl2... "
 echo "int main() { return 0; }" > __test.cpp
 if $CXX -lSDL2 -lSDL2main __test.cpp -o __test > /dev/null 2>&1; then
-	echo "yes"
-	LIBS="$LIBS -lSDL2 -lSDL2main"
-	rm -f __test.cpp __test
+        echo "yes"
+        LIBS="$LIBS -lSDL2 -lSDL2main"
+        rm -f __test.cpp __test
 else
-	echo "no"
-	rm -f __test.cpp
-	echo "fatal: sdl2 not found"
-	exit
+        echo "no"
+        rm -f __test.cpp
+        echo "fatal: sdl2 not found"
+        exit
 fi
 
 echo -n "checking for sdl2image... "
 echo "int main() { return 0; }" > __test.cpp
 if $CXX -lSDL2image __test.cpp -o __test > /dev/null 2>&1; then
-	echo "yes"
-	LIBS="$LIBS -lSDL2image"
-	rm -f __test.cpp __test
+        echo "yes"
+        LIBS="$LIBS -lSDL2image"
+        rm -f __test.cpp __test
 else
-	echo "no"
-	rm -f __test.cpp
-	echo "fatal: sdl2image not found"
-	exit
+        echo "no"
+        rm -f __test.cpp
+        echo "fatal: sdl2image not found"
+        exit
 fi
 
 echo -n "checking for sdl2ttf... "
 echo "int main() { return 0; }" > __test.cpp
 if $CXX -lSDL2ttf __test.cpp -o __test > /dev/null 2>&1; then
-	echo "yes"
-	LIBS="$LIBS -lSDL2ttf"
-	rm -f __test.cpp __test
+        echo "yes"
+        LIBS="$LIBS -lSDL2ttf"
+        rm -f __test.cpp __test
 else
-	echo "no"
-	rm -f __test.cpp
-	echo "fatal: sdl2ttf not found"
-	exit
+        echo "no"
+        rm -f __test.cpp
+        echo "fatal: sdl2ttf not found"
+        exit
 fi
 
 echo -n "checking for sdl2mixer... "
 echo "int main() { return 0; }" > __test.cpp
 if $CXX -lSDL2mixer __test.cpp -o __test > /dev/null 2>&1; then
-	echo "yes"
-	LIBS="$LIBS -lSDL2mixer"
-	rm -f __test.cpp __test
+        echo "yes"
+        LIBS="$LIBS -lSDL2mixer"
+        rm -f __test.cpp __test
 else
-	echo "no"
-	rm -f __test.cpp
-	echo "fatal: sdl2mixer not found"
-	exit
+        echo "no"
+        rm -f __test.cpp
+        echo "fatal: sdl2mixer not found"
+        exit
 fi
 
 ac_config_files="$ac_config_files Makefile"

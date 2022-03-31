@@ -581,47 +581,48 @@ PACKAGE_STRING='cucktdserver 1.0'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
-ac_unique_file=""
+ac_unique_file="../src/enet/callbacks.c"
+ac_unique_file="../src/enet/compress.c"
+ac_unique_file="../src/enet/host.c"
+ac_unique_file="../src/enet/list.c"
+ac_unique_file="../src/enet/packet.c"
+ac_unique_file="../src/enet/peer.c"
+ac_unique_file="../src/enet/protocol.c"
+ac_unique_file="../src/enet/unix.c"
+ac_unique_file="../src/enet/enet/callbacks.h"
+ac_unique_file="../src/enet/enet/enet.h"
+ac_unique_file="../src/enet/enet/list.h"
+ac_unique_file="../src/enet/enet/protocol.h"
+ac_unique_file="../src/enet/enet/time.h"
+ac_unique_file="../src/enet/enet/types.h"
+ac_unique_file="../src/enet/enet/unix.h"
+ac_unique_file="../src/enet/enet/utility.h"
+ac_unique_file="../src/engine/command.cpp"
+ac_unique_file="../src/engine/command.hpp"
+ac_unique_file="../src/engine/engine.hpp"
+ac_unique_file="../src/engine/audio.hpp"
+ac_unique_file="../src/engine/gl.cpp"
+ac_unique_file="../src/engine/gl.hpp"
+ac_unique_file="../src/engine/map.cpp"
+ac_unique_file="../src/engine/map.hpp"
+ac_unique_file="../src/engine/network.cpp"
+ac_unique_file="../src/engine/network.hpp"
+ac_unique_file="../src/engine/server.hpp"
+ac_unique_file="../src/engine/servermain.cpp"
+ac_unique_file="../src/engine/texture.cpp"
+ac_unique_file="../src/engine/texture.hpp"
+ac_unique_file="../src/engine/tools.hpp"
+ac_unique_file="../src/game/game.hpp"
+ac_unique_file="../src/game/server.cpp"
+ac_unique_file="../src/game/tower.cpp"
+ac_unique_file="../src/include/enet/callbacks.h"
+ac_unique_file="../src/include/enet/enet.h"
+ac_unique_file="../src/include/enet/list.h"
+ac_unique_file="../src/include/enet/protocol.h"
+ac_unique_file="../src/include/enet/time.h"
+ac_unique_file="../src/include/enet/types.h"
+ac_unique_file="../src/include/enet/unix.h"
+ac_unique_file="../src/include/enet/utility.h"
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
@@ -1883,51 +1884,51 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-CPPFLAGS="$CPPFLAGS -D__SERVER__=1 -I../src/include"
+CPPFLAGS="$CPPFLAGS -D__SERVER__=1 -I../Src/Include"
 LIBS="$LIBS -pthread"
 
-../src/enet/callbacks.c
-../src/enet/compress.c
-../src/enet/host.c
-../src/enet/list.c
-../src/enet/packet.c
-../src/enet/peer.c
-../src/enet/protocol.c
-../src/enet/unix.c
-../src/enet/enet/callbacks.h
-../src/enet/enet/enet.h
-../src/enet/enet/list.h
-../src/enet/enet/protocol.h
-../src/enet/enet/time.h
-../src/enet/enet/types.h
-../src/enet/enet/unix.h
-../src/enet/enet/utility.h
-../src/engine/command.cpp
-../src/engine/command.hpp
-../src/engine/engine.hpp
-../src/engine/gl.cpp
-../src/engine/gl.hpp
-../src/engine/map.cpp
-../src/engine/map.hpp
-../src/engine/network.cpp
-../src/engine/network.hpp
-../src/engine/server.hpp
-../src/engine/servermain.cpp
-../src/engine/texture.cpp
-../src/engine/texture.hpp
-../src/engine/tools.hpp
-../src/engine/audio.hpp
-../src/game/game.hpp
-../src/game/server.cpp
-../src/game/tower.cpp
-../src/include/enet/callbacks.h
-../src/include/enet/enet.h
-../src/include/enet/list.h
-../src/include/enet/protocol.h
-../src/include/enet/time.h
-../src/include/enet/types.h
-../src/include/enet/unix.h
-../src/include/enet/utility.h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ac_aux_dir=
 for ac_dir in .aux "$srcdir"/.aux; do
@@ -3967,14 +3968,14 @@ fi
 echo -n "checking for c++23 compiler... "
 echo "int main() { return 0; }" > __test.cpp
 if $CXX -std=c++2b __test.cpp -o __test > /dev/null 2>&1; then
-	echo "$CXX"
-	CPPFLAGS="$CPPFLAGS -std=c++2b"
-	rm -f __test.cpp __test
+        echo "$CXX"
+        CPPFLAGS="$CPPFLAGS -std=c++2b"
+        rm -f __test.cpp __test
 else
-	echo "no"
-	rm -f __test.cpp
-	echo "fatal: c++23 compiler not found"
-	exit
+        echo "no"
+        rm -f __test.cpp
+        echo "fatal: c++23 compiler not found"
+        exit
 fi
 
 ac_config_files="$ac_config_files Makefile"
