@@ -15,8 +15,8 @@
 // For some reason SDL can't find some extensions on windows...
 extern PFNGLACTIVETEXTUREPROC   _glActiveTexture;
 extern PFNGLBINDTEXTURESPROC    _glBindTextures;
-#  define glActiveTexture        _glActiveTexture
-#  define glBindTextures         _glBindTextures
+#  define glActiveTexture       _glActiveTexture
+#  define glBindTextures        _glBindTextures
 # endif
 #endif
 

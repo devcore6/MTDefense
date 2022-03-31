@@ -5,8 +5,8 @@ Debug
 *.user
 *.filter
 *.DotSettings
-Data/Config/
-Data/Autoexec/
+data/config/
+data/autoexec/
 desktop.ini
 .DS_Store
 Makefile

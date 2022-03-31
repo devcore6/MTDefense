@@ -8,6 +8,7 @@
 
 #include "../engine/tools.hpp"
 #include "../engine/gl.hpp"
+#include "../engine/audio.hpp"
 
 using dictionary_entry = std::map<std::string, const char*>;
 using sc = std::chrono::system_clock;
@@ -182,6 +183,7 @@ static const struct enemy_t {
     uint16_t                        vulnerabilities;
     uint8_t                         flags;
     texture_t                       texture;
+    sfxs_t                          sfxs;
     uint8_t                         spawns_when_damaged;
     std::initializer_list<int>      spawns;
 } enemy_types[] = {
@@ -201,6 +203,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/nmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/wood"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */               { }
     },
@@ -220,6 +223,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/umatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/wood"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_NANO
@@ -241,6 +245,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/mmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/wood"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_MICRO
@@ -262,6 +267,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/cmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/wood"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_MILLI
@@ -283,6 +289,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/dmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/wood"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_CENTI,
@@ -305,6 +312,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/matrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/wood"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_DECI,
@@ -327,6 +335,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/vmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/soft"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_REGULAR,
@@ -350,6 +359,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/smatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/soft"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_REGULAR,
@@ -373,6 +383,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_BIOLOGICAL,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/xmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/magic"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_REGULAR,
@@ -396,6 +407,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_HEAT | DAMAGE_CHEMICAL,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/imatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/wood"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_VOLCANIC,
@@ -421,6 +433,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/gmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/ceramic"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_VOLCANIC,
@@ -446,6 +459,7 @@ static const struct enemy_t {
         /* vulnerabilities: */      DAMAGE_NONE,
         /* flags: */                E_FLAG_NONE,
         /* texture: */              texture_t("data/enemies/hmatrioshka.png"),
+        /* sfxs: */                 sfxs_t("data/enemies/kill_sounds/metal"),
         /* spawns_when_damaged: */  ENEMY_NONE,
         /* spawns: */ {
                                     ENEMY_GIGA,

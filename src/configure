@@ -2042,6 +2042,7 @@ engine/texture.hpp
 engine/tools.hpp
 game/client.cpp
 game/game.hpp
+game/game_ui.hpp
 game/server.cpp
 game/tower.cpp
 include/enet/callbacks.h

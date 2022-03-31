@@ -80,8 +80,8 @@ int main(int argc, char* argv[]) {
     SDL_ShowCursor(SDL_TRUE);
     SDL_FreeSurface(surface);
 
-    execfile("data/Config/Config.conf");
-    execfolder("data/Autoexec/");
+    execfile("data/config/config.conf");
+    execfolder("data/autoexec/");
 
     reload_graphics();
 

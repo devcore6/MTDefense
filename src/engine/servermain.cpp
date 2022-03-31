@@ -43,7 +43,7 @@ ivarp(tickrate, 1, 100, 1000);
 
 void serverslice() {
     ENetEvent event { };
-    if(enet_host_service(server, &event, 1) > 0) {
+    while(enet_host_service(server, &event, 0) > 0) {
         bool client_disconnected = false;
         switch(event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
@@ -111,7 +111,6 @@ void server_main(std::future<void> quit) {
         sc::time_point last_tick = sc::now();
         while((1000_ms / tickrate - std::chrono::duration_cast<std::chrono::milliseconds>(sc::now() - last_tick)).count() > 0)
             serverslice();
-
         servertick();
     }
 

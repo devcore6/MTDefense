@@ -1916,6 +1916,7 @@ LIBS="$LIBS -pthread"
 ../src/engine/texture.cpp
 ../src/engine/texture.hpp
 ../src/engine/tools.hpp
+../src/engine/audio.hpp
 ../src/game/game.hpp
 ../src/game/server.cpp
 ../src/game/tower.cpp

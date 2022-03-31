@@ -10,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MTDefense", "mtdefense.vcxp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CXXGui", "cxxgui\src\cxxgui.vcxproj", "{4B52B211-E5DF-4ABB-87BC-36F180950B63}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MTDServer", "server.vcxproj", "{33CD07D8-6527-4BD7-B64E-0BB9D3917E8D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MTDServer", "..\server\server.vcxproj", "{33CD07D8-6527-4BD7-B64E-0BB9D3917E8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -32,14 +32,18 @@ std::string uint32_to_ip(uint32_t ip) {
 }
 
 extern ENetHost* server;
+#ifndef __SERVER__
+extern bool server_running;
+#endif
 
 void send_packet(ENetPeer* peer, uint8_t chan, bool reliable, packetstream& data) {
     size_t size = data.size();
     if(!peer) {
-#ifdef __SERVER__
+#ifndef __SERVER__
+        if(!server_running) return;
+#endif
         ENetPacket* packet = enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
         enet_host_broadcast(server, chan, packet);
-#endif
         return;
     }
     ENetPacket* packet = enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);

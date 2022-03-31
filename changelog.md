@@ -1,3 +1,18 @@
+# r50 Sounds
+## Client
+
+- Added enemy kill sound effects (some enemy types only for now)
+- Added tower placement sound effects
+- Added error sound effect
+- Localhost now works
+- Fixed an issue that lead to massive desync when frame rate was too high
+
+## General
+
+- Fixed a crash that happened when execfolder was called on a non existing folder.
+- Fixed general weirdness of upgrade menu
+- Fixed memory leak in upgrade menu
+
 # r46 Removed useless VisualStudio files
 
 # r45 Linux updates

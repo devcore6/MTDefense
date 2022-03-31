@@ -55,7 +55,7 @@ ivarp(audio_device_chunksize, 256, 4096, 65536);
 bool init_gl() {
     if(gl_loaded) return true;
 
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) return false;
+    if(SDL_Init(SDL_INIT_VIDEO) < 0) return false;
 
     if(Mix_OpenAudio((int)audio_device_frequency, (uint16_t)audio_device_format, (int)audio_device_channels, (int)audio_device_chunksize) == -1) return false;
     

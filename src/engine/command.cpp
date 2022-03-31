@@ -255,9 +255,11 @@ void execfolder(std::string folder) {
 #else
     std::string& path = folder;
 #endif /* __APPLE__ */
-    for(auto&f : std::filesystem::directory_iterator(path))
-        if(!std::filesystem::is_directory(f))
-            execfile(f.path().string());
+    try {
+        for(auto& f : std::filesystem::directory_iterator(path))
+            if(!std::filesystem::is_directory(f))
+                execfile(f.path().string());
+    } catch(std::exception e) { }
 }
 
 command(exec, [](std::vector<std::string>& args) {

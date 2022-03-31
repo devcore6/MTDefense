@@ -20,6 +20,9 @@
 using namespace cxxgui;
 svarp(language, "en_US"_str);
 
+sfx_t place_tower { "data/sounds/place_tower.wav" };
+sfx_t error       { "data/sounds/error.wav" };
+
 const char* get_entry(dictionary_entry& d) {
     for(auto& entry : d)
         if(language == entry.first)
@@ -108,323 +111,7 @@ void space_bar() {
     send_packet(peer, 0, true, p);
 }
 
-class game_ui: public cxxgui::embeddable {
-private:
-    bool clicking        = false;
-    bool send_click      = false;
-    int lastx            = 0;
-    int lasty            = 0;
-    double update_at     = DBL_MAX;
-
-    void do_update() {
-        last_selected = selected;
-        update_at = DBL_MAX;
-
-        if(!selected) return;
-
-        std::string upgrade_path = std::to_string(selected->upgrade_paths[0]) + '-'
-                                 + std::to_string(selected->upgrade_paths[1]) + '-'
-                                 + std::to_string(selected->upgrade_paths[2]);
-
-        std::string upgrade_paths[3] = { std::to_string(selected->upgrade_paths[0] + 1) + '-'
-                                       + std::to_string(selected->upgrade_paths[1]    ) + '-'
-                                       + std::to_string(selected->upgrade_paths[2]    ),
-                                         std::to_string(selected->upgrade_paths[0]    ) + '-'
-                                       + std::to_string(selected->upgrade_paths[1] + 1) + '-'
-                                       + std::to_string(selected->upgrade_paths[2]    ),
-                                         std::to_string(selected->upgrade_paths[0]    ) + '-'
-                                       + std::to_string(selected->upgrade_paths[1]    ) + '-'
-                                       + std::to_string(selected->upgrade_paths[2] + 1) };
-
-        uint8_t upgrade_count = selected->upgrade_paths[0] + selected->upgrade_paths[1] + selected->upgrade_paths[2];
-
-        float x = (selected->pos_x >= 710.0) ? 0.0f : 1088.0f;
-
-        if(body) delete body;
-        body = new vstack {
-            new image(
-                       tower_types[selected->base_type].animations[upgrade_path].frames[0].textid,
-                (float)tower_types[selected->base_type].animations[upgrade_path].frames[0].width,
-                (float)tower_types[selected->base_type].animations[upgrade_path].frames[0].height
-            )
-        };
-
-        body->frame(500.0f,  500.0f,  500.0f,
-                   1080.0f, 1080.0f, 1080.0f,
-                   alignment_t::center);
-        body->offset(x, 0.0f);
-        body->padding(16.0f);
-        body->background_color(color::background);
-
-        vstack* s = new vstack {
-            (new text(selected->custom_name != "" ? selected->custom_name.c_str() : get_entry(tower_types[selected->base_type].name)))
-                ->font(title)
-        };
-
-        ((vstack*)body)->add(s);
-
-        s->add(new hstack {
-            symbols::backward_circle()
-                ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center)
-                ->offset(-16.0f, 0.0f)
-                ->on_click([&](view*, float, float, void*) {
-                    send_click = false;
-                    uint8_t targeting_mode = selected->targeting_mode - 1;
-                    if(targeting_mode >= NUMTARGETINGS) targeting_mode = NUMTARGETINGS - 1;
-                    packetstream p { };
-                    p << N_UPDATETARGETING
-                      << 5_u32
-                      << selected->id
-                      << targeting_mode;
-                    send_packet(peer, 0, true, p);
-                }),
-            (new text(get_entry(targeting_mode_names[selected->targeting_mode])))
-                ->font(headline),
-             symbols::forward_circle()
-                ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center)
-                ->offset(-16.0f, 0.0f)
-                ->on_click([&](view*, float, float, void*) {
-                    send_click = false;
-                    uint8_t targeting_mode = selected->targeting_mode + 1;
-                    if(targeting_mode >= NUMTARGETINGS) targeting_mode = 0;
-                    packetstream p { };
-                    p << N_UPDATETARGETING
-                      << 5_u32
-                      << selected->id
-                      << targeting_mode;
-                    send_packet(peer, 0, true, p);
-                })
-            }
-        );
-
-        hstack* upgrades_available = new hstack { };
-
-        for(uint8_t i = 0_u8; i < upgrade_count; i++)
-            upgrades_available->add(
-                symbols::stop_fill()
-                    ->frame(32.0f, 32.0f, 32.0f, 32.0f, 32.0f, 32.0f, alignment_t::center)
-            );
-
-        for(uint8_t i = upgrade_count; i < 8_u8; i++)
-            upgrades_available->add(
-                symbols::stop()
-                    ->frame(32.0f, 32.0f, 32.0f, 32.0f, 32.0f, 32.0f, alignment_t::center)
-            );
-
-        s->add(upgrades_available->offset(-20.0f, -0.0f));
-
-        for(uint8_t i = 0_u8; i < 3_u8; i++) {
-            vstack* upgrades_stack = new vstack { };
-
-            struct data_t {
-                uint8_t val;
-                double cost;
-                bool owned;
-            };
-
-            for(uint8_t j = 0_u8; j < selected->upgrade_paths[i]; j++)
-                upgrades_stack->add(
-                    symbols::stop_fill()
-                        ->frame(24.0f, 24.0f, 24.0f, 24.0f, 24.0f, 24.0f, alignment_t::center)
-                );
-
-            for(uint8_t j = selected->upgrade_paths[i]; j < 6_u8; j++)
-                upgrades_stack->add(
-                    symbols::stop()
-                        ->frame(24.0f, 24.0f, 24.0f, 24.0f, 24.0f, 24.0f, alignment_t::center)
-                );
-
-            if(selected->upgrade_paths[i] == 6) {
-                s->add((new hstack {
-                    upgrades_stack,
-                    (new vstack {
-                        (new vstack {
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].name)))
-                                ->font(headline)
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].desc)))
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
-                        })
-                            ->offset(-16.0f, -16.0f)
-                    })
-                        ->padding(16.0f),
-                    symbols::forward()
-                        ->offset(-20.0f, 0.0f)
-                        ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
-                    (new vstack { })
-                        ->frame(200.0f, 200.0f, 200.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
-                })
-                    ->padding(16.0f, 0.0f)
-                    ->offset(-24.0f, 0.0f)
-                    ->align(alignment_t::center));
-            } else if(upgrade_count == 8) {
-                s->add((new hstack {
-                    upgrades_stack,
-                    (new vstack {
-                        (new vstack {
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].name)))
-                                ->font(headline)
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].desc)))
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
-                        })
-                            ->offset(-16.0f, -16.0f)
-                    })
-                        ->padding(16.0f),
-                    symbols::forward()
-                        ->offset(-20.0f, 0.0f)
-                        ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
-                    (new vstack {
-                        (new text("Upgrade unavailable"))
-                            ->font(headline)
-                            ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
-                    })
-                        ->frame(200.0f, 200.0f, 200.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
-                })
-                    ->padding(16.0f, 0.0f)
-                    ->offset(-24.0f, 0.0f)
-                    ->align(alignment_t::center));
-            } else if(selected->upgrade_paths[i] == 0) {
-                double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * cs.diff.tower_cost_modifier;
-                bool owned = false;
-
-                for(auto& id : playerinfo.towers)
-                    if(id == selected->id) {
-                        owned = true;
-                        break;
-                    }
-
-                uint32_t c = owned ? (cost > playerinfo.cash ? color::red : color::green) : color::gray;
-                
-                if(cost > playerinfo.cash && cost < update_at) update_at = cost;
-
-                s->add((new hstack {
-                    upgrades_stack,
-                    (new vstack { })
-                        ->frame(200.0f, 200.0f, 200.0f, 0.0f, 0.0f, 0.0f, alignment_t::center),
-                    symbols::forward()
-                        ->offset(-20.0f, 0.0f)
-                        ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
-                    (new vstack {
-                        (new vstack {
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].name)))
-                                ->font(headline)
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].desc)))
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                            (new text("$"_str + to_string_digits(cost, 2)))
-                                ->font(headline)
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
-                        })
-                            ->offset(-16.0f, -16.0f)
-                    })
-                        ->padding(16.0f)
-                        ->background_color(c)
-                        ->hover_background_color(color_multiply(c, 0.8))
-                        ->on_click([&](view*, float, float, void* data) {
-                            send_click = false;
-                            data_t val = *(data_t*)data;
-                            if(!val.owned) return;
-                            delete (data_t*)data;
-                            if(playerinfo.cash >= val.cost)
-                                try_upgrade(val.val);
-                            last_selected = nullptr;
-                        }, new data_t({i, cost, owned}))
-                })
-                    ->padding(16.0f, 0.0f)
-                    ->offset(-24.0f, 0.0f)
-                    ->align(alignment_t::center));
-            } else {
-                double cost = tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].base_price * cs.diff.tower_cost_modifier;
-
-                bool owned = false;
-
-                for(auto& id : playerinfo.towers)
-                    if(id == selected->id) {
-                        owned = true;
-                        break;
-                    }
-
-                uint32_t c = owned ? (cost > playerinfo.cash ? color::red : color::green) : color::gray;
-
-                if(cost > playerinfo.cash && cost < update_at) update_at = cost;
-
-                s->add((new hstack {
-                    upgrades_stack,
-                    (new vstack {
-                        (new vstack {
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].name)))
-                                ->font(headline)
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i] - 1].desc)))
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading)
-                        })
-                            ->offset(-16.0f, -16.0f)
-                    })
-                        ->padding(16.0f),
-                    symbols::forward()
-                        ->offset(-20.0f, 0.0f)
-                        ->frame(64.0f, 64.0f, 64.0f, 64.0f, 64.0f, 64.0f, alignment_t::center),
-                    (new vstack {
-                        (new vstack {
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].name)))
-                                ->font(headline)
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                            (new text(get_entry(tower_types[selected->base_type].upgrade_paths[i][selected->upgrade_paths[i]].desc)))
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::top_leading),
-                            (new text("$"_str + to_string_digits(cost, 2)))
-                                ->font(headline)
-                                ->frame(168.0f, 168.0f, 168.0f, 0.0f, 0.0f, 0.0f, alignment_t::center)
-                        })
-                            ->offset(-16.0f, -16.0f)
-                    })
-                        ->padding(16.0f)
-                        ->background_color(c)
-                        ->hover_background_color(color_multiply(c, 0.8))
-                        ->on_click([&](view*, float, float, void* data) {
-                            send_click = false;
-                            data_t val = *(data_t*)data;
-                            if(!val.owned) return;
-                            delete (data_t*)data;
-                            if(playerinfo.cash >= val.cost)
-                                try_upgrade(val.val);
-                            last_selected = nullptr;
-                        }, new data_t({i, cost, owned}))
-                })
-                    ->padding(16.0f, 0.0f)
-                    ->offset(-24.0f, 0.0f)
-                    ->align(alignment_t::center));
-            }
-        }
-    }
-
-public:
-    tower* last_selected = nullptr;
-     game_ui() { }
-    ~game_ui() { }
-
-    void release_handler() {
-        SDL_GetMouseState(&lastx, &lasty);
-        lastx = (int)((float)lastx / (float)width  * 1920.0f);
-        lasty = (int)((float)lasty / (float)height * 1080.0f);
-        send_click  = true;
-        clicking    = false;
-    }
-
-    void press_handler() {
-        clicking = true;
-    }
-
-    void update() {
-        if(selected != last_selected || playerinfo.cash >= update_at) do_update();
-    }
-
-    void ui() {
-        float width_scale  = 1.0f / (float)width  * 1920.0f;
-        float height_scale = 1.0f / (float)height * 1080.0f;
-        render_gui(clicking, send_click, lastx, lasty, width_scale, height_scale);
-    }
-} ui;
+#include "game_ui.hpp"
 
 void handle_packet(packetstream&);
 
@@ -576,8 +263,6 @@ void mouse_release_handler(int _x, int _y) {
 
         double cost = dragging->base_price * cs.diff.tower_cost_modifier;
         if(playerinfo.cash > cost) {
-            // todo: localhost
-
             if(!peer) return;
 
             packetstream p { };
@@ -862,6 +547,7 @@ void send_message(std::string msg) {
 void handle_packet(packetstream& p) {
     uint32_t msgtype = NUMMSG;
     uint32_t size = -1;
+    bool play_sounds = true;
     p >> msgtype
       >> size;
     while(p) {
@@ -906,6 +592,8 @@ void handle_packet(packetstream& p) {
                 tower t { tower_types[base_type], cost, x, y };
                 t.id = tid;
                 cs.towers.push_back(t);
+
+                if(play_sounds) place_tower.play();
 
                 if(cid == playerinfo.id)
                     playerinfo.towers.push_back(tid);
@@ -953,6 +641,7 @@ void handle_packet(packetstream& p) {
                 if(selected && selected->id == tid) {
                     glDeleteTextures(1, &range_texture);
                     range_texture = 0;
+                    ui.last_selected = nullptr;
                 }
 
                 break;
@@ -997,6 +686,7 @@ void handle_packet(packetstream& p) {
                 cs.projectiles.clear();
                 cs.towers.clear();
                 playerinfo.towers.clear();
+                play_sounds = false;
                 for(auto& pi : playerinfos)
                     pi.towers.clear();
                 break;
@@ -1058,7 +748,7 @@ void handle_packet(packetstream& p) {
                 cs.enemies.push_back(std::move<enemy>({
                     /* base_type:          */ base_type,
                     /* route:              */ &current_map->paths[route],
-                    /* distance_traveled: */ dist,
+                    /* distance_traveled:  */ dist,
                     /* pos:                */  current_map->paths[route][0],
                     /* max_health:         */ health,
                     /* health:             */ health,
@@ -1112,6 +802,8 @@ void handle_packet(packetstream& p) {
                 p >> pid;
                 for(size_t i = 0; i < cs.enemies.size(); i++)
                     if(cs.enemies[i].id == pid) {
+                        if(msgtype == N_KILL_ENEMY)
+                            enemy_types[cs.enemies[i].base_type].sfxs.play_random();
                         cs.enemies.erase(cs.enemies.begin() + i);
                         break;
                     }
@@ -1177,7 +869,7 @@ void main_loop() {
                 send_packet(peer, 0, true, p);
             }
             ENetEvent e;
-            do if(enet_host_service(client, &e, 1)) {
+            do while(enet_host_service(client, &e, 0) > 0) {
                 if(e.type == ENET_EVENT_TYPE_RECEIVE) {
                     if(!e.packet->data) { enet_packet_destroy(e.packet); continue; }
                     packetstream stream { (const char*)e.packet->data, e.packet->dataLength };

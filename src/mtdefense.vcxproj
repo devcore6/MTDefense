@@ -180,6 +180,7 @@
     <ClInclude Include="engine\texture.hpp" />
     <ClInclude Include="engine\tools.hpp" />
     <ClInclude Include="game\game.hpp" />
+    <ClInclude Include="game\game_ui.hpp" />
     <ClInclude Include="include\enet\callbacks.h" />
     <ClInclude Include="include\enet\enet.h" />
     <ClInclude Include="include\enet\list.h" />
