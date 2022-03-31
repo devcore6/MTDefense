@@ -1884,7 +1884,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-CPPFLAGS="$CPPFLAGS -D__SERVER__=1 -I../Src/Include"
+CPPFLAGS="$CPPFLAGS -D__SERVER__=1 -I../src/include"
 LIBS="$LIBS -pthread"
 
 
