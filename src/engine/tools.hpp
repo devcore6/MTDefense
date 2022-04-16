@@ -554,6 +554,13 @@ public:
 
 // Preprocessor repetitions and utilities
 // 
+// 
+// 
+// WARNING - PREPROCESSOR NIGHTMARE AHEAD
+//              WEAK MINDS LOOK AWAY!
+// 
+// 
+// 
 // Usage: REPEAT(m, l, c, ...)
 //        m: main repetition macro
 //        l: last repetition macro
@@ -837,6 +844,47 @@ public:
 template<class T, class... Ts>
 T pick(Ts&&... args) { return std::get<T>(std::make_tuple(std::forward<Ts>(args)...)); }
 
+//
+// You thought the preprocessor nightmare was before? No, no, don't worry.
+// It's actually this mess right here. Do I even know how this works anymore now that I'm looking at it again?
+// - No.
+// 
+// Do I want to know how it works?
+// - No. It's C preprocessor, it's disgusting, and I love that. Also, I never actually ended up using this so far,
+//   however, it is a very convenient system to use. I might use it for something in the future and that's why
+//   I'm keeping it around
+// 
+// todo: I know it's not possible, but I reaaaaally need to come up with a template system for this.
+//       something that I can use like
+// 
+// named<double> function_with_named_args(double arg1, double arg2) { ... }
+// 
+//       and make it callable as
+// 
+// auto x = function_with_named_args(arg2 = 1.2, arg1 = 3.2);
+// 
+//       or preferably the prettier syntax
+// 
+// auto x = function_with_named_args(arg2: 1.2, arg1: 3.2);
+// 
+//       Yes. I'm aware that what I'm asking for is something that is clearly not doable in c++.
+//       At least not without enough templates and macros to topple a government.
+// 
+//       Something that is more realistically doable is combine the parameter types and names in
+//       the same set of brackets, like
+// 
+// NAMED_ARGS(double, function_with_named_args, (double arg1, double arg2), { ... });
+// 
+//       As opposed to the current
+// 
+// NAMED_ARGS(double, function_with_named_args, (double, double), (arg1, arg2) { ... });
+// 
+//       But that's even more of a preprocessor nightmare than this already is.
+//       If I can figure it out I will do that though.
+// 
+//       Anyway, I digress. Weak minds seriously look away for the next few lines!
+//
+
 #define NAMED_ARGS_TYPES_M(c, p, T)     using named_arg_ ## p ## _ ## c ## _t = named_arg<T, struct named_arg_ ## p ## _ ## c ## _s>;
 #define NAMED_ARGS_VARS_M(c, p, n)      static const named_arg_ ## p ## _ ## c ## _t::arg_t n;
 #define NAMED_ARGS_ENUM_PARAMS_L(c)     Arg ## c val ## c
@@ -868,6 +916,9 @@ T pick(Ts&&... args) { return std::get<T>(std::make_tuple(std::forward<Ts>(args)
 //                  if(j == 8) break(2);
 //              )
 //          )
+// 
+// Note: I'll be honest I don't know how I feel about redefining break and continue.
+//       I mean it's not replacing regular break; and continue; so it's fine, but it feels sacreligious.
 //
 
 #define loop(id, c, f) for c { f __loop__ ## id ## __continue: { } } __loop__ ## id ## __break:

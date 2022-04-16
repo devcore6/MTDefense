@@ -80,7 +80,9 @@ result<projectile, void> tower::fire(enemy* e, std::vector<enemy*>* targets) {
         /* debuff_dps:                */ 0.0,
         /* debuff_speed_multiplier:   */ 1.0,
         /* hits:                      */ { },
-        /* enemies:                   */ targets
+        /* enemies:                   */ targets,
+        /* stun_time:                 */ extra_stun_time,
+        /* double_damage_time:        */ extra_double_damage_time
     };
 }
 
@@ -109,6 +111,8 @@ bool tower::try_upgrade(uint8_t path, double price) {
     extra_damage_linear         += u.extra_damage_linear;
     extra_damage_range          += u.extra_damage_range;
     extra_damage_types          += u.extra_damage_types;
+    extra_stun_time             += u.extra_stun_time;
+    extra_double_damage_time    += u.extra_double_damage_time;
     upgrade_paths[path]++;
     return true;
 }

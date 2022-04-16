@@ -1,3 +1,9 @@
+# r54 Tank tower updates
+## Tank Tower
+- Stun lock now works.
+- Shell shock now works.
+- The biggest one now works.
+
 # r53 QOL updates
 ## Server
 - Improved hitboxes

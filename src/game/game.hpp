@@ -490,6 +490,8 @@ struct enemy {
     uint8_t             flags;
     double              slowed_for;
     double              frozen_for;
+    double              stunned_for;
+    double              double_damaged_for;
     uint32_t            id;
     //std::vector<debuff> debuffs;
 
@@ -1887,6 +1889,8 @@ struct projectile {
     double      debuff_speed_multiplier;
     std::vector<uint32_t> hits;
     std::vector<enemy*>* enemies;
+    double      stun_time;
+    double      double_damage_time;
 };
 
 struct upgrade {
@@ -1906,6 +1910,8 @@ struct upgrade {
     uint16_t                            extra_damage_types;
     std::vector<animation_t>            hit_animations;
     std::initializer_list<projectile_t> projectiles;
+    double                              extra_stun_time = 0.0;
+    double                              extra_double_damage_time = 0.0;
 };
 
 static struct tower_t {
@@ -2560,7 +2566,7 @@ static struct tower_t {
                         { "en_US", "Stun Lock" }
                     },
                     /* desc: */ {
-                        { "en_US", "Shells hit enemies with so much energy that they temporarily stun the enemies. - TODO -" }
+                        { "en_US", "Shells hit enemies with so much energy that they temporarily stun the enemies." }
                      },
                     /* base_price: */                   4000.00,
                     /* range_mod: */                    1.00,
@@ -2575,14 +2581,15 @@ static struct tower_t {
                     /* extra_damage_range: */           0.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
-                    /* projectiles: */                  { }
+                    /* projectiles: */                  { },
+                    /* extra_stun_time: */              1.0
                 },
                 {
                     /* name: */ {
                         { "en_US", "Shell Shock" }
                     },
                     /* desc: */ {
-                        { "en_US", "Shells leave enemies shell shocked, increasing all damage received for a few seconds. - TODO -" }
+                        { "en_US", "Shells leave enemies shell shocked, increasing all damage received for a few seconds." }
                     },
                     /* base_price: */                   20000.00,
                     /* range_mod: */                    1.00,
@@ -2597,14 +2604,16 @@ static struct tower_t {
                     /* extra_damage_range: */           0.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
-                    /* projectiles: */                  { }
+                    /* projectiles: */                  { },
+                    /* extra_stun_time: */              0.0,
+                    /* extra_double_damage_time: */     0.25
                 },
                 {
                     /* name: */ {
                         { "en_US", "The Biggest One" }
                     },
                     /* desc: */ {
-                        { "en_US", "Largely increases explosion range and amount of enemies damaged, increases stun lock and shell shock duration, and their effects are applied to all but the largest enemies. - TODO -" }
+                        { "en_US", "Largely increases explosion range and amount of enemies damaged, increases stun lock and shell shock duration, and their effects are applied to all but the largest enemies." }
                     },
                     /* base_price: */                   100000.00,
                     /* range_mod: */                    1.00,
@@ -2619,7 +2628,9 @@ static struct tower_t {
                     /* extra_damage_range: */           96.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
-                    /* projectiles: */                  { }
+                    /* projectiles: */                  { },
+                    /* extra_stun_time: */              0.75,
+                    /* extra_double_damage_time: */     0.5
                 }
             },
             {
@@ -2922,6 +2933,8 @@ public:
     std::string     custom_name                 = "";
     uint32_t        id                          = -1;
     uint32_t        cid                         = -1;
+    double          extra_stun_time             = 0.0;
+    double          extra_double_damage_time = 0.0;
 
                              tower(tower_t& t, double c, double x, double y);
     void                     tick(double time);

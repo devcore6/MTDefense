@@ -144,7 +144,14 @@ ivarp(serverthreads, 1, std::thread::hardware_concurrency() - 1, INTMAX_MAX);
 std::vector<enemy*> enemy_cycle(double dt, size_t i) {
     std::vector<enemy*> ret { };
     for(auto& e : iterate(gs.created_enemies, serverthreads, i)) {
-        e.distance_traveled += e.speed * 150.0 * dt;
+        e.double_damaged_for = max(e.double_damaged_for - dt, 0.0);
+
+        if(e.stunned_for > 0.0) {
+            e.stunned_for -= dt;
+            if(e.stunned_for <= 0.0)
+               e.distance_traveled += e.speed * 150.0 * (-e.stunned_for);
+        } else e.distance_traveled += e.speed * 150.0 * dt;
+
         if(e.distance_traveled >= e.route->length()) {
             double lives = count_lives(enemy_types[e.base_type]);
             ret.push_back(&e);
@@ -260,8 +267,10 @@ void do_damage(projectile_cycle_data& data, projectile& p, enemy* e) {
     if( p.flags & P_FLAG_STRIP_ARMOR)   e->flags &= ~E_FLAG_ARMORED;
     if( p.flags & P_FLAG_STRIP_STEALTH) e->flags &= ~E_FLAG_STEALTH;
     if(e->flags & E_FLAG_SHIELD)      { e->flags &= ~E_FLAG_SHIELD; return; }
-    
-    e->health -= dmg;
+
+    e->double_damaged_for = max(e->double_damaged_for, p.double_damage_time);
+    e->health -= dmg * ((e->double_damaged_for > 0.0) + 1.0);
+    e->stunned_for = max(e->stunned_for, p.stun_time);
     if(e->health <= 0.0) {
         data.enemies_to_erase.push_back(e->id);
         queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, 0, e->distance_traveled);
@@ -303,7 +312,9 @@ void detonate (projectile_cycle_data& data, projectile& p) {
             if( p.flags & P_FLAG_STRIP_STEALTH) e->flags &= ~E_FLAG_STEALTH;
             if(e->flags & E_FLAG_SHIELD)      { e->flags &= ~E_FLAG_SHIELD; return; }
 
-            e->health -= dmg;
+            e->double_damaged_for = max(e->double_damaged_for, p.double_damage_time);
+            e->health -= dmg * ((e->double_damaged_for > 0.0) + 1.0);
+            e->stunned_for = max(e->stunned_for, p.stun_time);
 
             if(e->health <= 0.0) {
                 data.enemies_to_erase.push_back(e->id);
@@ -552,6 +563,9 @@ void servertick() {
                             broadcast << N_DETONATE
                                       << 4_u32
                                       << gs.projectiles[i].pid;
+
+                        // you may ask yourself "why is this tabbed in? it looks like its part of the if but its not"
+                        // the answer is simple: it looks better cause this way it lines up :P
 
                             broadcast << N_DELETE_PROJECTILE
                                       << 4_u32

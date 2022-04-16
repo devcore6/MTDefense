@@ -782,8 +782,8 @@ void handle_packet(packetstream& p) {
                     if(pj.pid == pid) {
 
                         break;
-                    }*/
-                break;
+                    }
+                break;*/
             }
             case N_DELETE_PROJECTILE: {
                 uint32_t pid { (uint32_t)-1 };
