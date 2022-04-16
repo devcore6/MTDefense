@@ -45,6 +45,8 @@ iconst(audio_format_s16, AUDIO_S16SYS);
 iconst(audio_format_s32, AUDIO_S32SYS);
 iconst(audio_format_f32, AUDIO_F32SYS);
 
+dvarp(audio_volume, 0.0, 0.2, 1.0);
+
 bool quit = false;
 
 ivarp(audio_device_frequency, 0, 44100, 192000);
@@ -58,6 +60,8 @@ bool init_gl() {
     if(SDL_Init(SDL_INIT_VIDEO) < 0) return false;
 
     if(Mix_OpenAudio((int)audio_device_frequency, (uint16_t)audio_device_format, (int)audio_device_channels, (int)audio_device_chunksize) == -1) return false;
+
+    Mix_Volume(-1, MIX_MAX_VOLUME * audio_volume);
     
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);

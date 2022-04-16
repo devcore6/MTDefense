@@ -218,7 +218,7 @@ uint32_t queue_spawns(
                       * gs.diff.enemy_health_modifier
                       * gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier;
 
-        if(health <= excess_damage) ret += queue_spawns(data, excess_damage - health, s, flags, p, pj, ret, dist);
+        if(health <= excess_damage) ret = queue_spawns(data, excess_damage - health, s, flags, p, pj, ret, dist);
         else {
             uint8_t random_flags = E_FLAG_NONE;
 
@@ -316,7 +316,8 @@ void detonate (projectile_cycle_data& data, projectile& p) {
 projectile_cycle_data projectile_cycle(double dt, size_t i) {
     projectile_cycle_data ret;
     for(auto& p : iterate(gs.projectiles, serverthreads, i)) {
-        p.travelled += p.speed * dt;
+        double traveled = p.speed * dt;
+        p.travelled += traveled;
 
         if(p.travelled > p.range) {
             ret.projectiles_to_erase.push_back(std::make_pair(p.pid, false));
@@ -339,10 +340,10 @@ projectile_cycle_data projectile_cycle(double dt, size_t i) {
 
             vec2 epos = e.route->get_position_at(e.distance_traveled);
             base_rect_t bounding_box { {
-                { epos + vec2 { -w * 0.55, -h * 0.375 } },
-                { epos + vec2 {  w * 0.45, -h * 0.375 } },
-                { epos + vec2 {  w * 0.45,  h * 0.625 } },
-                { epos + vec2 { -w * 0.55,  h * 0.625 } }
+                { epos + vec2 { -w * 0.6 - traveled / 2.0, -h * 0.425 - traveled / 2.0 } },
+                { epos + vec2 {  w * 0.5 + traveled / 2.0, -h * 0.425 - traveled / 2.0 } },
+                { epos + vec2 {  w * 0.5 + traveled / 2.0,  h * 0.675 + traveled / 2.0 } },
+                { epos + vec2 { -w * 0.6 - traveled / 2.0,  h * 0.675 + traveled / 2.0 } }
             } };
 
             if(bounding_box.contains(pos, 4.0)) {
@@ -407,28 +408,28 @@ void servertick() {
                             random_flags |= E_FLAG_SHIELD;
 
                         gs.created_enemies.push_back({
-                            /* base_type:          */ set.base_type,
-                            /* route:              */ &current_map->paths[gs.last_route],
+                            /* base_type:         */ set.base_type,
+                            /* route:             */ &current_map->paths[gs.last_route],
                             /* distance_traveled: */ 0.0,
-                            /* pos:                */ current_map->paths[gs.last_route][0],
-                            /* max_health:         */ enemy_types[set.base_type].base_health
-                                                   *  gs.diff.enemy_health_modifier
-                                                   *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier,
-                            /* health:             */ enemy_types[set.base_type].base_health
-                                                   *  gs.diff.enemy_health_modifier
-                                                   *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier,
-                            /* speed:              */ enemy_types[set.base_type].base_speed
-                                                   *  gs.diff.enemy_speed_modifier
-                                                   *  gs.diff.round_set.r[gs.cur_round].enemy_speed_multiplier,
-                            /* kill_reward:        */ enemy_types[set.base_type].base_kill_reward
-                                                   *  gs.diff.enemy_kill_reward_modifier
-                                                   *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier,
-                            /* immunities:         */ (uint16_t)(enemy_types[set.base_type].immunities | gs.diff.enemy_base_immunities),
-                            /* vulnerabilities:    */ enemy_types[set.base_type].vulnerabilities,
-                            /* flags:              */ (uint8_t)(enemy_types[set.base_type].flags | set.flags | random_flags),
-                            /* slowed_for:         */ 0.0,
-                            /* frozen_for:         */ 0.0,
-                            /* id:                 */ gs.all_spawned_enemies
+                            /* pos:               */ current_map->paths[gs.last_route][0],
+                            /* max_health:        */ enemy_types[set.base_type].base_health
+                                                  *  gs.diff.enemy_health_modifier
+                                                  *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier,
+                            /* health:            */ enemy_types[set.base_type].base_health
+                                                  *  gs.diff.enemy_health_modifier
+                                                  *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier,
+                            /* speed:             */ enemy_types[set.base_type].base_speed
+                                                  *  gs.diff.enemy_speed_modifier
+                                                  *  gs.diff.round_set.r[gs.cur_round].enemy_speed_multiplier,
+                            /* kill_reward:       */ enemy_types[set.base_type].base_kill_reward
+                                                  *  gs.diff.enemy_kill_reward_modifier
+                                                  *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier,
+                            /* immunities:        */ (uint16_t)(enemy_types[set.base_type].immunities | gs.diff.enemy_base_immunities),
+                            /* vulnerabilities:   */ enemy_types[set.base_type].vulnerabilities,
+                            /* flags:             */ (uint8_t)(enemy_types[set.base_type].flags | set.flags | random_flags),
+                            /* slowed_for:        */ 0.0,
+                            /* frozen_for:        */ 0.0,
+                            /* id:                */ gs.all_spawned_enemies
                         });
 
                         broadcast << N_SPAWN_ENEMY
@@ -589,7 +590,7 @@ void servertick() {
         for(auto& set : gs.diff.round_set.r[gs.cur_round].enemies)
             total_enemies += (size_t)(set.amount * gs.diff.enemy_amount_modifier);
 
-        if(gs.created_enemies.size() == 0 && gs.spawned_enemies == total_enemies) {
+        if(gs.created_enemies.size() == 0 && gs.spawned_enemies >= total_enemies) {
             gs.running = false;
             gs.cur_round++;
 

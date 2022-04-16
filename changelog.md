@@ -1,3 +1,11 @@
+# r53 QOL updates
+## Server
+- Improved hitboxes
+- Fixed a bug where some enemy spawns would occur far before the start of the map
+
+## Client
+- Added a way to lower the volume. Thank f***
+
 # r50 Sounds
 ## Client
 

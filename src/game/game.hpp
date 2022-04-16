@@ -1090,7 +1090,7 @@ static const struct rounds {
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
-                    }
+                }
             }
         },
         /* Round 21: */ {
@@ -1234,7 +1234,7 @@ static const struct rounds {
                     /* flags: */            E_FLAG_NONE,
                     /* immunities: */       DAMAGE_NONE,
                     /* vulnerabilities: */  DAMAGE_NONE
-                    }
+                }
             }
         },
         /* Round 27: */ {
