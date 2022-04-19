@@ -16,6 +16,8 @@ ivarp(timeouttime, 30, 60, 600);
 std::vector<clientinfo> clientinfos;
 extern intmax_t maxclients;
 
+svarp(language, "en_US"_str);
+
 bool can_place(std::vector<tower>& towers, tower_t& base_type, double x, double y) {
     if(!current_map) return false;
 
@@ -141,52 +143,6 @@ double count_lives(enemy_t e) {
 
 ivarp(serverthreads, 1, std::thread::hardware_concurrency() - 1, INTMAX_MAX);
 
-std::vector<enemy*> enemy_cycle(double dt, size_t i) {
-    std::vector<enemy*> ret { };
-    for(auto& e : iterate(gs.created_enemies, serverthreads, i)) {
-        e.double_damaged_for = max(e.double_damaged_for - dt, 0.0);
-
-        if(e.stunned_for > 0.0) {
-            e.stunned_for -= dt;
-            if(e.stunned_for <= 0.0)
-               e.distance_traveled += e.speed * 150.0 * (-e.stunned_for);
-        } else e.distance_traveled += e.speed * 150.0 * dt;
-
-        if(e.distance_traveled >= e.route->length()) {
-            double lives = count_lives(enemy_types[e.base_type]);
-            ret.push_back(&e);
-            gs.lives -= lives;
-        }
-    }
-    return ret;
-}
-
-std::vector<projectile> tower_cycle(double dt, size_t i) {
-    std::vector<projectile> ret { };
-    for(auto& t : iterate(gs.towers, serverthreads, i)) {
-        t.tick(dt);
-        if(!t.can_fire()) continue;
-
-        std::vector<enemy*>* enemies = &gs.first;
-        switch(t.targeting_mode) {
-         // case TARGETING_FIRST:  enemies = &gs.first;  break; not needed
-            case TARGETING_LAST:   enemies = &gs.last;   break;
-            case TARGETING_STRONG: enemies = &gs.strong; break;
-            case TARGETING_WEAK:   enemies = &gs.weak;   break;
-         // default:               enemies = &gs.first;  break; not needed
-        }
-
-        for(auto& e : *enemies) {
-            auto p = t.fire(e, enemies);
-            if(p) {
-                ret.push_back(p.ok);
-                break;
-            }
-        }
-    }
-    return ret;
-}
-
 struct projectile_cycle_data {
     std::vector<std::pair<uint32_t, bool>> projectiles_to_erase;
     std::vector<uint32_t>                  enemies_to_erase;
@@ -199,6 +155,12 @@ struct projectile_cycle_data {
     };
     std::vector<e>                         enemies_to_add;
     double                                 extra_cash { 0.0 };
+};
+
+struct enemy_cycle_data {
+    std::vector<enemy*> survived;
+    std::vector<uint32_t> died;
+    std::vector<projectile_cycle_data::e> spawned;
 };
 
 uint32_t queue_spawns(
@@ -248,6 +210,82 @@ uint32_t queue_spawns(
     return ret;
 }
 
+enemy_cycle_data enemy_cycle(double dt, size_t i) {
+    enemy_cycle_data ret { };
+    for(auto& e : iterate(gs.created_enemies, serverthreads, i)) {
+        e.double_damaged_for = max(e.double_damaged_for - dt, 0.0);
+
+        double speed_mul = 1.0;
+        double damage_pending = 0.0;
+
+        for(size_t j = 0; j < e.debuffs.size(); j++) {
+            auto& d = e.debuffs[j];
+
+            double time_passed = dt;
+            d.debuff_duration -= dt;
+
+            if(d.debuff_duration <= 0.0) time_passed += d.debuff_duration;
+
+            damage_pending    += time_passed * d.debuff_dps;
+            speed_mul         *= d.debuff_speed_multiplier;
+
+            if(d.debuff_duration <= 0.0) e.debuffs.erase(e.debuffs.begin() + j--);
+        }
+
+        e.health -= damage_pending;
+
+        if(e.health <= 0.0) {
+            ret.died.push_back(e.id);
+
+            projectile_cycle_data tmp { };
+            projectile p { };
+            queue_spawns(tmp, abs(e.health), enemy_types[e.base_type], e.flags, e.route, p, 0, e.distance_traveled);
+            for(auto s : tmp.enemies_to_add) ret.spawned.push_back(s);
+
+            continue;
+        }
+
+        if(e.stunned_for > 0.0) {
+            e.stunned_for -= dt;
+            if(e.stunned_for <= 0.0)
+               e.distance_traveled += e.speed * 150.0 * speed_mul * (-e.stunned_for);
+        } else e.distance_traveled += e.speed * 150.0 * speed_mul * dt;
+
+        if(e.distance_traveled >= e.route->length()) {
+            double lives = count_lives(enemy_types[e.base_type]);
+            ret.survived.push_back(&e);
+            gs.lives -= lives;
+        }
+    }
+    return ret;
+}
+
+std::vector<projectile> tower_cycle(double dt, size_t i) {
+    std::vector<projectile> ret { };
+    for(auto& t : iterate(gs.towers, serverthreads, i)) {
+        t.tick(dt);
+        if(!t.can_fire()) continue;
+
+        std::vector<enemy*>* enemies = &gs.first;
+        switch(t.targeting_mode) {
+         // case TARGETING_FIRST:  enemies = &gs.first;  break; not needed
+            case TARGETING_LAST:   enemies = &gs.last;   break;
+            case TARGETING_STRONG: enemies = &gs.strong; break;
+            case TARGETING_WEAK:   enemies = &gs.weak;   break;
+         // default:               enemies = &gs.first;  break; not needed
+        }
+
+        for(auto& e : *enemies) {
+            auto p = t.fire(e, enemies);
+            if(p) {
+                ret.push_back(p.ok);
+                break;
+            }
+        }
+    }
+    return ret;
+}
+
 void do_damage(projectile_cycle_data& data, projectile& p, enemy* e) {
     std::lock_guard l { e->lock };
     if(e->health <= 0.0)                                                                   return;
@@ -271,13 +309,30 @@ void do_damage(projectile_cycle_data& data, projectile& p, enemy* e) {
     e->double_damaged_for = max(e->double_damaged_for, p.double_damage_time);
     e->health -= dmg * ((e->double_damaged_for > 0.0) + 1.0);
     e->stunned_for = max(e->stunned_for, p.stun_time);
+
+    for(auto& d : p.debuffs) {
+        bool found = false;
+
+        for(auto& D : e->debuffs) if(D.debuff_type == d.debuff_type) {
+            if(d.debuff_dps > D.debuff_dps) {
+                D.debuff_duration         = d.debuff_duration;
+                D.debuff_dps              = d.debuff_dps;
+                D.debuff_speed_multiplier = d.debuff_speed_multiplier;
+            }
+            found = true;
+            break;
+        }
+
+        if(!found) e->debuffs.push_back(d);
+    }
+
     if(e->health <= 0.0) {
         data.enemies_to_erase.push_back(e->id);
         queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, 0, e->distance_traveled);
     }
 }
 
-void detonate (projectile_cycle_data& data, projectile& p) {
+void detonate(projectile_cycle_data& data, projectile& p) {
     vertex_2d pos = p.start + p.direction_vector * p.travelled;
 
     for(auto& e : *p.enemies) {
@@ -315,6 +370,22 @@ void detonate (projectile_cycle_data& data, projectile& p) {
             e->double_damaged_for = max(e->double_damaged_for, p.double_damage_time);
             e->health -= dmg * ((e->double_damaged_for > 0.0) + 1.0);
             e->stunned_for = max(e->stunned_for, p.stun_time);
+
+            for(auto& d : p.debuffs) {
+                bool found = false;
+
+                for(auto& D : e->debuffs) if(D.debuff_type == d.debuff_type) {
+                    if(d.debuff_dps > D.debuff_dps) {
+                        D.debuff_duration         = d.debuff_duration;
+                        D.debuff_dps              = d.debuff_dps;
+                        D.debuff_speed_multiplier = d.debuff_speed_multiplier;
+                    }
+                    found = true;
+                    break;
+                }
+
+                if(!found) e->debuffs.push_back(d);
+            }
 
             if(e->health <= 0.0) {
                 data.enemies_to_erase.push_back(e->id);
@@ -469,24 +540,80 @@ void servertick() {
             }
         }
 
-        std::vector<std::future<std::vector<enemy*>>> ecycles;
+        std::vector<std::future<enemy_cycle_data>> ecycles;
         for(auto  i : iterate(serverthreads)) ecycles.push_back(std::async(enemy_cycle, dt, i));
         for(auto& T : ecycles) T.wait();
-        for(auto& T : ecycles)
-            for(const auto& ptr : T.get())
+        for(auto& T : ecycles) {
+            auto data = T.get();
+            for(const auto& ptr : data.survived)
                 for(size_t i = 0; i < gs.created_enemies.size(); i++)
                     if(&gs.created_enemies[i] == ptr) {
                         broadcast << N_ENEMY_SURVIVED
-                                  << 4_u32
-                                  << gs.created_enemies[i].id
-                                  << N_UPDATE_LIVES
-                                  << 8_u32
-                                  << gs.lives;
+                            << 4_u32
+                            << gs.created_enemies[i].id
+                            << N_UPDATE_LIVES
+                            << 8_u32
+                            << gs.lives;
 
                         gs.created_enemies.erase(gs.created_enemies.begin() + i);
                         i--;
                         break;
                     }
+
+            for(auto& id : data.died)
+                for(size_t i = 0; i < gs.created_enemies.size(); i++)
+                    if(gs.created_enemies[i].id == id) {
+                        broadcast << N_KILL_ENEMY
+                                  << 4_u32
+                                  << gs.created_enemies[i].id;
+
+                        gs.created_enemies.erase(gs.created_enemies.begin() + i);
+                        break;
+                    }
+
+            for(auto& s : data.spawned) {
+                auto& e = s.first;
+                gs.created_enemies.push_back({
+                    /* base_type:          */ e.base_type,
+                    /* route:              */ s.third,
+                    /* distance_traveled:  */ s.fourth,
+                    /* pos:                */ (*s.third)[0],
+                    /* max_health:         */ e.base_health
+                                           *  gs.diff.enemy_health_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier,
+                    /* health:             */ e.base_health
+                                           *  gs.diff.enemy_health_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier
+                                           -  s.second,
+                    /* speed:              */ e.base_speed
+                                           *  gs.diff.enemy_speed_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].enemy_speed_multiplier,
+                    /* kill_reward:        */ e.base_kill_reward
+                                           *  gs.diff.enemy_kill_reward_modifier
+                                           *  gs.diff.round_set.r[gs.cur_round].kill_cash_multiplier,
+                    /* immunities:         */ (uint16_t)(e.immunities | gs.diff.enemy_base_immunities),
+                    /* vulnerabilities:    */ e.vulnerabilities,
+                    /* flags:              */ e.flags,
+                    /* slowed_for:         */ 0.0,
+                    /* frozen_for:         */ 0.0,
+                    /* id:                 */ gs.all_spawned_enemies
+                });
+
+                s.fifth.hits.push_back(gs.all_spawned_enemies);
+
+                broadcast << N_SPAWN_ENEMY
+                          << 38_u32
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].base_type
+                          << get_route_id(gs.created_enemies[gs.created_enemies.size() - 1])
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].max_health
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].speed
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].immunities
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].vulnerabilities
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].flags
+                          <<              gs.created_enemies[gs.created_enemies.size() - 1].distance_traveled
+                          <<              gs.all_spawned_enemies++;
+            }
+        }
 
         std::vector<std::future<std::vector<projectile>>> tcycles;
         for(auto  i : iterate(serverthreads)) tcycles.push_back(std::async(tower_cycle, dt, i));
@@ -927,12 +1054,11 @@ _loop:
             case N_UPDATE_LIVES:    return DISC_MSGERR;
 
             case N_REQUEST_UPDATE: {
-                for(auto& ci : clientinfos) {
+                for(auto& ci : clientinfos)
                     reply << N_UPDATE_CASH
                           << 12_u32
                           << ci.id
                           << ci.cash;
-                    }
 
                 reply << N_UPDATE_LIVES
                       << 8_u32
@@ -976,6 +1102,34 @@ _loop:
             case N_GAMEINFO:
             case N_PLAYERINFO:
             case N_REFRESHMENU:     return DISC_MSGERR;
+
+            case N_SENDMONEY: {
+                uint32_t id { 0 };
+                packet >> id;
+                if(id == client->id) break;
+
+                for(auto& ci : clientinfos)
+                    if(ci.id == id) {
+                        double cash_moved = min(max(100.0, client->cash / 4.0), client->cash);
+
+                        client->cash -= cash_moved;
+                             ci.cash += cash_moved;
+
+                        broadcast << N_SENDMONEY
+                                  << 8_u32
+                                  << client->id
+                                  << id
+                                  << N_UPDATE_CASH
+                                  << 12_u32
+                                  << client->id
+                                  << client->cash
+                                  << N_UPDATE_CASH
+                                  << 12_u32
+                                  << ci.id
+                                  << ci.cash;
+                    }
+                break;
+            }
 
             // Forward unrecognized packets to all, will help with moddability
             default: {

@@ -18,17 +18,9 @@
 #endif
 
 using namespace cxxgui;
-svarp(language, "en_US"_str);
 
 sfx_t place_tower { "data/sounds/place_tower.wav" };
 sfx_t error       { "data/sounds/error.wav" };
-
-const char* get_entry(dictionary_entry& d) {
-    for(auto& entry : d)
-        if(language == entry.first)
-            return entry.second;
-    return d["en_US"];
-}
 
 constexpr uint32_t projectile_size = (uint32_t)(sizeof  (projectile)
                                               - offsetof(projectile, id)
@@ -434,7 +426,7 @@ void render_sidebar() {
         auto& t = tower_types[i];
 
         double x = 1630.0 + 140.0 * (i % 2);
-        double y =  140.0 + 140.0 * (i / 2); // Some compilers might throw warning about truncated integer division result being cast to floating point... its fine its truncated on purpose
+        double y =  140.0 + 140.0 * (i / 2);
 
         glEnable(GL_TEXTURE_2D);
 
@@ -550,9 +542,12 @@ void handle_packet(packetstream& p) {
     bool play_sounds = true;
     p >> msgtype
       >> size;
+
+#define skip p.read(nullptr, (size_t)size); break
+
     while(p) {
         switch(msgtype) {
-            case N_CONNECT:           break;
+            case N_CONNECT: skip;
             case N_TEXT: {
                 uint32_t cid { 0 };
                 p >> cid;
@@ -581,7 +576,7 @@ void handle_packet(packetstream& p) {
                   >> cost;
 
                 if(base_type >= NUMTOWERS) {
-                    DEBUGOUT("Unrecognized tower type: " + std::to_string(base_type));
+                    DEBUGOUT(get_entry(DICT_UNRECOGNIZED_TOWER) + std::to_string(base_type));
                     break;
                 }
 
@@ -661,7 +656,9 @@ void handle_packet(packetstream& p) {
                 
                 break;
             }
-            case N_SELLTOWER:         break; // todo
+
+            case N_SELLTOWER: skip; // todo
+
             case N_UPDATE_CASH: {
                 uint32_t cid { 0 };
                 double cash { 0.0 };
@@ -680,7 +677,9 @@ void handle_packet(packetstream& p) {
                 break;
             }
             case N_UPDATE_LIVES: p >> cs.lives; break;
-            case N_REQUEST_UPDATE:    break;
+
+            case N_REQUEST_UPDATE: skip;
+
             case N_UPDATE_ENTITIES: {
                 cs.enemies.clear();
                 cs.projectiles.clear();
@@ -691,8 +690,8 @@ void handle_packet(packetstream& p) {
                     pi.towers.clear();
                 break;
             }
-            case N_PING:              break;
-            case N_PONG:              break; // todo
+            case N_PING: skip;
+            case N_PONG: skip; // todo
             case N_ROUNDINFO: {
                 p >> cs.cur_round;
                 cs.last_round = cs.cur_round;
@@ -720,10 +719,12 @@ void handle_packet(packetstream& p) {
                 send_packet(peer, 0, true, p);
                 break;
             }
-            case N_GAMEOVER:          break; // todo
-            case N_RESTART:           break; // todo
-            case N_CONTINUE:          break; // todo
-            case N_DISCONNECT:        break; // todo
+
+            case N_GAMEOVER:   skip; // todo
+            case N_RESTART:    skip; // todo
+            case N_CONTINUE:   skip; // todo
+            case N_DISCONNECT: skip; // todo
+
             case N_SPAWN_ENEMY: {
                 uint08_t base_type       { NUMENEMIES };
                 uint32_t route           { 0 };
@@ -809,8 +810,10 @@ void handle_packet(packetstream& p) {
                     }
                 break;
             }
-            case N_SENDMAP:           break;
-            case N_GAMEINFO:          break;
+
+            case N_SENDMAP:  skip;
+            case N_GAMEINFO: skip;
+
             case N_PLAYERINFO: {
                 uint32_t id { (uint32_t)-1 };
                 p >> id;
@@ -828,16 +831,18 @@ void handle_packet(packetstream& p) {
                 break;
             }
             case N_REFRESHMENU: ui.last_selected = nullptr; break;
-            default: {
-                DEBUGOUT("Unrecognized packet type ("_str + std::to_string(msgtype) + ')');
-                DUMP(p);
-                p.read(nullptr, (size_t)size);
-                break;
-            }
+
+            case N_SENDMONEY: skip; // todo
+            default: DEBUGOUT(get_entry(DICT_UNRECOGNIZED_PACKET) + " ("_str + std::to_string(msgtype) + ')'); DUMP(p); skip;
+
         }
+
         p >> msgtype
           >> size;
     }
+
+#undef skip
+
 }
 
 ivarp(clientthreads, 1, std::thread::hardware_concurrency() / 2, INTMAX_MAX);

@@ -179,6 +179,7 @@
     <ClInclude Include="engine\server.hpp" />
     <ClInclude Include="engine\texture.hpp" />
     <ClInclude Include="engine\tools.hpp" />
+    <ClInclude Include="game\dictionary.hpp" />
     <ClInclude Include="game\game.hpp" />
     <ClInclude Include="game\game_ui.hpp" />
     <ClInclude Include="include\enet\callbacks.h" />

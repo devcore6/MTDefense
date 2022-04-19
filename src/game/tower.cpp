@@ -58,6 +58,16 @@ result<projectile, void> tower::fire(enemy* e, std::vector<enemy*>* targets) {
 
     remaining_cooldown = 1.0 / (pt->fire_rate * fire_rate_mod);
 
+    std::vector<debuff> cur_debuffs;
+
+    for(auto d : debuffs) cur_debuffs.push_back(d);
+    if(pt->debuff_type) cur_debuffs.push_back({
+        pt->debuff_duration,
+        pt->debuff_dps,
+        pt->debuff_speed_multiplier,
+        pt->debuff_type
+    });
+
     return projectile {
         /* texture:                   */ pt->texture,
         /* path:                      */ pt->path,
@@ -76,13 +86,11 @@ result<projectile, void> tower::fire(enemy* e, std::vector<enemy*>* targets) {
         /* flags:                     */ (uint08_t)(flags | pt->flags),
         /* armor_mod:                 */ max(pt->armor_modifier, armor_mod),
         /* pid:                       */ (uint32_t)-1,
-        /* debuff_remaining_duration: */ 0.0,
-        /* debuff_dps:                */ 0.0,
-        /* debuff_speed_multiplier:   */ 1.0,
-        /* hits:                      */ { },
-        /* enemies:                   */ targets,
         /* stun_time:                 */ extra_stun_time,
-        /* double_damage_time:        */ extra_double_damage_time
+        /* double_damage_time:        */ extra_double_damage_time,
+        /* debuffs:                   */ cur_debuffs,
+        /* hits:                      */ { },
+        /* enemies:                   */ targets
     };
 }
 
@@ -113,12 +121,32 @@ bool tower::try_upgrade(uint8_t path, double price) {
     extra_damage_types          += u.extra_damage_types;
     extra_stun_time             += u.extra_stun_time;
     extra_double_damage_time    += u.extra_double_damage_time;
+
+    if(u.debuff_type) {
+        bool found = false;
+
+        for(auto& d : debuffs) if(d.debuff_type == u.debuff_type) {
+            d.debuff_duration         += u.debuff_duration;
+            d.debuff_dps              += u.debuff_dps;
+            d.debuff_speed_multiplier *= u.debuff_speed_multiplier;
+            found = true;
+            break;
+        }
+
+        if(!found) debuffs.push_back({
+            u.debuff_duration,
+            u.debuff_dps,
+            u.debuff_speed_multiplier,
+            u.debuff_type
+        });
+    }
+
     upgrade_paths[path]++;
     return true;
 }
 
 void tower::set_upgrades(uint8_t bot, uint8_t mid, uint8_t top, double price) {
-    cost                        += price;
+    cost += price;
     while(upgrade_paths[0] < bot) if(!try_upgrade(0, 0.0)) break;
     while(upgrade_paths[1] < mid) if(!try_upgrade(1, 0.0)) break;
     while(upgrade_paths[2] < top) if(!try_upgrade(2, 0.0)) break;

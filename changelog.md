@@ -1,3 +1,17 @@
+# r55 Tank tower updates
+## Client
+- Fixed a packet handling fluke
+
+## Server
+- Towers can now apply debuffs to enemies (speed debuff, dps, etc)
+
+## Multiplayer
+- Clients can now send money to each other
+
+## Tank Tower
+- Incendiary shells now work
+- Fixed Stun lock shell shock and biggest one being in the wrong unit (s instead of ms)
+
 # r54 Tank tower updates
 ## Tank Tower
 - Stun lock now works.

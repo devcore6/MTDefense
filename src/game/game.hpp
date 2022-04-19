@@ -132,6 +132,7 @@ enum {
     N_GAMEINFO,
     N_PLAYERINFO,
     N_REFRESHMENU,
+    N_SENDMONEY,
     NUMMSG
 };
 
@@ -168,7 +169,8 @@ constexpr uint32_t msgsizes[NUMMSG] = {
     /* N_SENDMAP:                   */ (uint32_t)-1,
     /* N_GAMEINFO:                  */ (uint32_t)-1,
     /* N_PLAYERINFO:                */ (uint32_t)-1,
-    /* N_REFRESHMENU:               */            0
+    /* N_REFRESHMENU:               */            0,
+    /* N_SENDMONEY:                 */            4
 };
 
 static const struct enemy_t {
@@ -469,10 +471,16 @@ static const struct enemy_t {
     }
 };
 
+enum {
+    DEBUFF_NONE = 0,
+    DEBUFF_INCENDIARY
+};
+
 struct debuff {
     double      debuff_duration;
     double      debuff_dps;
     double      debuff_speed_multiplier;
+    uint8_t     debuff_type;
 };
 
 struct enemy {
@@ -493,7 +501,7 @@ struct enemy {
     double              stunned_for;
     double              double_damaged_for;
     uint32_t            id;
-    //std::vector<debuff> debuffs;
+    std::vector<debuff> debuffs;
 
     enemy() { }
     enemy(const uint8_t         v_base_type,
@@ -1864,6 +1872,7 @@ struct projectile_t {
     double      debuff_duration;
     double      debuff_dps;
     double      debuff_speed_multiplier;
+    uint8_t     debuff_type;
 };
 
 struct projectile {
@@ -1884,13 +1893,11 @@ struct projectile {
     uint8_t     flags;
     double      armor_mod;
     uint32_t    pid;
-    double      debuff_remaining_duration;
-    double      debuff_dps;
-    double      debuff_speed_multiplier;
-    std::vector<uint32_t> hits;
-    std::vector<enemy*>* enemies;
     double      stun_time;
     double      double_damage_time;
+    std::vector<debuff> debuffs;
+    std::vector<uint32_t> hits;
+    std::vector<enemy*>* enemies;
 };
 
 struct upgrade {
@@ -1910,8 +1917,12 @@ struct upgrade {
     uint16_t                            extra_damage_types;
     std::vector<animation_t>            hit_animations;
     std::initializer_list<projectile_t> projectiles;
-    double                              extra_stun_time = 0.0;
-    double                              extra_double_damage_time = 0.0;
+    double                              extra_stun_time           = 0.0;
+    double                              extra_double_damage_time  = 0.0;
+    double                              debuff_duration           = 0.0;
+    double                              debuff_dps                = 0.0;
+    double                              debuff_speed_multiplier   = 0.0;
+    uint8_t                             debuff_type               = DEBUFF_NONE;
 };
 
 static struct tower_t {
@@ -1962,7 +1973,8 @@ static struct tower_t {
                 /* hit_animation: */                    { },
                 /* debuff_duration: */                  0.0,
                 /* debuff_dps: */                       0.0,
-                /* debuff_speed_multiplier: */          1.0
+                /* debuff_speed_multiplier: */          1.0,
+                /* debuff_type: */                      DEBUFF_NONE
             }
         },
         /* upgrade_paths: */ {
@@ -2185,7 +2197,8 @@ static struct tower_t {
                             /* hit_animation: */        { },
                             /* debuff_duration: */      0.0,
                             /* debuff_dps: */           0.0,
-                            /* debuff_speed_mul: */     1.0
+                            /* debuff_speed_mul: */     1.0,
+                            /* debuff_type: */          DEBUFF_NONE
                         }
                     }
                 },
@@ -2273,7 +2286,8 @@ static struct tower_t {
                             /* hit_animation: */        { },
                             /* debuff_duration: */      0.0,
                             /* debuff_dps: */           0.0,
-                            /* debuff_speed_mul: */     1.0
+                            /* debuff_speed_mul: */     1.0,
+                            /* debuff_type: */          DEBUFF_NONE
                         },
                         {
                             /* texture: */              texture_t("data/towers/sentry/projectiles/Biological pellet.png"),
@@ -2294,7 +2308,8 @@ static struct tower_t {
                             /* hit_animation: */        { },
                             /* debuff_duration: */      0.0,
                             /* debuff_dps: */           0.0,
-                            /* debuff_speed_mul: */     1.0
+                            /* debuff_speed_mul: */     1.0,
+                            /* debuff_type: */          DEBUFF_NONE
                         },
                         {
                             /* texture: */              texture_t("data/towers/sentry/projectiles/Stripping pellet.png"),
@@ -2315,7 +2330,8 @@ static struct tower_t {
                             /* hit_animation: */        { },
                             /* debuff_duration: */      0.0,
                             /* debuff_dps: */           0.0,
-                            /* debuff_speed_mul: */     1.0
+                            /* debuff_speed_mul: */     1.0,
+                            /* debuff_type: */          DEBUFF_NONE
                         }
                     }
                 }
@@ -2490,7 +2506,8 @@ static struct tower_t {
                 /* hit_animation: */                    { },
                 /* debuff_duration: */                  0.0,
                 /* debuff_dps: */                       0.0,
-                /* debuff_speed_multiplier: */          1.0
+                /* debuff_speed_multiplier: */          1.0,
+                /* debuff_type: */                      DEBUFF_NONE
             }
         },
         /* upgrade_paths: */ {
@@ -2582,7 +2599,7 @@ static struct tower_t {
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
                     /* projectiles: */                  { },
-                    /* extra_stun_time: */              1.0
+                    /* extra_stun_time: */              1000.0
                 },
                 {
                     /* name: */ {
@@ -2606,7 +2623,7 @@ static struct tower_t {
                     /* hit_animations: */               { },
                     /* projectiles: */                  { },
                     /* extra_stun_time: */              0.0,
-                    /* extra_double_damage_time: */     0.25
+                    /* extra_double_damage_time: */     250.0
                 },
                 {
                     /* name: */ {
@@ -2629,8 +2646,8 @@ static struct tower_t {
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
                     /* projectiles: */                  { },
-                    /* extra_stun_time: */              0.75,
-                    /* extra_double_damage_time: */     0.5
+                    /* extra_stun_time: */              750.0,
+                    /* extra_double_damage_time: */     500.0
                 }
             },
             {
@@ -2698,7 +2715,7 @@ static struct tower_t {
                     /* extra_damage_range: */           0.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
-                    /* projectiles: */ { }
+                    /* projectiles: */                  { }
                 },
                 {
                     /* name: */ {
@@ -2861,7 +2878,7 @@ static struct tower_t {
                         { "en_US", "Incendiary Shells" }
                     },
                     /* desc: */ {
-                        { "en_US", "Shells set enemies on fire, causing them to get damaged every second for 5 seconds. - TODO -" }
+                        { "en_US", "Shells set enemies on fire, causing them to get damaged every second for 5 seconds." }
                     },
                     /* base_price: */                   8000.00,
                     /* range_mod: */                    1.00,
@@ -2876,7 +2893,13 @@ static struct tower_t {
                     /* extra_damage_range: */           0.0,
                     /* extra_damage_types: */           DAMAGE_NONE,
                     /* hit_animations: */               { },
-                    /* projectiles: */                  { }
+                    /* projectiles: */                  { },
+                    /* extra_stun_time: */              0.0,
+                    /* extra_double_damage_time: */     0.0,
+                    /* debuff_duration: */              5000.0,
+                    /* debuff_dps: */                   1.0,
+                    /* debuff_speed_multiplier: */      0.95,
+                    /* debuff_type: */                  DEBUFF_INCENDIARY
                 },
                 {
                     /* name: */ {
@@ -2934,7 +2957,9 @@ public:
     uint32_t        id                          = -1;
     uint32_t        cid                         = -1;
     double          extra_stun_time             = 0.0;
-    double          extra_double_damage_time = 0.0;
+    double          extra_double_damage_time    = 0.0;
+
+    std::vector<debuff> debuffs;
 
                              tower(tower_t& t, double c, double x, double y);
     void                     tick(double time);
@@ -2985,9 +3010,4 @@ struct clientinfo {
 extern clientinfo playerinfo;
 #endif
 
-static dictionary_entry targeting_mode_names[NUMTARGETINGS] = {
-    /* TARGETING_FIRST:  */ { { "en_US", "First"  } },
-    /* TARGETING_LAST:   */ { { "en_US", "Last"   } },
-    /* TARGETING_WEAK:   */ { { "en_US", "Weak"   } },
-    /* TARGETING_STRONG: */ { { "en_US", "Strong" } }
-};
+#include "dictionary.hpp"

@@ -59,9 +59,14 @@ bool init_gl() {
 
     if(SDL_Init(SDL_INIT_VIDEO) < 0) return false;
 
-    if(Mix_OpenAudio((int)audio_device_frequency, (uint16_t)audio_device_format, (int)audio_device_channels, (int)audio_device_chunksize) == -1) return false;
+    if(Mix_OpenAudio(
+        (int)audio_device_frequency,
+        (uint16_t)audio_device_format,
+        (int)audio_device_channels,
+        (int)audio_device_chunksize
+    ) == -1) return false;
 
-    Mix_Volume(-1, MIX_MAX_VOLUME * audio_volume);
+    Mix_Volume(-1, (int)(MIX_MAX_VOLUME * audio_volume));
     
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -139,7 +144,7 @@ void main_loop_stub() {
                 switch(e.window.event) {
                     case SDL_WINDOWEVENT_RESIZED:
                     case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                        width = e.window.data1;
+                        width  = e.window.data1;
                         height = e.window.data2;
                         break;
                     }
@@ -151,7 +156,6 @@ void main_loop_stub() {
             case SDL_KEYDOWN: {
                 switch(e.key.keysym.scancode) {
                     case SDL_SCANCODE_SPACE: space_bar(); break;
-                    default: break;
                 }
                 break;
             }
