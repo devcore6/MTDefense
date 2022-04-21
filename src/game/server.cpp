@@ -152,6 +152,9 @@ struct projectile_cycle_data {
         line_strip_t* third;
         double fourth;
         projectile& fifth;
+        double stun_time;
+        double double_damage_time;
+        std::vector<debuff> debuffs;
     };
     std::vector<e>                         enemies_to_add;
     double                                 extra_cash { 0.0 };
@@ -171,7 +174,10 @@ uint32_t queue_spawns(
     line_strip_t* p,
     projectile& pj,
     uint32_t id,
-    double dist
+    double dist,
+    double stun_time,
+    double double_damage_time,
+    std::vector<debuff> debuffs
 ) {
     uint32_t ret = id;
 
@@ -187,8 +193,19 @@ uint32_t queue_spawns(
                       * gs.diff.enemy_health_modifier
                       * gs.diff.round_set.r[gs.cur_round].enemy_health_multiplier;
 
-        if(health <= excess_damage) ret = queue_spawns(data, excess_damage - health, s, flags, p, pj, ret, dist);
-        else {
+        if(health <= excess_damage) ret = queue_spawns(
+            data,
+            excess_damage - health,
+            s,
+            flags,
+            p,
+            pj,
+            ret,
+            dist,
+            stun_time,
+            double_damage_time,
+            debuffs
+        ); else {
             uint8_t random_flags = E_FLAG_NONE;
 
             if(gs.diff.enemy_random_stealth_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_stealth_odds
@@ -197,12 +214,12 @@ uint32_t queue_spawns(
             if(gs.diff.enemy_random_armored_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_armored_odds
             *   gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                 random_flags |= E_FLAG_ARMORED;
-            if(gs.diff.enemy_random_shield_odds) if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds
+            if(gs.diff.enemy_random_shield_odds)  if((rng() % (size_t)(1.0 / (gs.diff.enemy_random_shield_odds
             *  gs.diff.round_set.r[gs.cur_round].special_odds_multiplier))) == 0)
                 random_flags |= E_FLAG_SHIELD;
             
             s.flags |= (uint8_t)(flags | random_flags);
-            data.enemies_to_add.push_back({ s, excess_damage, p, dist - ret * 16, pj });
+            data.enemies_to_add.push_back({ s, excess_damage, p, dist - ret * 16, pj, stun_time, double_damage_time, debuffs });
             ret++;
         }
     }
@@ -234,22 +251,39 @@ enemy_cycle_data enemy_cycle(double dt, size_t i) {
 
         e.health -= damage_pending;
 
+        if(e.stunned_for > 0.0) {
+            e.stunned_for -= dt;
+            if(e.stunned_for <= 0.0)
+                e.distance_traveled += e.speed * 150.0 * speed_mul * (-e.stunned_for);
+        } else e.distance_traveled += e.speed * 150.0 * speed_mul * dt;
+
+        if(e.double_damaged_for > 0.0) {
+            e.health -= damage_pending;
+            e.double_damaged_for -= dt;
+        }
+
         if(e.health <= 0.0) {
             ret.died.push_back(e.id);
 
             projectile_cycle_data tmp { };
             projectile p { };
-            queue_spawns(tmp, abs(e.health), enemy_types[e.base_type], e.flags, e.route, p, 0, e.distance_traveled);
+            queue_spawns(
+                tmp,
+                abs(e.health),
+                enemy_types[e.base_type],
+                e.flags,
+                e.route,
+                p,
+                0,
+                e.distance_traveled,
+                e.stunned_for,
+                e.double_damaged_for,
+                e.debuffs
+            );
             for(auto s : tmp.enemies_to_add) ret.spawned.push_back(s);
 
             continue;
         }
-
-        if(e.stunned_for > 0.0) {
-            e.stunned_for -= dt;
-            if(e.stunned_for <= 0.0)
-               e.distance_traveled += e.speed * 150.0 * speed_mul * (-e.stunned_for);
-        } else e.distance_traveled += e.speed * 150.0 * speed_mul * dt;
 
         if(e.distance_traveled >= e.route->length()) {
             double lives = count_lives(enemy_types[e.base_type]);
@@ -306,6 +340,8 @@ void do_damage(projectile_cycle_data& data, projectile& p, enemy* e) {
     if( p.flags & P_FLAG_STRIP_STEALTH) e->flags &= ~E_FLAG_STEALTH;
     if(e->flags & E_FLAG_SHIELD)      { e->flags &= ~E_FLAG_SHIELD; return; }
 
+    if(e->double_damaged_for > 0.0) dmg *= 2;
+
     e->double_damaged_for = max(e->double_damaged_for, p.double_damage_time);
     e->health -= dmg * ((e->double_damaged_for > 0.0) + 1.0);
     e->stunned_for = max(e->stunned_for, p.stun_time);
@@ -328,7 +364,19 @@ void do_damage(projectile_cycle_data& data, projectile& p, enemy* e) {
 
     if(e->health <= 0.0) {
         data.enemies_to_erase.push_back(e->id);
-        queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, 0, e->distance_traveled);
+        queue_spawns(
+            data,
+            abs(e->health),
+            enemy_types[e->base_type],
+            e->flags,
+            e->route,
+            p,
+            0,
+            e->distance_traveled,
+            e->stunned_for,
+            e->double_damaged_for,
+            e->debuffs
+        );
     }
 }
 
@@ -367,6 +415,8 @@ void detonate(projectile_cycle_data& data, projectile& p) {
             if( p.flags & P_FLAG_STRIP_STEALTH) e->flags &= ~E_FLAG_STEALTH;
             if(e->flags & E_FLAG_SHIELD)      { e->flags &= ~E_FLAG_SHIELD; return; }
 
+            if(e->double_damaged_for > 0.0) dmg *= 2;
+
             e->double_damaged_for = max(e->double_damaged_for, p.double_damage_time);
             e->health -= dmg * ((e->double_damaged_for > 0.0) + 1.0);
             e->stunned_for = max(e->stunned_for, p.stun_time);
@@ -389,7 +439,19 @@ void detonate(projectile_cycle_data& data, projectile& p) {
 
             if(e->health <= 0.0) {
                 data.enemies_to_erase.push_back(e->id);
-                queue_spawns(data, abs(e->health), enemy_types[e->base_type], e->flags, e->route, p, 0, e->distance_traveled);
+                queue_spawns(
+                    data,
+                    abs(e->health),
+                    enemy_types[e->base_type],
+                    e->flags,
+                    e->route,
+                    p,
+                    0,
+                    e->distance_traveled,
+                    e->stunned_for,
+                    e->double_damaged_for,
+                    e->debuffs
+                );
             }
         }
     }
@@ -549,11 +611,11 @@ void servertick() {
                 for(size_t i = 0; i < gs.created_enemies.size(); i++)
                     if(&gs.created_enemies[i] == ptr) {
                         broadcast << N_ENEMY_SURVIVED
-                            << 4_u32
-                            << gs.created_enemies[i].id
-                            << N_UPDATE_LIVES
-                            << 8_u32
-                            << gs.lives;
+                                  << 4_u32
+                                  << gs.created_enemies[i].id
+                                  << N_UPDATE_LIVES
+                                  << 8_u32
+                                  << gs.lives;
 
                         gs.created_enemies.erase(gs.created_enemies.begin() + i);
                         i--;
@@ -598,6 +660,11 @@ void servertick() {
                     /* frozen_for:         */ 0.0,
                     /* id:                 */ gs.all_spawned_enemies
                 });
+
+                gs.created_enemies[gs.created_enemies.size() - 1].stunned_for = s.stun_time;
+                gs.created_enemies[gs.created_enemies.size() - 1].double_damaged_for = s.double_damage_time;
+
+                for(auto d : s.debuffs) gs.created_enemies[gs.created_enemies.size() - 1].debuffs.push_back(d);
 
                 s.fifth.hits.push_back(gs.all_spawned_enemies);
 
@@ -666,6 +733,12 @@ void servertick() {
                     /* frozen_for:         */ 0.0,
                     /* id:                 */ gs.all_spawned_enemies
                 });
+
+
+                gs.created_enemies[gs.created_enemies.size() - 1].stunned_for = s.stun_time;
+                gs.created_enemies[gs.created_enemies.size() - 1].double_damaged_for = s.double_damage_time;
+
+                for(auto d : s.debuffs) gs.created_enemies[gs.created_enemies.size() - 1].debuffs.push_back(d);
 
                 s.fifth.hits.push_back(gs.all_spawned_enemies);
 

@@ -1,3 +1,7 @@
+# r56 Bug fix
+## Server
+- Fixed stun lock and debuffs not being applied to children
+
 # r55 Tank tower updates
 ## Client
 - Fixed a packet handling fluke
